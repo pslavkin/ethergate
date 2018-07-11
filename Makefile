@@ -63,6 +63,7 @@ ${COMPILER}:
 #
 ${COMPILER}/out.axf: ${COMPILER}/cgifuncs.o
 ${COMPILER}/out.axf: ${COMPILER}/main.o
+${COMPILER}/out.axf: ${COMPILER}/commands.o
 ${COMPILER}/out.axf: ${COMPILER}/httpd.o
 ${COMPILER}/out.axf: ${COMPILER}/io.o
 ${COMPILER}/out.axf: ${COMPILER}/io_fs.o
@@ -70,6 +71,7 @@ ${COMPILER}/out.axf: ${COMPILER}/locator.o
 ${COMPILER}/out.axf: ${COMPILER}/lwiplib.o
 ${COMPILER}/out.axf: ${COMPILER}/pinout.o
 ${COMPILER}/out.axf: ${COMPILER}/startup_${COMPILER}.o
+${COMPILER}/out.axf: ${COMPILER}/cmdline.o
 ${COMPILER}/out.axf: ${COMPILER}/uartstdio.o
 ${COMPILER}/out.axf: ${COMPILER}/ustdlib.o
 ${COMPILER}/out.axf: ${ROOT}/driverlib/${COMPILER}/libdriver.a

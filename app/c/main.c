@@ -20,6 +20,7 @@
 #include "drivers/pinout.h"
 #include "io.h"
 #include "cgifuncs.h"
+#include "commands.h"
 
 //*****************************************************************************
 //
@@ -124,8 +125,8 @@ static int32_t SSIHandler(int32_t iIndex, char *pcInsert, int32_t iInsertLen);
 //*****************************************************************************
 static const tCGI g_psConfigCGIURIs[] =
 {
-    { "/iocontrol.cgi", (tCGIHandler)ControlCGIHandler }, // CGI_INDEX_CONTROL
-    { "/settxt.cgi", (tCGIHandler)SetTextCGIHandler }     // CGI_INDEX_TEXT
+    { "/iocontrol.cgi" ,(tCGIHandler)ControlCGIHandler } ,// CGI_INDEX_CONTROL
+    { "/settxt.cgi"    ,(tCGIHandler)SetTextCGIHandler }     // CGI_INDEX_TEXT
 };
 
 //*****************************************************************************
@@ -412,15 +413,15 @@ lwIPHostTimerHandler(void)
             UARTprintf("Waiting for link.\n");
         }
         else
-           //if(ui32NewIPAddress == 0)
-           //{
-           // //
-           // // There is no IP address, so indicate that the DHCP process is
-           // // running.
-           // //
-           // UARTprintf("Waiting for IP address.\n");
-           //}
-           //else
+           if(ui32NewIPAddress == 0)
+           {
+            //
+            // There is no IP address, so indicate that the DHCP process is
+            // running.
+            //
+            UARTprintf("Waiting for IP address.\n");
+           }
+           else
            {
             //
             // Display the new IP address.
@@ -594,7 +595,7 @@ int main(void)
             // Do nothing.
             //
         }
-
+         CheckForUserCommands ( );
         //
         // Clear the flag now that we have seen it.
         //
@@ -604,7 +605,6 @@ int main(void)
         // Toggle the GPIO
         //
         MAP_GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1,
-                (MAP_GPIOPinRead(GPIO_PORTN_BASE, GPIO_PIN_1) ^
-                 GPIO_PIN_1));
+                (MAP_GPIOPinRead(GPIO_PORTN_BASE, GPIO_PIN_1) ^ GPIO_PIN_1));
     }
 }

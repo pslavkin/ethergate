@@ -69,6 +69,7 @@ CFLAGS=-mthumb             \
        -Wall               \
        -pedantic           \
        -DPART_${PART}      \
+       -DUART_BUFFERED     \
        -c
 
 #
@@ -111,7 +112,7 @@ OBJCOPY=${PREFIX}-objcopy
 # variable is set.
 #
 ifdef DEBUG
-CFLAGS+=-g -D DEBUG -O0
+CFLAGS+=-g -D DEBUG -O0 
 else
 CFLAGS+=-Os
 endif

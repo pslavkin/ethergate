@@ -1608,7 +1608,7 @@ UARTStdioIntHandler(void)
                 // Handle backspace by erasing the last character in the
                 // buffer.
                 //
-                if(cChar == '\b')
+                if(cChar == '\b' || cChar == 127) //el 127 me lo manda picocom
                 {
                     //
                     // If there are any characters already in the buffer, then
