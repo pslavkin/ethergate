@@ -21,10 +21,10 @@
 //
 #define HOST_TMR_INTERVAL               100         // default is 0
 #define DHCP_EXPIRE_TIMER_MSECS         (10 * 1000)
-#define LWIP_HTTPD_SSI                  1
-#define LWIP_HTTPD_CGI                  1
-#define LWIP_HTTPD_DYNAMIC_HEADERS      1
-#define HTTPD_DEBUG                     LWIP_DBG_ON
+//#define LWIP_HTTPD_SSI                  1
+//#define LWIP_HTTPD_CGI                  1
+//#define LWIP_HTTPD_DYNAMIC_HEADERS      1
+//#define HTTPD_DEBUG                     LWIP_DBG_ON
 
 #if !defined(EMAC_PHY_IS_EXT_MII) && !defined(EMAC_PHY_IS_EXT_RMII)
 #define EMAC_PHY_CONFIG (EMAC_PHY_TYPE_INTERNAL | EMAC_PHY_INT_MDIX_EN |      \

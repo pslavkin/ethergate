@@ -1146,6 +1146,33 @@ GPIOPinWrite(uint32_t ui32Port, uint8_t ui8Pins, uint8_t ui8Val)
     //
     HWREG(ui32Port + (GPIO_O_DATA + (ui8Pins << 2))) = ui8Val;
 }
+void GPIOPinSet(uint32_t ui32Port, uint8_t ui8Pins)
+{
+//*****************************************************************************
+// pslavkinL agrego esta funcion para setera un pin.. 
+// como lo uso mucho, me evito un parametro
+//! \return None.
+//
+//*****************************************************************************
+    //
+    // Write the pins.
+    //
+    HWREG(ui32Port + (GPIO_O_DATA + (ui8Pins << 2))) = ui8Pins;
+}
+
+void GPIOPinReset(uint32_t ui32Port, uint8_t ui8Pins)
+{
+//*****************************************************************************
+// pslavkin: agrego esta funcion para setera un pin.. 
+// como lo uso mucho, me evito un parametro
+//! \return None.
+//
+//*****************************************************************************
+    //
+    // Write the pins.
+    //
+    HWREG(ui32Port + (GPIO_O_DATA + (ui8Pins << 2))) = 0;
+}
 
 //*****************************************************************************
 //

@@ -159,6 +159,8 @@ extern void GPIOIntRegisterPin(uint32_t ui32Port, uint32_t ui32Pin,
 extern void GPIOIntUnregisterPin(uint32_t ui32Port, uint32_t ui32Pin);
 extern int32_t GPIOPinRead(uint32_t ui32Port, uint8_t ui8Pins);
 extern void GPIOPinWrite(uint32_t ui32Port, uint8_t ui8Pins, uint8_t ui8Val);
+extern void GPIOPinSet(uint32_t ui32Port, uint8_t ui8Pins);
+extern void GPIOPinReset(uint32_t ui32Port, uint8_t ui8Pins);
 extern void GPIOPinConfigure(uint32_t ui32PinConfig);
 extern void GPIOPinTypeADC(uint32_t ui32Port, uint8_t ui8Pins);
 extern void GPIOPinTypeCAN(uint32_t ui32Port, uint8_t ui8Pins);

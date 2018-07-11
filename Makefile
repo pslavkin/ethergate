@@ -21,7 +21,6 @@ include ${ROOT}/makedefs
 # Where to find source files that do not live in this directory.
 #
 VPATH=${ROOT}/third_party/lwip-1.4.1/apps
-VPATH+=${ROOT}/third_party/lwip-1.4.1/apps/httpserver_raw
 VPATH+=${APP}/c
 VPATH+=${ROOT}/utils
 VPATH+=${ROOT}/drivers
@@ -61,13 +60,16 @@ ${COMPILER}:
 #
 # Rules for building the Sample Ethernet I/O Control Application using lwIP.
 #
-${COMPILER}/out.axf: ${COMPILER}/cgifuncs.o
 ${COMPILER}/out.axf: ${COMPILER}/main.o
+${COMPILER}/out.axf: ${COMPILER}/rti.o
+${COMPILER}/out.axf: ${COMPILER}/events.o
+${COMPILER}/out.axf: ${COMPILER}/schedule.o
+${COMPILER}/out.axf: ${COMPILER}/everythings.o
+${COMPILER}/out.axf: ${COMPILER}/leds_session.o
+${COMPILER}/out.axf: ${COMPILER}/state_machine.o
+${COMPILER}/out.axf: ${COMPILER}/clk.o
 ${COMPILER}/out.axf: ${COMPILER}/commands.o
-${COMPILER}/out.axf: ${COMPILER}/httpd.o
 ${COMPILER}/out.axf: ${COMPILER}/io.o
-${COMPILER}/out.axf: ${COMPILER}/io_fs.o
-${COMPILER}/out.axf: ${COMPILER}/locator.o
 ${COMPILER}/out.axf: ${COMPILER}/lwiplib.o
 ${COMPILER}/out.axf: ${COMPILER}/pinout.o
 ${COMPILER}/out.axf: ${COMPILER}/startup_${COMPILER}.o

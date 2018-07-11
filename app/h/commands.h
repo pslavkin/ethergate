@@ -23,6 +23,7 @@ extern int Cmd_help              ( int argc, char *argv[] );
 extern int Cmd_Mac               ( int argc, char *argv[] );
 extern void UpdateMACAddr        ( void                   );
 extern void CheckForUserCommands ( void                   );
+extern void DisplayIPAddress     ( uint32_t ui32Addr      );
 
 //*****************************************************************************
 //

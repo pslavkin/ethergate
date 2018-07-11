@@ -54,10 +54,10 @@ void UpdateMACAddr(void)
             pui8MACAddr[0], pui8MACAddr[1], pui8MACAddr[2], pui8MACAddr[3],
             pui8MACAddr[4], pui8MACAddr[5]);
 }
-void PrintIPAddress(char *pcAddr, uint32_t ipaddr)
+void DisplayIPAddress(uint32_t ui32Addr)
 {
-    uint8_t *pui8Temp = (uint8_t *)&ipaddr;
-    UARTprintf("%d.%d.%d.%d\n", pui8Temp[0], pui8Temp[1], pui8Temp[2], pui8Temp[3]);
+    UARTprintf( "%d.%d.%d.%d", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
+            (ui32Addr >> 16) & 0xff, (ui32Addr >> 24) & 0xff);
 }
 
 
