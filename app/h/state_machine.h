@@ -4,6 +4,8 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "driverlib/cpu.h"
+#include "driverlib/rom_map.h"
+#include "driverlib/interrupt.h"
 
 //------------------------------------------------------------------
 typedef struct Efn      //Event-Function-Next
@@ -13,7 +15,8 @@ typedef struct Efn      //Event-Function-Next
    const struct Efn *Next_State;
  } State;
 //------------------------------------------------------------------
-#define Atomic(Function)   {CPUcpsid();Function;CPUcpsie();}
+//#define Atomic(Function)   {CPUcpsid();Function;CPUcpsie();}
+#define Atomic(Function)   {MAP_IntMasterDisable();Function;MAP_IntMasterEnable();}
 //------------------------------------------------------------------
 void           Rien          ( void                                         );
 void           Set_State     ( const State* New_State,const State** Machine );

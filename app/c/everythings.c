@@ -25,9 +25,11 @@
 #include "schedule.h"
 #include "leds_session.h"
 #include "commands.h"
+#include "wdog.h"
+#include "telnet.h"
 
 
-const State   
+const State
    Free_State1             [ ],
    Free_State2             [ ],
    Free_State3             [ ],
@@ -43,25 +45,15 @@ const State* Everythings_Sm;           //variable que lleva cuenta del estado de
 //-------------------------------------------------------------------------------------
 void Init_Everythings(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
 {
-Everythings_Sm=Free_State1;
- Init_Schedule     ( );
-// Init_Leds_Session ( );
-// Init_Wdog();
+   Everythings_Sm=Free_State1;
+   Init_Schedule     ( );
+   Init_Wdog();
+   Init_Telnet();
 }
 //------------------------------------------------------------------
 const State**  Everythings      ( void ) { return &Everythings_Sm                 ;} // devuelve la direccion de la maquina de estados Everythings para poder mandarle mensajes.
 void           Everythings_Rti  ( void ) { Send_Event(ANY_Event,Everythings())    ;} // manda mensajes ANY a tiempos predefinidos...
 
-
-const unsigned char buf[]=
-{
- "viva  TI\r\n"
- "abajo fs\r\n"
-};
-void test(void)
-{
-//   UARTprintf("hola");
-}
 //--------------------- MAQUINA DE ESTADOS PARA EVERYTHINGS --------------------
 const State Free_State1 [ ]=
 {
@@ -69,15 +61,15 @@ const State Free_State1 [ ]=
 };
 const State Free_State2 [ ]=
 {
-   { ANY_Event ,test                 ,Free_State3  } ,
+   { ANY_Event ,Rien                 ,Free_State3  } ,
 };
 const State Free_State3 [ ]=
 {
-   { ANY_Event ,Schedule                 ,Free_State4  } ,
+   { ANY_Event ,Schedule             ,Free_State4  } ,
 };
 const State Free_State4 [ ]=
 {
-   { ANY_Event ,Rien                 ,Free_State5  } ,
+   { ANY_Event ,Wdog_Clear           ,Free_State5  } ,
 };
 const State Free_State5 [ ]=
 {
@@ -89,11 +81,11 @@ const State Free_State6 [ ]=
 };
 const State Free_State7 [ ]=
 {
-   { ANY_Event ,Rien                 ,Free_State8  } ,
+   { ANY_Event ,Led_Effects_Func                 ,Free_State8  } ,
 };
 const State Free_State8 [ ]=
 {
-   { ANY_Event ,Led_Effects_Func                 ,Free_State9  } ,
+   { ANY_Event ,Rien     ,Free_State9  } ,
 };
 const State Free_State9 [ ]=
 {

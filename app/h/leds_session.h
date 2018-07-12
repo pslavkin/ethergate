@@ -8,17 +8,6 @@
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 //-----------------------------------------------------------
-#define ABORT_TOUT   5*30     //30 segundos.
-
-enum Leds_Session_Event_Code{
-   Short_Released_Event = 0xD000,
-   Long_Released_Event  = 0xD001,
-   Abort_Event          = 0xD002
-   };
-//-----------------------------------------------------------
-void           Leds_Session_Rti  ( void );
-void           Init_Leds_Session ( void );
-const State**  Leds_Session      ( void );
 void Led_Effects_Func            ( void );
 // ----------------------------------------------------
 void           Init_Led          ( void );
@@ -33,20 +22,20 @@ void           Init_Led          ( void );
 #define LED_LINK_PERIPH    SYSCTL_PERIPH_GPION
 
 //degino la posicino de los leds en el puerto F
-#define LED_RUN_PIN     GPIO_PIN_4
-#define LED_RUN_PORT    GPIO_PORTF_BASE
-#define LED_RUN_PERIPH     SYSCTL_PERIPH_GPIOF
-#define LED_ONE_WIRE_PIN   GPIO_PIN_0
-#define LED_ONE_WIRE_PORT  GPIO_PORTF_BASE
-#define LED_ONE_WIRE_PERIPH   SYSCTL_PERIPH_GPIOF
+#define LED_RUN_PIN         GPIO_PIN_4
+#define LED_RUN_PORT        GPIO_PORTF_BASE
+#define LED_RUN_PERIPH      SYSCTL_PERIPH_GPIOF
+#define LED_ONE_WIRE_PIN    GPIO_PIN_0
+#define LED_ONE_WIRE_PORT   GPIO_PORTF_BASE
+#define LED_ONE_WIRE_PERIPH SYSCTL_PERIPH_GPIOF
 
 //degino la posicino del boton
-#define BUTTON1_PIN     GPIO_PIN_0
-#define BUTTON1_PORT    GPIO_PORTJ_BASE
-#define BUTTON1_PERIPH     SYSCTL_PERIPH_GPIOJ
-#define BUTTON2_PIN     GPIO_PIN_1
-#define BUTTON2_PORT    GPIO_PORTJ_BASE
-#define BUTTON2_PERIPH     SYSCTL_PERIPH_GPIOJ
+#define BUTTON1_PIN    GPIO_PIN_0
+#define BUTTON1_PORT   GPIO_PORTJ_BASE
+#define BUTTON1_PERIPH SYSCTL_PERIPH_GPIOJ
+#define BUTTON2_PIN    GPIO_PIN_1
+#define BUTTON2_PORT   GPIO_PORTJ_BASE
+#define BUTTON2_PERIPH SYSCTL_PERIPH_GPIOJ
 //---------------------------------------------------------
 void Set_Led_Effect       ( unsigned char Led,unsigned int Effect );
 void Set_Temp_Led_Effect  ( unsigned char Led,unsigned int Effect );

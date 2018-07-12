@@ -75,65 +75,9 @@ __error__(char *pcFilename, uint32_t ui32Line)
 // Required by lwIP library to support any host-related timer functions.
 //
 //*****************************************************************************
-void lwIPHostTimerHandler(void)/*{{{*/
+void lwIPHostTimerHandler(void)
 {
-    uint32_t ui32NewIPAddress;
-
-    //
-    // Get the current IP address.
-    //
-    ui32NewIPAddress = lwIPLocalIPAddrGet();
-    //
-    // See if the IP address has changed.
-    //
-    if(ui32NewIPAddress != g_ui32IPAddress)
-    {
-        //
-        // See if there is an IP address assigned.
-        //
-        if(ui32NewIPAddress == 0xffffffff)
-        {
-            //
-            // Indicate that there is no link.
-            //
-            UARTprintf("Waiting for link.\n");
-        }
-        else
-           if(ui32NewIPAddress == 0)
-           {
-            //
-            // There is no IP address, so indicate that the DHCP process is
-            // running.
-            //
-            UARTprintf("Waiting for IP address.\n");
-           }
-           else
-           {
-            //
-            // Display the new IP address.
-            //
-            UARTprintf("IP Address: ");
-            DisplayIPAddress(ui32NewIPAddress);
-            UARTprintf("\n");
-            UARTprintf("Open a browser and enter the IP address.\n");
-        }
-
-        //
-        // Save the new IP address.
-        //
-        g_ui32IPAddress = ui32NewIPAddress;
-    }
-
-    //
-    // If there is not an IP address.
-    //
-    if((ui32NewIPAddress == 0) || (ui32NewIPAddress == 0xffffffff))
-    {
-        //
-        // Do nothing and keep waiting.
-        //
-    }
-}/*}}}*/
+}
 
 int main(void)
 {
@@ -161,10 +105,6 @@ int main(void)
     ui32User0=0x01020304;
     ui32User1=0x05060708;
     //
-    // Tell the user what we are doing just now.
-    //
-    UARTprintf("Waiting for IP.\n");
-
     //
     // Convert the 24/24 split MAC address from NV ram into a 32/16 split
     // MAC address needed to program the hardware registers, then program

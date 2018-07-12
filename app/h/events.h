@@ -2,7 +2,7 @@
 #define EVENTS
 #include <state_machine.h>
 //-----------------------------------------------------------
-#define MAX_EVENTS      80//40 //40//40//80 //25 //ojo que en linux se mandan paquetes largos y el parser mete todo a eventos... por ejemplo el cambio de ip's es A192.168.002.010 255.255.255.000 192.168.002.001\r\n = 50 EVENTOS!!! mas alguno que ande por alli!!...
+#define MAX_EVENTS      10//40 //40//40//80 //25 //ojo que en linux se mandan paquetes largos y el parser mete todo a eventos... por ejemplo el cambio de ip's es A192.168.002.010 255.255.255.000 192.168.002.001\r\n = 50 EVENTOS!!! mas alguno que ande por alli!!...
 #define MAX_EVENT_LISTENER    3
 
 typedef struct Events

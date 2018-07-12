@@ -24,13 +24,13 @@ void Init_Schedule(void)            //iniicializa la lista de tiempos...
  for(i=0;i<MAX_SCHEDULE_INDEX;i++) Schedule_List[i].Sm_Func.Machine=Empty_State_Machine;
 }
 //----------------------------------------------------------------------
-void Schedule(void)  
+void Schedule(void)
 {
  unsigned char i;
  for(i=0;i<MAX_SCHEDULE_INDEX;i++)                       //para toda la lista...
-   if(Schedule_List[i].Sm_Func.Machine!=Empty_State_Machine && Schedule_List[i].Enable)   //si la entrada no es libre
+   if(Schedule_List[i].Sm_Func.Machine!=Empty_State_Machine && Schedule_List[i].Enable)   {//si la entrada no es libre
      if(!Schedule_List[i].Time_Out)                   //si el decrementado time_out es cero....
-      {  
+      {
        if(Schedule_List[i].Event!=Invalid_Event) Atomic_Send_Event(Schedule_List[i].Event,Schedule_List[i].Sm_Func.Machine);     //ei el evento es valido manda un mensaje a la maquina de estados que lo solicito...
         else Schedule_List[i].Sm_Func.Func();                                    //si el evento es invalido, entonces es un schedule de funcion y se la ejecuta asi sin mas...
        Schedule_List[i].Time_Out=Schedule_List[i].Fixed_Time_Out;                   //se transfiere el fixed en time_out renovando el conteo. En caso de que sea cero se libera la entrada en la proxima linea y es equivalente a un evento unico...
@@ -38,6 +38,7 @@ void Schedule(void)
       }
       else 
        --Schedule_List[i].Time_Out;                   //si no es cero entonces decrementa (para evutar que si entra con cero pase a 0xFFFF!).
+   }
  return;
 }
 //----------------------------------------------------------------------
@@ -140,11 +141,13 @@ void New_Periodic_Func_Schedule(unsigned int Time_Out,void (*Func)(void))    //e
    Add_Schedule(i,Time_Out,Time_Out,Invalid_Event,Empty_Sm(),Func,1);   //como se pasa el parametro Sm_Func en uno, se refiere a un schedul de funcion, con lo cual el parametro Empty_SM(), no se usa!!...
 }
 
-void Pause_Func_Schedule         (void (*Func)(void))                
+void Pause_Func_Schedule         (void (*Func)(void))
 {
  Pause_Schedule(Invalid_Event,(const State**)Func);
 }
-unsigned char Resume_Func_Schedule     (void (*Func)(void))                {Resume_Schedule(Invalid_Event,(const State**)Func);}
+unsigned char Resume_Func_Schedule     (void (*Func)(void))                {
+   return Resume_Schedule(Invalid_Event,(const State**)Func);
+}
 void Resume_Or_New_Periodic_Func_Schedule (unsigned int Time_Out,void (*Func)(void))
 {
  if(!(Resume_Func_Schedule(Func)<MAX_SCHEDULE_INDEX)) New_Periodic_Func_Schedule(Time_Out,Func);

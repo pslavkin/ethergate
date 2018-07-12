@@ -19,8 +19,8 @@
 //*****************************************************************************
 
 //
-#define HOST_TMR_INTERVAL               100         // default is 0
-#define DHCP_EXPIRE_TIMER_MSECS         (10 * 1000)
+//#define HOST_TMR_INTERVAL               100         // default is 0
+//#define DHCP_EXPIRE_TIMER_MSECS         (10 * 1000)
 //#define LWIP_HTTPD_SSI                  1
 //#define LWIP_HTTPD_CGI                  1
 //#define LWIP_HTTPD_DYNAMIC_HEADERS      1
@@ -403,16 +403,16 @@ extern void UARTprintf(const char *pcString, ...);
 #define API_LIB_DEBUG                   LWIP_DBG_OFF
 #define API_MSG_DEBUG                   LWIP_DBG_OFF
 #define SOCKETS_DEBUG                   LWIP_DBG_OFF
-#define ICMP_DEBUG                      LWIP_DBG_OFF
+#define ICMP_DEBUG                      LWIP_DBG_ON  
 #define IGMP_DEBUG                      LWIP_DBG_OFF
 #define INET_DEBUG                      LWIP_DBG_OFF
-#define IP_DEBUG                        LWIP_DBG_ON     // default is OFF
+#define IP_DEBUG                        LWIP_DBG_OFF    // default is OFF
 #define IP_REASS_DEBUG                  LWIP_DBG_OFF
-#define RAW_DEBUG                       LWIP_DBG_OFF
+#define RAW_DEBUG                       LWIP_DBG_ON 
 #define MEM_DEBUG                       LWIP_DBG_OFF
 #define MEMP_DEBUG                      LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
-#define TCP_DEBUG                       LWIP_DBG_OFF
+#define TCP_DEBUG                       LWIP_DBG_ON 
 #define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
 #define TCP_FR_DEBUG                    LWIP_DBG_OFF
 #define TCP_RTO_DEBUG                   LWIP_DBG_OFF

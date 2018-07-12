@@ -20,27 +20,11 @@
 #define SYSTICKHZ               100
 #define SYSTICKMS               (1000 / SYSTICKHZ)
 //---------------------------------------------------
-void Func1(void);
-void Func2(void);
-//---------------------------------------------------
-void (*Rti) (void);
-//---------------------------------------------------
-void Func1(void)
-{
- Everythings_Rti();
- Rti=Func2;
-}
-void Func2(void)
-{
- Rti=Func1;
-}
-//---------------------------------------------------
 void Init_Rti(void)
 {
  SysTickPeriodSet ( Actual_Clk_Get( )/SYSTICKHZ);
  SysTickEnable    (                 )     ;
  SysTickIntEnable (                 )     ;
- Rti=Func1; // arranca ejecutando func1...}
 }
 
 void SysTickIntHandler(void)
@@ -49,7 +33,7 @@ void SysTickIntHandler(void)
     // Call the lwIP timer handler.
     //
    lwIPTimer(SYSTICKMS);
-   Rti();
+   Everythings_Rti();
 }
 //---------------------------------------------------
 
