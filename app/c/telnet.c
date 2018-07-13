@@ -70,6 +70,7 @@ err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
    }
    else {
       UARTprintf("session cerrada",soc,err);
+      tcp_close(tpcb);
       return ERR_ABRT;
    }
 }
