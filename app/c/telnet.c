@@ -30,12 +30,15 @@
 
 
  const State
-   Creating             [ ],
-   Binding             [ ],
-   Listening             [ ],
-   Idle             [ ];
+   Creating [ ],
+   Binding  [ ],
+   Listening[ ],
+   Accepting[ ],
+   Connected[ ],
+   Idle     [ ];
 
 const State* Telnet_Sm;
+char param[]="soy un parametro\n";
 //-------------------------------------------------------------------------------------
 void Init_Telnet(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
 {
@@ -58,14 +61,40 @@ void Bind_Socket(void)
     int err=tcp_bind(soc,IP_ADDR_ANY,1234);
    UARTprintf("Bind socket err=%d\n",err);
 }
-
-struct tcp_pcb* new_soc;
-void Listen_Socket(void)
+//----------------------------------------------------------------------------------------------------
+err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
-    new_soc=tcp_listen(soc);
-   UARTprintf("Listen socket =%d\n",new_soc);
+   if(p!=NULL) {
+      UARTwrite (p->payload,p->len);
+      return 0;
+   }
+   else {
+      UARTprintf("session cerrada",soc,err);
+      return ERR_ABRT;
+   }
+}
+err_t accept_fn (void *arg, struct tcp_pcb *newpcb, err_t err)
+{
+   UARTprintf("llego conexion=%d error=%d\n",soc,err);
+   UARTprintf((char*)arg);
+   tcp_recv(newpcb,Rcv_Fn);
+   Atomic_Send_Event(Accept_Event,Telnet());
+   return 0;
 }
 
+void Listen_Socket(void)
+{
+   tcp_arg(soc, (void *)param);
+   soc=tcp_listen(soc);
+   tcp_accept(soc,accept_fn);
+   UARTprintf("Listen socket =%d\n",soc);
+   UARTprintf("socket state =%d\n",soc->state);
+}
+//----------------------------------------------------------------------------------------------------
+void Set_Rcv_Fn(void)
+{
+   UARTprintf("listo para recibir Rcv\n");
+}
 
  const State Creating [ ]=
 {
@@ -79,7 +108,16 @@ void Listen_Socket(void)
 
  const State Listening [ ]=
 {
-   { ANY_Event ,Listen_Socket                 ,Idle  } ,
+   { ANY_Event ,Listen_Socket                 ,Accepting  } ,
+};
+ const State Accepting [ ]=
+{
+   { Accept_Event ,Set_Rcv_Fn ,Connected  } ,
+   { ANY_Event    ,Rien       ,Accepting  }      ,
+};
+ const State Connected [ ]=
+{
+   { ANY_Event               ,Rien ,Connected  }      ,
 };
 
  const State Idle [ ]=
