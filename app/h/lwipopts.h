@@ -208,18 +208,18 @@
 //*****************************************************************************
 //#define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_WND                         4096   // default is 2048
+#define TCP_WND                         1024   // default is 2048
 //#define TCP_MAXRTX                      12
 //#define TCP_SYNMAXRTX                   6
 //#define TCP_QUEUE_OOSEQ                 1
-#define TCP_MSS                        1500        // default is 128
+#define TCP_MSS                        128        // default is 535
 //#define TCP_CALCULATE_EFF_SEND_MSS      1
 #define TCP_SND_BUF                     (6 * TCP_MSS)
                                                     // default is 256
 //#define TCP_SND_QUEUELEN                (4 * (TCP_SND_BUF/TCP_MSS))
 //#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
-//#define TCP_LISTEN_BACKLOG              0
-//#define TCP_DEFAULT_LISTEN_BACKLOG      0xff
+#define TCP_LISTEN_BACKLOG              1
+#define TCP_DEFAULT_LISTEN_BACKLOG      1
 
 //*****************************************************************************
 //
@@ -409,7 +409,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define IP_DEBUG                        LWIP_DBG_OFF    // default is OFF
 #define IP_REASS_DEBUG                  LWIP_DBG_OFF
 #define RAW_DEBUG                       LWIP_DBG_OFF
-#define MEM_DEBUG                       LWIP_DBG_OFF
+#define MEM_DEBUG                       LWIP_DBG_ON 
 #define MEMP_DEBUG                      LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
 #define TCP_DEBUG                       LWIP_DBG_OFF
@@ -420,7 +420,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define TCP_WND_DEBUG                   LWIP_DBG_OFF
 #define TCP_OUTPUT_DEBUG                LWIP_DBG_OFF
 #define TCP_RST_DEBUG                   LWIP_DBG_OFF
-#define TCP_QLEN_DEBUG                  LWIP_DBG_OFF
+#define TCP_QLEN_DEBUG                  LWIP_DBG_ON 
 #define UDP_DEBUG                       LWIP_DBG_OFF    // default is OFF
 #define TCPIP_DEBUG                     LWIP_DBG_OFF
 #define PPP_DEBUG                       LWIP_DBG_OFF

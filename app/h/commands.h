@@ -24,6 +24,8 @@ extern int Cmd_Mac               ( int argc, char *argv[] );
 extern void UpdateMACAddr        ( void                   );
 extern void CheckForUserCommands ( void                   );
 extern void DisplayIPAddress     ( uint32_t ui32Addr      );
+int Cmd_Send2Eth(int argc, char *argv[]);
+int Cmd_Write2Eth(int argc, char *argv[]);
 
 //*****************************************************************************
 //

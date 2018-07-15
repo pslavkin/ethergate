@@ -5,6 +5,7 @@
 #include "utils/cmdline.h"
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
+#include "utils/lwiplib.h"
 #include "commands.h"
 #include "opt.h"
 
@@ -16,11 +17,13 @@
 //*****************************************************************************
 tCmdLineEntry g_psCmdTable[] =
 {
-    { "help",        Cmd_help,        ": Display list of commands" },
-    { "h",           Cmd_help,        ": alias for help" },
-    { "?",           Cmd_help,        ": alias for help" },
-    { "Mac",         Cmd_Mac,        ": show MAC address" },
-    { 0, 0, 0 }
+    { "help" ,Cmd_help      ,": Display list of commands" } ,
+    { "h"    ,Cmd_help      ,": alias for help" }           ,
+    { "?"    ,Cmd_help      ,": alias for help" }           ,
+    { "Mac"  ,Cmd_Mac       ,": show MAC address" }         ,
+    { "W"    ,Cmd_Write2Eth ,": add data 2 ethernet" }      ,
+    { "S"    ,Cmd_Send2Eth  ,": send data 2 ethernet" }     ,
+    { 0      ,0             ,0 }
 };
 
 //*****************************************************************************
@@ -34,7 +37,7 @@ int Cmd_help(int argc, char *argv[])
     tCmdLineEntry *pEntry;
     UARTprintf("\nAvailable commands\n------------------\n");
     pEntry = g_psCmdTable;
-    for(;pEntry->pcCmd;pEntry++) 
+    for(;pEntry->pcCmd;pEntry++)
         UARTprintf("%15s%s\n", pEntry->pcCmd, pEntry->pcHelp);
     return 0;
 }
@@ -43,6 +46,17 @@ int Cmd_Mac(int argc, char *argv[])
 {
    UARTprintf("parametros %d\n",argc);
    UpdateMACAddr();
+   return(0);
+}
+extern struct tcp_pcb* s;
+int Cmd_Write2Eth(int argc, char *argv[])
+{
+   tcp_write(s,"hola\n",5,TCP_WRITE_FLAG_COPY|TCP_WRITE_FLAG_MORE);
+   return(0);
+}
+int Cmd_Send2Eth(int argc, char *argv[])
+{
+   tcp_output(s);
    return(0);
 }
 

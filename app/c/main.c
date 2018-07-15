@@ -102,8 +102,8 @@ int main(void)
     // USER0 and USER1 registers.
     //
     MAP_FlashUserGet(&ui32User0, &ui32User1);
-    ui32User0=0x01020304;
-    ui32User1=0x05060708;
+    ui32User0=0x010203;
+    ui32User1=0x040506;
     //
     //
     // Convert the 24/24 split MAC address from NV ram into a 32/16 split
