@@ -19,13 +19,13 @@ extern "C"
 // Forward declarations for command-line operations.
 //
 //*****************************************************************************
-extern int Cmd_help              ( int argc, char *argv[] );
-extern int Cmd_Mac               ( int argc, char *argv[] );
-extern void UpdateMACAddr        ( void                   );
-extern void CheckForUserCommands ( void                   );
-extern void DisplayIPAddress     ( uint32_t ui32Addr      );
-int Cmd_Send2Eth(int argc, char *argv[]);
-int Cmd_Write2Eth(int argc, char *argv[]);
+extern int Cmd_help              ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Mac               ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Send2Eth          ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Write2Eth         ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern void UpdateMACAddr        ( struct tcp_pcb* tpcb                         );
+extern void CheckForUserCommands ( void                                         );
+extern void DisplayIPAddress     ( uint32_t ui32Addr                            );
 
 //*****************************************************************************
 //

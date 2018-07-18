@@ -32,7 +32,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include "utils/lwiplib.h"
 #include "utils/cmdline.h"
+#include "utils/uartstdio.h"
 
 //*****************************************************************************
 //
@@ -73,8 +75,7 @@ static char *g_ppcArgv[CMDLINE_MAX_ARGS + 1];
 //! Otherwise it returns the code that was returned by the command function.
 //
 //*****************************************************************************
-int
-CmdLineProcess(char *pcCmdLine)
+void CmdLineProcess(char *pcCmdLine,struct tcp_pcb* tpcb)
 {
     char *pcChar;
     uint_fast8_t ui8Argc;
@@ -133,7 +134,8 @@ CmdLineProcess(char *pcCmdLine)
                 //
                 else
                 {
-                    return(CMDLINE_TOO_MANY_ARGS);
+                     UART_ETHprintf(tpcb,"Too many arguments for command processor!\n");
+                     goto prompt;
                 }
             }
         }
@@ -168,7 +170,8 @@ CmdLineProcess(char *pcCmdLine)
             //
             if(!strcmp(g_ppcArgv[0], psCmdEntry->pcCmd))
             {
-                return(psCmdEntry->pfnCmd(ui8Argc, g_ppcArgv));
+                psCmdEntry->pfnCmd(tpcb, ui8Argc, g_ppcArgv);
+                goto prompt;
             }
 
             //
@@ -176,13 +179,15 @@ CmdLineProcess(char *pcCmdLine)
             //
             psCmdEntry++;
         }
-    }
+       UART_ETHprintf(tpcb,"Bad command\n");
 
+    }
     //
     // Fall through to here means that no matching command was found, so return
     // an error.
     //
-    return(CMDLINE_BAD_CMD);
+prompt:
+    UART_ETHprintf(tpcb,"\n> ");
 }
 
 //*****************************************************************************

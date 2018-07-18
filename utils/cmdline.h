@@ -42,6 +42,7 @@ extern "C"
 //! @{
 //
 //*****************************************************************************
+#include "utils/lwiplib.h"
 
 //*****************************************************************************
 //
@@ -76,7 +77,7 @@ extern "C"
 // Command line function callback type.
 //
 //*****************************************************************************
-typedef int (*pfnCmdLine)(int argc, char *argv[]);
+typedef int (*pfnCmdLine)(struct tcp_pcb* tpcb, int argc, char *argv[]);
 
 //*****************************************************************************
 //
@@ -123,7 +124,7 @@ extern tCmdLineEntry g_psCmdTable[];
 // Prototypes for the APIs.
 //
 //*****************************************************************************
-extern int CmdLineProcess(char *pcCmdLine);
+extern void CmdLineProcess(char *pcCmdLine, struct tcp_pcb* tcpb);
 
 //*****************************************************************************
 //

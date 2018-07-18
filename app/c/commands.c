@@ -1,4 +1,5 @@
 //*****************************************************************************
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "driverlib/sysctl.h"
@@ -22,7 +23,6 @@ tCmdLineEntry g_psCmdTable[] =
     { "?"    ,Cmd_help      ,": alias for help" }           ,
     { "Mac"  ,Cmd_Mac       ,": show MAC address" }         ,
     { "W"    ,Cmd_Write2Eth ,": add data 2 ethernet" }      ,
-    { "S"    ,Cmd_Send2Eth  ,": send data 2 ethernet" }     ,
     { 0      ,0             ,0 }
 };
 
@@ -32,45 +32,40 @@ tCmdLineEntry g_psCmdTable[] =
 // available commands with a brief description.
 //
 //*****************************************************************************
-int Cmd_help(int argc, char *argv[])
+
+
+int Cmd_help(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
     tCmdLineEntry *pEntry;
-    UARTprintf("\nAvailable commands\n------------------\n");
+    UART_ETHprintf(tpcb,"\nAvailable commands\n------------------\n");
     pEntry = g_psCmdTable;
     for(;pEntry->pcCmd;pEntry++)
-        UARTprintf("%15s%s\n", pEntry->pcCmd, pEntry->pcHelp);
+        UART_ETHprintf(tpcb,"%15s%s\n", pEntry->pcCmd, pEntry->pcHelp);
     return 0;
 }
 //----------------------------------------------------------------------------------------------------
-int Cmd_Mac(int argc, char *argv[])
+int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   UARTprintf("parametros %d\n",argc);
-   UpdateMACAddr();
+   UART_ETHprintf(tpcb,"parametros %d\n",argc);
+   UpdateMACAddr(tpcb);
    return(0);
 }
-extern struct tcp_pcb* s;
-int Cmd_Write2Eth(int argc, char *argv[])
+int Cmd_Write2Eth(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   tcp_write(s,"hola\n",5,TCP_WRITE_FLAG_COPY|TCP_WRITE_FLAG_MORE);
-   return(0);
-}
-int Cmd_Send2Eth(int argc, char *argv[])
-{
-   tcp_output(s);
+   UART_ETHprintf(tpcb,"hola\n");
    return(0);
 }
 
-
-void UpdateMACAddr(void)
+void UpdateMACAddr(struct tcp_pcb* tpcb)
 {
     uint8_t pui8MACAddr[6]={1,2,3,4,5,6};
-    UARTprintf("MAC: %02x:%02x:%02x:%02x:%02x:%02x",
+    UART_ETHprintf(tpcb,"MAC: %02x:%02x:%02x:%02x:%02x:%02x",
             pui8MACAddr[0], pui8MACAddr[1], pui8MACAddr[2], pui8MACAddr[3],
             pui8MACAddr[4], pui8MACAddr[5]);
 }
 void DisplayIPAddress(uint32_t ui32Addr)
 {
-    UARTprintf( "%d.%d.%d.%d", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
+    UART_ETHprintf(NULL, "%d.%d.%d.%d", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
             (ui32Addr >> 16) & 0xff, (ui32Addr >> 24) & 0xff);
 }
 
@@ -80,65 +75,21 @@ void DisplayIPAddress(uint32_t ui32Addr)
 // Input buffer for the command line interpreter.
 //
 //*****************************************************************************
-char g_cInput[APP_INPUT_BUF_SIZE];
 //*****************************************************************************
 //
 // Prompts the user for a command, and blocks while waiting for the user's
 // input. This function will return after the execution of a single command.
 //
 //*****************************************************************************
-void
-CheckForUserCommands(void)
+void CheckForUserCommands(void)
 {
-    int iStatus;
+   if(UARTPeek('\r') == -1) return;
 
-    //
-    // Peek to see if a full command is ready for processing
-    //
-    if(UARTPeek('\r') == -1)
-    {
-        //
-        // If not, return so other functions get a chance to run.
-        //
-        return;
-    }
-
-    //
-    // If we do have commands, process them immediately in the order they were
-    // received.
-    //
-    while(UARTPeek('\r') != -1)
-    {
-        //
-        // Get a user command back
-        //
-        UARTgets(g_cInput, APP_INPUT_BUF_SIZE);
-
-        //
-        // Process the received command
-        //
-        iStatus = CmdLineProcess(g_cInput);
-
-        //
-        // Handle the case of bad command.
-        //
-        if(iStatus == CMDLINE_BAD_CMD)
-        {
-            UARTprintf("Bad command!\n");
-        }
-
-        //
-        // Handle the case of too many arguments.
-        //
-        else if(iStatus == CMDLINE_TOO_MANY_ARGS)
-        {
-            UARTprintf("Too many arguments for command processor!\n");
-        }
-    }
-
-    //
-    // Print a prompt
-    //
-    UARTprintf("\n> ");
+   char g_cInput[APP_INPUT_BUF_SIZE];
+   while(UARTPeek('\r') != -1)
+   {
+     UARTgets(g_cInput, APP_INPUT_BUF_SIZE);
+     CmdLineProcess(g_cInput,NULL);
+   }
 
 }

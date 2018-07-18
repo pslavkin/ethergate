@@ -47,7 +47,7 @@ void Init_Everythings(void)         //inicializa los puertos que se usan en esta
 {
    Everythings_Sm=Free_State1;
    Init_Schedule     ( );
-   Init_Wdog();
+//   Init_Wdog();
    Init_Telnet();
 }
 //------------------------------------------------------------------
@@ -69,6 +69,7 @@ const State Free_State3 [ ]=
 };
 const State Free_State4 [ ]=
 {
+   { ANY_Event ,Rien           ,Free_State5  } ,
    { ANY_Event ,Wdog_Clear           ,Free_State5  } ,
 };
 const State Free_State5 [ ]=

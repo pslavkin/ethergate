@@ -403,13 +403,13 @@ extern void UARTprintf(const char *pcString, ...);
 #define API_LIB_DEBUG                   LWIP_DBG_OFF
 #define API_MSG_DEBUG                   LWIP_DBG_OFF
 #define SOCKETS_DEBUG                   LWIP_DBG_OFF
-#define ICMP_DEBUG                      LWIP_DBG_ON  
+#define ICMP_DEBUG                      LWIP_DBG_OFF
 #define IGMP_DEBUG                      LWIP_DBG_OFF
 #define INET_DEBUG                      LWIP_DBG_OFF
 #define IP_DEBUG                        LWIP_DBG_OFF    // default is OFF
 #define IP_REASS_DEBUG                  LWIP_DBG_OFF
 #define RAW_DEBUG                       LWIP_DBG_OFF
-#define MEM_DEBUG                       LWIP_DBG_ON 
+#define MEM_DEBUG                       LWIP_DBG_OFF
 #define MEMP_DEBUG                      LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
 #define TCP_DEBUG                       LWIP_DBG_OFF
@@ -420,7 +420,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define TCP_WND_DEBUG                   LWIP_DBG_OFF
 #define TCP_OUTPUT_DEBUG                LWIP_DBG_OFF
 #define TCP_RST_DEBUG                   LWIP_DBG_OFF
-#define TCP_QLEN_DEBUG                  LWIP_DBG_ON 
+#define TCP_QLEN_DEBUG                  LWIP_DBG_OFF
 #define UDP_DEBUG                       LWIP_DBG_OFF    // default is OFF
 #define TCPIP_DEBUG                     LWIP_DBG_OFF
 #define PPP_DEBUG                       LWIP_DBG_OFF

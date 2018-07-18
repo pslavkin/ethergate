@@ -89,7 +89,7 @@ int main(void)
     //
     // Configure the device pins.
     //
-    PinoutSet(true, false);
+    PinoutSet(false, false);
 
     UARTStdioConfig(0, 9600, Actual_Clk_Get());
     UARTprintf("\033[2J\033[H");
@@ -135,7 +135,7 @@ int main(void)
     //
     // Initialize IO controls
     //
-    io_init();
+///    io_init();
     Init_Events();
     Init_Everythings();
     while(1)
