@@ -13,7 +13,7 @@ extern "C"
 #endif
 
 
-#define APP_INPUT_BUF_SIZE 128
+#define APP_INPUT_BUF_SIZE 256
 
 //*****************************************************************************
 //

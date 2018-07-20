@@ -36,6 +36,7 @@ const State
 
 const State* Telnet_Sm;
 struct tcp_pcb* soc;
+struct udp_pcb* usoc;
 //-------------------------------------------------------------------------------------
 void Init_Telnet(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
 {
@@ -46,6 +47,22 @@ void Init_Telnet(void)         //inicializa los puertos que se usan en esta maqu
 const State**  Telnet      ( void ) { return &Telnet_Sm                 ;} 
 void           Telnet_Rti  ( void ) { Atomic_Send_Event(ANY_Event,Telnet())    ;} 
 
+void URcv_Fn (void *arg, struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,  u16_t port)
+{
+   if(p!=NULL) {
+      udp_connect(upcb,addr,port);
+      udp_send(upcb,p);
+      udp_disconnect(upcb);
+   }
+   UART_ETHprintf(NULL,"llego algo x udp\r\n");
+
+}
+void Create_Udp_Socket(void)
+{
+   UART_ETHprintf(NULL,"new=%d\r\n" ,usoc=udp_new());
+   UART_ETHprintf(NULL,"bind=%d\r\n" ,udp_bind(usoc ,IP_ADDR_ANY ,50000));
+   udp_recv(usoc,URcv_Fn,NULL);
+}
 //magia, como me llega el tpcb segun quien corresponda, estare responidendo a ese
 //socket y no a otro, con lo cual tengo resuelte los estaodos de cada uno asi si mas
 err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
@@ -78,6 +95,7 @@ void Create_Socket(void)
    UART_ETHprintf(NULL,"listen=%d\n" ,soc=tcp_listen_with_backlog(soc,3));
    UART_ETHprintf(NULL,"backlog=%d\n",((struct tcp_pcb_listen*)soc)->backlog);
    tcp_accept(soc,accept_fn);
+   Create_Udp_Socket();
 }
 //----------------------------------------------------------------------------------------------------
 const State Creating [ ]=

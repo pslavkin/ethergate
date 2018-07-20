@@ -91,9 +91,9 @@ int main(void)
     //
     PinoutSet(false, false);
 
-    UARTStdioConfig(0, 9600, Actual_Clk_Get());
-    UARTprintf("\033[2J\033[H");
-    UARTprintf("Ethernet IO Example\n\n");
+    UARTStdioConfig(0, 115200, Actual_Clk_Get());
+    UARTprintf ("\033[2J\033[H");
+    UARTprintf ("Ethernet IO Example\n\n");
 
     Init_Rti();
     //
@@ -131,6 +131,7 @@ int main(void)
     //
     MAP_IntPrioritySet(INT_EMAC0, ETHERNET_INT_PRIORITY);
     MAP_IntPrioritySet(FAULT_SYSTICK, SYSTICK_INT_PRIORITY);
+
 
     //
     // Initialize IO controls

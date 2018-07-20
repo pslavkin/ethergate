@@ -197,7 +197,7 @@
 // ---------- UDP options ----------
 //
 //*****************************************************************************
-//#define LWIP_UDP                        1
+#define LWIP_UDP                        1
 //#define LWIP_UDPLITE                    0
 //#define UDP_TTL                         (IP_DEFAULT_TTL)
 
@@ -212,7 +212,7 @@
 //#define TCP_MAXRTX                      12
 //#define TCP_SYNMAXRTX                   6
 //#define TCP_QUEUE_OOSEQ                 1
-#define TCP_MSS                        128        // default is 535
+#define TCP_MSS                        536        // default is 535
 //#define TCP_CALCULATE_EFF_SEND_MSS      1
 #define TCP_SND_BUF                     (6 * TCP_MSS)
                                                     // default is 256

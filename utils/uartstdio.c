@@ -1316,16 +1316,22 @@ UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 
 }
 
-
 void UARTprintf(const char *pcString, ...)
 {
    va_list vaArgP;
+   char buf[APP_INPUT_BUF_SIZE];
+   int len;
     //
     // Start the varargs processing.
     //
-    va_start(vaArgP, pcString);
-    UART_ETHprintf(NULL,pcString,vaArgP);
+     va_start(vaArgP, pcString);
+     len=uvsnprintf(buf,sizeof(buf),pcString, vaArgP);
+     UARTwrite(buf,len);
+    //
+    // We're finished with the varargs now.
+    //
     va_end(vaArgP);
+
 }
 
 //*****************************************************************************
