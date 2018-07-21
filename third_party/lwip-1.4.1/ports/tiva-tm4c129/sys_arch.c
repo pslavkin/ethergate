@@ -586,7 +586,7 @@ sys_thread_new(const char *name, lwip_thread_fn thread, void *arg,
 
   /* Create a new thread. */
 #if RTOS_FREERTOS
-  if(xTaskCreate(sys_arch_thread, (signed portCHAR *)name,
+  if(xTaskCreate(sys_arch_thread, (portCHAR *)name,
                  stacksize/sizeof(int), (void *)i, tskIDLE_PRIORITY+prio,
                  &threads[i].taskhandle) != pdTRUE){
     threads[i].stackstart = NULL;

@@ -22,6 +22,7 @@ tCmdLineEntry g_psCmdTable[] =
     { "h"    ,Cmd_help      ,": alias for help" }           ,
     { "?"    ,Cmd_help      ,": alias for help" }           ,
     { "Mac"  ,Cmd_Mac       ,": show MAC address" }         ,
+    { "ip"   ,Cmd_Ip        ,": show IP address" }          ,
     { "W"    ,Cmd_Write2Eth ,": add data 2 ethernet" }      ,
     { 0      ,0             ,0 }
 };
@@ -48,6 +49,11 @@ int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"parametros %d\n",argc);
    UpdateMACAddr(tpcb);
+   return(0);
+}
+int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   DisplayIPAddress(lwIPLocalIPAddrGet());
    return(0);
 }
 int Cmd_Write2Eth(struct tcp_pcb* tpcb, int argc, char *argv[])

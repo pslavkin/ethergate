@@ -17,14 +17,14 @@
 #include "everythings.h"
 #include "commands.h"
 
-#define SYSTICKHZ               100
-#define SYSTICKMS               (1000 / SYSTICKHZ)
+//#define SYSTICKHZ               100
+//#define SYSTICKMS               (1000 / SYSTICKHZ)
 //---------------------------------------------------
 void Init_Rti(void)
 {
- SysTickPeriodSet ( Actual_Clk_Get( )/SYSTICKHZ);
- SysTickEnable    (                 )     ;
- SysTickIntEnable (                 )     ;
+// SysTickPeriodSet ( Actual_Clk_Get( )/SYSTICKHZ);
+// SysTickEnable    (                 )     ;
+// SysTickIntEnable (                 )     ;
 }
 
 void SysTickIntHandler(void)
@@ -32,8 +32,8 @@ void SysTickIntHandler(void)
     //
     // Call the lwIP timer handler.
     //
-   lwIPTimer(SYSTICKMS);
-   Everythings_Rti();
+//   lwIPTimer(SYSTICKMS);
+//   Everythings_Rti();
 }
 //---------------------------------------------------
 

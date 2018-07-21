@@ -724,7 +724,7 @@ lwIPPrivateInit(void *pvArg)
     //
 #if !NO_SYS
 #if RTOS_FREERTOS
-    xTaskCreate(lwIPInterruptTask, (signed portCHAR *)"eth_int",
+    xTaskCreate(lwIPInterruptTask, (portCHAR *)"eth_int",
                 STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 1,
                 0);
 #endif

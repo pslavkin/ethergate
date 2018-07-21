@@ -24,6 +24,11 @@
 #include "events.h"
 #include "everythings.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+
 
 //*****************************************************************************
 //
@@ -49,7 +54,7 @@
 // The current IP address.
 //
 //*****************************************************************************
-uint32_t g_ui32IPAddress;
+//uint32_t g_ui32IPAddress;
 
 //*****************************************************************************
 //
@@ -79,6 +84,19 @@ void lwIPHostTimerHandler(void)
 {
 }
 
+#define SYSTICKHZ               100
+#define SYSTICKMS               (1000 / SYSTICKHZ)
+void rti_task(void* nil)
+{
+
+   while(1) {
+      
+//   lwIPTimer(SYSTICKMS);
+   Everythings_Rti();
+   vTaskDelay( 10 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
+   }
+}
+
 int main(void)
 {
     uint32_t ui32User0, ui32User1;
@@ -95,7 +113,7 @@ int main(void)
     UARTprintf ("\033[2J\033[H");
     UARTprintf ("Ethernet IO Example\n\n");
 
-    Init_Rti();
+//    Init_Rti();
     //
     // Configure the hardware MAC address for Ethernet Controller filtering of
     // incoming packets.  The MAC address will be stored in the non-volatile
@@ -118,11 +136,6 @@ int main(void)
     pui8MACArray[5] = ((ui32User1 >> 16) & 0xff);
 
     //
-    // Initialze the lwIP library, using DHCP.
-    //
-    lwIPInit(Actual_Clk_Get(), pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
-
-    //
     // Set the interrupt priorities.  We set the SysTick interrupt to a higher
     // priority than the Ethernet interrupt to ensure that the file system
     // tick is processed if SysTick occurs while the Ethernet handler is being
@@ -131,16 +144,30 @@ int main(void)
     //
     MAP_IntPrioritySet(INT_EMAC0, ETHERNET_INT_PRIORITY);
     MAP_IntPrioritySet(FAULT_SYSTICK, SYSTICK_INT_PRIORITY);
+    //
+    // Initialze the lwIP library, using DHCP.
+    //
+   lwIPInit(Actual_Clk_Get(), pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
+
 
 
     //
     // Initialize IO controls
     //
 ///    io_init();
+
+   xTaskCreate(State_Machine,"sm",configMINIMAL_STACK_SIZE*2,NULL,1,NULL);
+   xTaskCreate(rti_task,"rti",configMINIMAL_STACK_SIZE*2,NULL,1,NULL);
+
+
+
     Init_Events();
     Init_Everythings();
+   vTaskStartScheduler();
     while(1)
+       ;
     {
-        State_Machine();
+        State_Machine(NULL);
+        vTaskDelay( 300 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
     }
 }

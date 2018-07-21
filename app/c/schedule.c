@@ -143,10 +143,11 @@ void New_Periodic_Func_Schedule(unsigned int Time_Out,void (*Func)(void))    //e
 
 void Pause_Func_Schedule         (void (*Func)(void))
 {
- Pause_Schedule(Invalid_Event,(const State**)Func);
+// Pause_Schedule(Invalid_Event,(const State**)Func);
 }
 unsigned char Resume_Func_Schedule     (void (*Func)(void))                {
-   return Resume_Schedule(Invalid_Event,(const State**)Func);
+//   return Resume_Schedule(Invalid_Event,(const State**)Func);
+   return 0;
 }
 void Resume_Or_New_Periodic_Func_Schedule (unsigned int Time_Out,void (*Func)(void))
 {

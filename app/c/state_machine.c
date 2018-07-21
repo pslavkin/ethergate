@@ -22,6 +22,8 @@
 #include "rti.h"
 #include "state_machine.h"
 #include "events.h"
+#include "FreeRTOS.h"
+#include "timers.h"
 
 const State* ActualState;
 Events Event;
@@ -45,17 +47,18 @@ unsigned int   Actual_Event ( void ) { return Event.Event  ;}
 const State**  Actual_Sm    ( void ) { return Event.Machine;}
 void           Soft_Reset   ( void ) { }
 //-----------------------------------------------------------------------
-void State_Machine(void)               //esta funcion ejecuta la maquina de estados donde el evento viene en la variable Event... que se decidio que no sea por parametro para permitir la recursividad infinita...  
+void State_Machine(void* nil)               //esta funcion ejecuta la maquina de estados donde el evento viene en la variable Event... que se decidio que no sea por parametro para permitir la recursividad infinita...  
 {
- Event  = Atomic_Read_Event();
- if(Event.Machine!=Empty_State_Machine)
- {
-  ActualState = *(Event.Machine);
-  for(;ActualState->Event!=ANY_Event && ActualState->Event!=Event.Event;ActualState++);
-  *Event.Machine=ActualState->Next_State;
-  ActualState->Func();
- }
- return;
+   while(1) {
+   Event  = Atomic_Read_Event();
+   if(Event.Machine!=Empty_State_Machine) {
+      ActualState = *(Event.Machine);
+      for(;ActualState->Event!=ANY_Event && ActualState->Event!=Event.Event;ActualState++);
+      *Event.Machine=ActualState->Next_State;
+      ActualState->Func();
+   }
+   vTaskDelay( 1 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
+   }
 }
 
 //------------------------------------------------------------------------------------------

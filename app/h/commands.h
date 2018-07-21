@@ -21,6 +21,7 @@ extern "C"
 //*****************************************************************************
 extern int Cmd_help              ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Mac               ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Ip                ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Send2Eth          ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Write2Eth         ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern void UpdateMACAddr        ( struct tcp_pcb* tpcb                         );
