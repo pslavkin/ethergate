@@ -10,7 +10,7 @@ enum Schedule_Events {
    };
 //------------------------------------------------------------------------
 void           Init_Schedule   ( void                                                           );
-void           Schedule        ( void                                                           );
+void           Schedule        ( void* nil                                                           );
 unsigned char  Update_Schedule ( unsigned int Time_Out,unsigned int Event,const State** Machine );
 //------------------------------------------------------------------------
 void           Update_Func_Schedule       ( unsigned int Time_Out,void (*Func                              )(void));

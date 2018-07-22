@@ -267,10 +267,10 @@
 // ---------- Thread options ----------
 //
 //*****************************************************************************
-//#define TCPIP_THREAD_NAME              "tcpip_thread"
-//#define TCPIP_THREAD_STACKSIZE          0
-//#define TCPIP_THREAD_PRIO               1
-//#define TCPIP_MBOX_SIZE                 0
+#define TCPIP_THREAD_NAME              "tcpip_thread"
+#define TCPIP_THREAD_STACKSIZE          configMINIMAL_STACK_SIZE*2
+#define TCPIP_THREAD_PRIO               3
+#define TCPIP_MBOX_SIZE                 32
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
 //#define SLIPIF_THREAD_STACKSIZE         0
 //#define SLIPIF_THREAD_PRIO              1

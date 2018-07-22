@@ -10,6 +10,10 @@
 #include "commands.h"
 #include "opt.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
 //*****************************************************************************
 //
 // This is the table that holds the command names, implementing functions, and
@@ -87,15 +91,18 @@ void DisplayIPAddress(uint32_t ui32Addr)
 // input. This function will return after the execution of a single command.
 //
 //*****************************************************************************
-void CheckForUserCommands(void)
+void CheckForUserCommands(void* nil)
 {
-   if(UARTPeek('\r') == -1) return;
-
-   char g_cInput[APP_INPUT_BUF_SIZE];
-   while(UARTPeek('\r') != -1)
-   {
-     UARTgets(g_cInput, APP_INPUT_BUF_SIZE);
-     CmdLineProcess(g_cInput,NULL);
+   while(1) {
+      if(UARTPeek('\r') != -1) {
+         char g_cInput[APP_INPUT_BUF_SIZE];
+         while(UARTPeek('\r') != -1)
+         {
+           UARTgets(g_cInput, APP_INPUT_BUF_SIZE);
+           CmdLineProcess(g_cInput,NULL);
+         }
+      }
+      vTaskDelay( 100 / portTICK_RATE_MS ); 
    }
 
 }

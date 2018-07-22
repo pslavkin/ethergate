@@ -84,7 +84,7 @@ err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 
 err_t accept_fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
-   UART_ETHprintf(NULL,"backlog=%d\n",((struct tcp_pcb_listen*)soc)->accepts_pending);
+ //  UART_ETHprintf(NULL,"backlog=%d\n",((struct tcp_pcb_listen*)soc)->accepts_pending);
    tcp_recv(newpcb,Rcv_Fn);
    return 0;
 }

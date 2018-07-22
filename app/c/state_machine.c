@@ -57,7 +57,7 @@ void State_Machine(void* nil)               //esta funcion ejecuta la maquina de
       *Event.Machine=ActualState->Next_State;
       ActualState->Func();
    }
-   vTaskDelay( 1 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
+   vTaskDelay( 100 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
    }
 }
 

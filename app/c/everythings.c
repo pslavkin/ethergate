@@ -29,72 +29,16 @@
 #include "telnet.h"
 
 
-const State
-   Free_State1             [ ],
-   Free_State2             [ ],
-   Free_State3             [ ],
-   Free_State4             [ ],
-   Free_State5             [ ],
-   Free_State6             [ ],
-   Free_State7             [ ],
-   Free_State8             [ ],
-   Free_State9             [ ],
-   Free_State10            [ ];
-
-const State* Everythings_Sm;           //variable que lleva cuenta del estado de la maquina de estados de "detodo un poco"...
 //-------------------------------------------------------------------------------------
 void Init_Everythings(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
 {
-   Everythings_Sm=Free_State1;
    Init_Schedule     ( );
+   Init_Leds();
 //   Init_Wdog();
    Init_Telnet();
+
+   xTaskCreate(CheckForUserCommands ,"user commands" ,configMINIMAL_STACK_SIZE*2 ,NULL ,1 ,NULL);
+   xTaskCreate(Led_Effects_Func     ,"Leds effect"   ,configMINIMAL_STACK_SIZE*2 ,NULL ,1 ,NULL);
+   xTaskCreate(Schedule             ,"schedule"      ,configMINIMAL_STACK_SIZE*2 ,NULL ,1 ,NULL);
 }
 //------------------------------------------------------------------
-const State**  Everythings      ( void ) { return &Everythings_Sm                 ;} // devuelve la direccion de la maquina de estados Everythings para poder mandarle mensajes.
-void           Everythings_Rti  ( void ) { Send_Event(ANY_Event,Everythings())    ;} // manda mensajes ANY a tiempos predefinidos...
-
-//--------------------- MAQUINA DE ESTADOS PARA EVERYTHINGS --------------------
-const State Free_State1 [ ]=
-{
-   { ANY_Event ,Rien                 ,Free_State2  } ,
-};
-const State Free_State2 [ ]=
-{
-   { ANY_Event ,Rien                 ,Free_State3  } ,
-};
-const State Free_State3 [ ]=
-{
-   { ANY_Event ,Schedule             ,Free_State4  } ,
-};
-const State Free_State4 [ ]=
-{
-   { ANY_Event ,Rien           ,Free_State5  } ,
-   { ANY_Event ,Wdog_Clear           ,Free_State5  } ,
-};
-const State Free_State5 [ ]=
-{
-   { ANY_Event ,Rien                 ,Free_State6  } ,
-};
-const State Free_State6 [ ]=
-{
-   { ANY_Event ,CheckForUserCommands ,Free_State7  } ,
-};
-const State Free_State7 [ ]=
-{
-   { ANY_Event ,Led_Effects_Func                 ,Free_State8  } ,
-};
-const State Free_State8 [ ]=
-{
-   { ANY_Event ,Rien     ,Free_State9  } ,
-};
-const State Free_State9 [ ]=
-{
-   { ANY_Event ,Rien                 ,Free_State10 } ,
-};
-const State Free_State10[ ]=
-{
-   { ANY_Event ,Rien                 ,Free_State1  } ,
-};
-
-//-------------------------------------------------------------------------------

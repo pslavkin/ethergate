@@ -25,7 +25,7 @@ extern int Cmd_Ip                ( struct tcp_pcb* tpcb, int argc, char *argv[] 
 extern int Cmd_Send2Eth          ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Write2Eth         ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern void UpdateMACAddr        ( struct tcp_pcb* tpcb                         );
-extern void CheckForUserCommands ( void                                         );
+extern void CheckForUserCommands ( void* nil                                    );
 extern void DisplayIPAddress     ( uint32_t ui32Addr                            );
 
 //*****************************************************************************

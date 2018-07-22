@@ -86,16 +86,6 @@ void lwIPHostTimerHandler(void)
 
 #define SYSTICKHZ               100
 #define SYSTICKMS               (1000 / SYSTICKHZ)
-void rti_task(void* nil)
-{
-
-   while(1) {
-      
-//   lwIPTimer(SYSTICKMS);
-   Everythings_Rti();
-   vTaskDelay( 10 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
-   }
-}
 
 int main(void)
 {
@@ -149,25 +139,11 @@ int main(void)
     //
    lwIPInit(Actual_Clk_Get(), pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
 
-
-
-    //
-    // Initialize IO controls
-    //
-///    io_init();
-
-   xTaskCreate(State_Machine,"sm",configMINIMAL_STACK_SIZE*2,NULL,1,NULL);
-   xTaskCreate(rti_task,"rti",configMINIMAL_STACK_SIZE*2,NULL,1,NULL);
-
-
+   xTaskCreate(State_Machine ,"sm"  ,configMINIMAL_STACK_SIZE*2 ,NULL ,2 ,NULL);
 
     Init_Events();
     Init_Everythings();
-   vTaskStartScheduler();
+    vTaskStartScheduler();
     while(1)
        ;
-    {
-        State_Machine(NULL);
-        vTaskDelay( 300 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
-    }
 }
