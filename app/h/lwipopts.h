@@ -212,13 +212,13 @@
 //*****************************************************************************
 //#define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_WND                         1024   // default is 2048
+#define TCP_WND                         512   // default is 2048
 //#define TCP_MAXRTX                      12
 //#define TCP_SYNMAXRTX                   6
 //#define TCP_QUEUE_OOSEQ                 1
-#define TCP_MSS                        536        // default is 535
+#define TCP_MSS                        512        // default is 535
 //#define TCP_CALCULATE_EFF_SEND_MSS      1
-#define TCP_SND_BUF                     (6 * TCP_MSS)
+#define TCP_SND_BUF                     (2 * TCP_MSS)
                                                     // default is 256
 //#define TCP_SND_QUEUELEN                (4 * (TCP_SND_BUF/TCP_MSS))
 //#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
@@ -268,7 +268,8 @@
 //
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
-#define TCPIP_THREAD_STACKSIZE          configMINIMAL_STACK_SIZE*2
+//dale 1024 o se ahoga....
+#define TCPIP_THREAD_STACKSIZE          configMINIMAL_STACK_SIZE*5
 #define TCPIP_THREAD_PRIO               3
 #define TCPIP_MBOX_SIZE                 32
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
@@ -376,7 +377,7 @@
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 1
+#if 0
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"

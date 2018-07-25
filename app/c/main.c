@@ -84,8 +84,8 @@ void lwIPHostTimerHandler(void)
 {
 }
 
-#define SYSTICKHZ               100
-#define SYSTICKMS               (1000 / SYSTICKHZ)
+//#define SYSTICKHZ               100
+//#define SYSTICKMS               (1000 / SYSTICKHZ)
 
 int main(void)
 {
@@ -111,7 +111,6 @@ int main(void)
     //
     MAP_FlashUserGet(&ui32User0, &ui32User1);
     ui32User0=0x010203;
-    ui32User1=0x040506;
     //
     //
     // Convert the 24/24 split MAC address from NV ram into a 32/16 split
