@@ -9,8 +9,6 @@
 #include "driverlib/sysctl.h"
 //-----------------------------------------------------------
 void Led_Effects_Func            ( void* nil );
-// ----------------------------------------------------
-void           Init_Leds          ( void );
 //----------------------------------------------------
 //degino la posicino de los leds en el puerto N
 #define LED_POWER_PIN      GPIO_PIN_1

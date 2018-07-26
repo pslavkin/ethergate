@@ -74,6 +74,8 @@ ${COMPILER}/out.axf: ${COMPILER}/everythings.o
 ${COMPILER}/out.axf: ${COMPILER}/leds_session.o
 ${COMPILER}/out.axf: ${COMPILER}/state_machine.o
 ${COMPILER}/out.axf: ${COMPILER}/telnet.o
+${COMPILER}/out.axf: ${COMPILER}/udp.o
+${COMPILER}/out.axf: ${COMPILER}/snmp_agent.o
 ${COMPILER}/out.axf: ${COMPILER}/clk.o
 ${COMPILER}/out.axf: ${COMPILER}/wdog.o
 ${COMPILER}/out.axf: ${COMPILER}/commands.o

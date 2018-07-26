@@ -138,7 +138,7 @@ int main(void)
     //
    lwIPInit(Actual_Clk_Get(), pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
 
-   xTaskCreate(State_Machine ,"sm"  ,configMINIMAL_STACK_SIZE*2 ,NULL ,2 ,NULL);
+    xTaskCreate(State_Machine ,"sm"  ,configMINIMAL_STACK_SIZE*2 ,NULL ,2 ,NULL);
 
     Init_Events();
     Init_Everythings();

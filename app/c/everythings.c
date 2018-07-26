@@ -27,18 +27,18 @@
 #include "commands.h"
 #include "wdog.h"
 #include "telnet.h"
+#include "udp.h"
 
 
 //-------------------------------------------------------------------------------------
 void Init_Everythings(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
 {
-   Init_Schedule     ( );
-   Init_Leds();
 //   Init_Wdog();
    Init_Telnet();
+   Init_Udp();
 
-   xTaskCreate(CheckForUserCommands ,"user commands" ,configMINIMAL_STACK_SIZE*2 ,NULL ,1 ,NULL);
-   xTaskCreate(Led_Effects_Func     ,"Leds effect"   ,configMINIMAL_STACK_SIZE*2 ,NULL ,1 ,NULL);
-   xTaskCreate(Schedule             ,"schedule"      ,configMINIMAL_STACK_SIZE*2 ,NULL ,1 ,NULL);
+   xTaskCreate(CheckForUserCommands ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL);
+   xTaskCreate(Led_Effects_Func     ,"Leds effect"   ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL);
+   xTaskCreate(Schedule             ,"schedule"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL);
 }
 //------------------------------------------------------------------

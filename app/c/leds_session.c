@@ -72,20 +72,16 @@ struct Led_Effect_Struct Led_Effects[]=
 void Set_Led_Effect       ( unsigned char Led,unsigned int Effect ) { Led_Effects[Led].Effect=Led_Effects[Led].Temp_Effect=Effect                                               ;}
 void Set_Temp_Led_Effect  ( unsigned char Led,unsigned int Effect ) { Led_Effects[Led].Temp_Effect=Effect                                                                       ;}
 void Set_Fixed_Led_Effect ( unsigned char Led,unsigned int Effect ) { Led_Effects[Led].Effect=Effect                                                                            ;}
-void Led_Effects_Func     ( void* nil                                  )
+void Led_Effects_Func ( void* nil )
 {
- unsigned char Actual_Led;
+   unsigned char Actual_Led;
+   Init_Leds();
    while(1) {
       for(Actual_Led=0;Actual_Led<sizeof(Led_Effects)/sizeof(struct Led_Effect_Struct);Actual_Led++) {
          (Led_Effects[Actual_Led].Temp_Effect&0x0001)?Led_Effects[Actual_Led].On_Function():Led_Effects[Actual_Led].Off_Function(); //se usa el metodo del shifteop para trasladar la indo de la variable al estado del led...
          if(!(Led_Effects[Actual_Led].Temp_Effect>>=1)) Led_Effects[Actual_Led].Temp_Effect=Led_Effects[Actual_Led].Effect;
       }
-   vTaskDelay( 100 / portTICK_RATE_MS ); 
+   vTaskDelay( 100 / portTICK_RATE_MS );
    }
 }
 //------------------------------------------------------------------
-void Init_Leds_Session(void)
-{
- Init_Leds         ( )   ;
- Init_Buttons      ( )   ;
-}
