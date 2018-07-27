@@ -59,10 +59,11 @@ struct Snmp_Value_Struct*     Rx_Snmp_Value  ( void ) { return (struct Snmp_Valu
 //------------------------------------------------------------------------------
 void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,  u16_t port)
 {
-   Snmp_Data=p;
-   Snmp_Pcb=*upcb;
-   Snmp_Addr=*addr;
-   Snmp_Port=port;
+   Snmp_Data=p;                                  // me guardo en una local el puntero al mensaje
+   pbuf_realloc(Snmp_Data,Snmp_Data->tot_len+2); // estiro 2 bytes... porque necesito 2 mas para mandar un entero
+   Snmp_Pcb  = *upcb;
+   Snmp_Addr = *addr;
+   Snmp_Port = port;
    Atomic_Send_Event(Rx_Snmp_Header()->Version,Snmp_Agent())                                                                                                                                                             ;
    UART_ETHprintf ( NULL,"Version\r\n" );
 }
@@ -114,10 +115,6 @@ void Response_Int(unsigned char SysDescr,signed int Value)/*{{{*/
  Rx_Snmp_Msg()       ->Msg_Length     = Rx_Snmp_Object()->Binding_Length+2+6 + Rx_Snmp_Msg()->Request_Id_Length+2;
 //
  Rx_Snmp_Header()    ->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3;
-///TODO estoy imponidndo la longitud del pbuf pero pbuf es dinamico.. tendria que crear uno nuevo y 
-//allocar ram, etc para lo nuevo.. no puedo hacer lo que hago mas abap.. pero lo cierto es que anda..
-//seguramente est pisando ram que no se este usando... pero es peligroso. y no se aun como crear y manipular los pbuf
-//sera tarea para la proxima... /
  Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header()->Message_Length+2;
  tcpip_callback(Send_Snmp_Ans,0);
 }
