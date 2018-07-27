@@ -35,8 +35,8 @@ const State
 
 //#pragma section {Flash_UData}
 char           Community[20]       = "public";
-unsigned int   Object_Name_Length  = 7;
-char           Object_Name[10]      = {0x29,0x02,0x01,0x21,0x01,0x02,0x07};
+unsigned int   Object_Name_Length  = 9;
+unsigned char  Object_Name[12]      = {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07};
 //#pragma section const {}
 const State* Snmp_Agent_Sm;
 struct pbuf* Snmp_Data=NULL;
@@ -77,7 +77,7 @@ void  Parse_Msg_Code             ( void )
    UART_ETHprintf ( NULL,"Msg Code\r\n" );
 }
 void  Parse_Object_Name          ( void ) {
-   Atomic_Send_Event ( strncmp(Object_Name,Rx_Snmp_Object( )->Object_Name,Object_Name_Length)==0,Actual_Sm());
+   Atomic_Send_Event ( memcmp(Object_Name,Rx_Snmp_Object( )->Object_Name,Object_Name_Length)==0,Actual_Sm());
    UART_ETHprintf ( NULL,"Object Name\r\n");
 }
 void  Parse_Msg_Code_Or_SysDescr ( void ) {
@@ -95,26 +95,30 @@ void Response_Int(unsigned char SysDescr,signed int Value)/*{{{*/
 {
  UART_ETHprintf(NULL,"Snmp Response\n");
 
- Rx_Snmp_Object ( )->Object_Name_Length = Object_Name_Length+1 ;       // el +1 del final es porque el OID que se graba en el equipo puede tener muchos 'hijos' de 1 byte. por que es el que se mueve en el bulk de hecho y se recibe como parametro aca...
+ Rx_Snmp_Object ( )->Object_Name_Length              = Object_Name_Length+1;// el +1 del final es porque el OID que se graba en el equipo puede tener muchos 'hijos' de 1 byte. por que es el que se mueve en el bulk de hecho y se recibe como parametro aca...
  Rx_Snmp_Object ( )->Object_Name[Object_Name_Length] = SysDescr;       // como ultimo valor pone el OID que piden...
  memcpy(Rx_Snmp_Object()->Object_Name,Object_Name,Object_Name_Length); // aca se copua todo el header del OID que faltaba...
 //
- Rx_Snmp_Value()     ->Value_Code            =0x02;   //codigo que corresponde a Integer...
- Rx_Snmp_Value()     ->Value_Length          =2;   //solo mando integer de 2 bytes...
- *(int16_t*)Rx_Snmp_Value()   ->Value              =Value;
+ Rx_Snmp_Value()     ->Value_Code     = 0x02;//codigo que corresponde a Integer...
+ Rx_Snmp_Value()     ->Value_Length   = 2;   //solo mando integer de 2 bytes...
+ Rx_Snmp_Value()   ->Value[0] = ((char*)&Value)[1];
+ Rx_Snmp_Value()   ->Value[1] = ((char*)&Value)[0];
 //
- Rx_Snmp_Object()    ->Item_Code    =0x30;
- Rx_Snmp_Object()    ->Item_Length     =Rx_Snmp_Object()->Object_Name_Length+2+Rx_Snmp_Value()->Value_Length+2;
- Rx_Snmp_Object()    ->Binding_Code    =0x30;
- Rx_Snmp_Object()    ->Binding_Length  =Rx_Snmp_Object()->Item_Length+2;
- Rx_Snmp_Object()    ->Error_Status    =0x00;
+ Rx_Snmp_Object()    ->Item_Code      = 0x30;
+ Rx_Snmp_Object()    ->Item_Length    = Rx_Snmp_Object()->Object_Name_Length+2+Rx_Snmp_Value()->Value_Length+2;
+ Rx_Snmp_Object()    ->Binding_Code   = 0x30;
+ Rx_Snmp_Object()    ->Binding_Length = Rx_Snmp_Object()->Item_Length+2;
+ Rx_Snmp_Object()    ->Error_Status   = 0x00;
 //
- Rx_Snmp_Msg()       ->Msg_Code     =Get_Response_Event;
- Rx_Snmp_Msg()       ->Msg_Length      =Rx_Snmp_Object()->Binding_Length+2+6 + Rx_Snmp_Msg()->Request_Id_Length+2;
+ Rx_Snmp_Msg()       ->Msg_Code       = Get_Response_Event;
+ Rx_Snmp_Msg()       ->Msg_Length     = Rx_Snmp_Object()->Binding_Length+2+6 + Rx_Snmp_Msg()->Request_Id_Length+2;
 //
- Rx_Snmp_Header()    ->Message_Length  =Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3;
-//
- Snmp_Data->len=Rx_Snmp_Header()->Message_Length+2;
+ Rx_Snmp_Header()    ->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3;
+///TODO estoy imponidndo la longitud del pbuf pero pbuf es dinamico.. tendria que crear uno nuevo y 
+//allocar ram, etc para lo nuevo.. no puedo hacer lo que hago mas abap.. pero lo cierto es que anda..
+//seguramente est pisando ram que no se este usando... pero es peligroso. y no se aun como crear y manipular los pbuf
+//sera tarea para la proxima... /
+ Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header()->Message_Length+2;
  tcpip_callback(Send_Snmp_Ans,0);
 }
 
@@ -156,12 +160,15 @@ void Response_All_One_Wire_T  (void)   /*{{{*/
 // if(On_Line_Nodes()>Event)    Response_Int(Event,One_Wire_Bin(Event));
 // else             Response_No_Such_Name();
 // Send_NVDebug_Snmp_Agent_Data2Serial(11,"One Wire T\n");
+   Response_Int(0,4321);
+   UART_ETHprintf ( NULL,"snmp ans int\n" );
 }/*}}}*/
 void Response_First_One_Wire_T(void)/*{{{*/
 {
 // if(On_Line_Nodes())    Response_Int(0,One_Wire_Bin(0));
 // else          Response_No_Such_Name();
    Response_Int(0,1234);
+   UART_ETHprintf ( NULL,"snmp ans int\n" );
 
 }/*}}}*/
 //------------------------------------------------------------------------------

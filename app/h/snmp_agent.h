@@ -45,7 +45,7 @@ struct Snmp_Object_Struct
  unsigned char Item_Length;
  unsigned char Object_Name_Code;
  unsigned char Object_Name_Length;
-  char Object_Name[1];
+ unsigned char Object_Name[1];
 };
 struct Snmp_Value_Struct
 {
