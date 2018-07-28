@@ -251,7 +251,7 @@
 //#define LWIP_NETIF_HOSTNAME             0
 //#define LWIP_NETIF_API                  0
 //#define LWIP_NETIF_STATUS_CALLBACK      0
-//#define LWIP_NETIF_LINK_CALLBACK        0
+#define LWIP_NETIF_LINK_CALLBACK        1
 //#define LWIP_NETIF_HWADDRHINT           0
 
 //*****************************************************************************
@@ -269,7 +269,7 @@
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 //dale 1024 o se ahoga....
-#define TCPIP_THREAD_STACKSIZE          configMINIMAL_STACK_SIZE*5
+#define TCPIP_THREAD_STACKSIZE          configMINIMAL_STACK_SIZE*12
 #define TCPIP_THREAD_PRIO               3
 #define TCPIP_MBOX_SIZE                 32
 //#define SLIPIF_THREAD_NAME             "slipif_loop"

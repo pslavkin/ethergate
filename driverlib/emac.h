@@ -972,6 +972,8 @@ extern void EMACPHYExtendedWrite(uint32_t ui32Base, uint8_t ui8PhyAddr,
                                   uint16_t ui16RegAddr, uint16_t ui16Data);
 extern uint16_t EMACPHYRead(uint32_t ui32Base,  uint8_t ui8PhyAddr,
                             uint8_t ui8RegAddr);
+//agrego yo
+extern bool EMACPHYLinkUp(void);
 extern uint16_t EMACPHYExtendedRead(uint32_t ui32Base, uint8_t ui8PhyAddr,
                                     uint16_t ui16RegAddr);
 extern void EMACPHYPowerOff(uint32_t ui32Base, uint8_t ui8PhyAddr);

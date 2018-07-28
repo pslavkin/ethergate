@@ -28,7 +28,17 @@
 #include "wdog.h"
 #include "telnet.h"
 #include "udp.h"
+#include "driverlib/emac.h"
 
+
+
+void Link_Test(void* nil)
+{
+   while(1) {
+      vTaskDelay(pdMS_TO_TICKS(1000));
+      Set_Led_Effect(Led_One_Wire,EMACPHYLinkUp()?0xFFFF:0);
+   }
+}
 
 //-------------------------------------------------------------------------------------
 void Init_Everythings(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
@@ -40,5 +50,9 @@ void Init_Everythings(void)         //inicializa los puertos que se usan en esta
    xTaskCreate(CheckForUserCommands ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL);
    xTaskCreate(Led_Effects_Func     ,"Leds effect"   ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL);
    xTaskCreate(Schedule             ,"schedule"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL);
+   xTaskCreate(Link_Test            ,"link_test"     ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL);
+
+
+
 }
 //------------------------------------------------------------------

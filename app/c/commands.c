@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "driverlib/sysctl.h"
+#include "driverlib/emac.h"
+//#include "inc/hw_memmap.h"
+//#include "inc/hw_emac.h"
 #include "utils/cmdline.h"
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
@@ -22,13 +25,15 @@
 //*****************************************************************************
 tCmdLineEntry g_psCmdTable[] =
 {
-    { "help" ,Cmd_help      ,": Display list of commands" } ,
-    { "h"    ,Cmd_help      ,": alias for help" }           ,
-    { "?"    ,Cmd_help      ,": alias for help" }           ,
-    { "Mac"  ,Cmd_Mac       ,": show MAC address" }         ,
-    { "ip"   ,Cmd_Ip        ,": show IP address" }          ,
-    { "W"    ,Cmd_Write2Eth ,": add data 2 ethernet" }      ,
-    { 0      ,0             ,0 }
+    { "help" ,Cmd_help        ,": Display list of commands" } ,
+    { "h"    ,Cmd_help        ,": alias for help" }           ,
+    { "?"    ,Cmd_help        ,": alias for help" }           ,
+    { "Mac"  ,Cmd_Mac         ,": show MAC address" }         ,
+    { "ip"   ,Cmd_Ip          ,": show IP address" }          ,
+    { "W"    ,Cmd_Write2Eth   ,": add data 2 ethernet" }      ,
+    { "task" ,Cmd_TaskList    ,": lista de tareas" }          ,
+    { "link" ,Cmd_Links_State ,": Estado del link ethernet" } ,
+    { 0      ,0               ,0 }
 };
 
 //*****************************************************************************
@@ -57,7 +62,7 @@ int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
 }
 int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   DisplayIPAddress(lwIPLocalIPAddrGet());
+   DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
    return(0);
 }
 int Cmd_Write2Eth(struct tcp_pcb* tpcb, int argc, char *argv[])
@@ -73,13 +78,25 @@ void UpdateMACAddr(struct tcp_pcb* tpcb)
             pui8MACAddr[0], pui8MACAddr[1], pui8MACAddr[2], pui8MACAddr[3],
             pui8MACAddr[4], pui8MACAddr[5]);
 }
-void DisplayIPAddress(uint32_t ui32Addr)
+void DisplayIPAddress(struct tcp_pcb* tpcb,uint32_t ui32Addr)
 {
-    UART_ETHprintf(NULL, "%d.%d.%d.%d", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
+    UART_ETHprintf(tpcb, "%d.%d.%d.%d", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
             (ui32Addr >> 16) & 0xff, (ui32Addr >> 24) & 0xff);
 }
 
+int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   char cBuffer[ 1000 ];
+   vTaskList( cBuffer );
+   UART_ETHprintf(tpcb,cBuffer);
+   return 0;
+}
 
+int Cmd_Links_State(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"PHY=%d",EMACPHYLinkUp());
+   return 0;
+}
 //*****************************************************************************
 //
 // Input buffer for the command line interpreter.

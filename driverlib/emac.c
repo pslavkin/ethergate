@@ -2943,6 +2943,12 @@ EMACPHYRead(uint32_t ui32Base, uint8_t ui8PhyAddr, uint8_t ui8RegAddr)
 }
 
 //*****************************************************************************
+//Agrego esta para conocer el estado del link
+bool EMACPHYLinkUp(void)
+{
+   return ((EMACPHYRead( EMAC0_BASE,0, 1 )&EPHY_BMSR_LINKSTAT)!=0);
+}
+//*****************************************************************************
 //
 //! Reads from an extended PHY register.
 //!

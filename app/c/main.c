@@ -84,9 +84,6 @@ void lwIPHostTimerHandler(void)
 {
 }
 
-//#define SYSTICKHZ               100
-//#define SYSTICKMS               (1000 / SYSTICKHZ)
-
 int main(void)
 {
     uint32_t ui32User0, ui32User1;
@@ -97,13 +94,12 @@ int main(void)
     //
     // Configure the device pins.
     //
-    PinoutSet(false, false);
+    PinoutSet(true, false);
 
-    UARTStdioConfig(0, 115200, Actual_Clk_Get());
-    UARTprintf ("\033[2J\033[H");
-    UARTprintf ("Ethernet IO Example\n\n");
+    UARTStdioConfig ( 0, 115200, Actual_Clk_Get( ));
+    UARTprintf      ( "\033[2J\033[H"            ) ;
+    UARTprintf      ( "Ethergate\n\n"            ) ;
 
-//    Init_Rti();
     //
     // Configure the hardware MAC address for Ethernet Controller filtering of
     // incoming packets.  The MAC address will be stored in the non-volatile
@@ -139,11 +135,11 @@ int main(void)
     //
    lwIPInit(Actual_Clk_Get(), pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
 
-    xTaskCreate(State_Machine ,"sm"  ,configMINIMAL_STACK_SIZE*2 ,NULL ,2 ,NULL);
+   xTaskCreate(State_Machine ,"sm"  ,configMINIMAL_STACK_SIZE*2 ,NULL ,2 ,NULL);
 
-    Init_Events();
-    Init_Everythings();
-    vTaskStartScheduler();
-    while(1)
+   Init_Events();
+   Init_Everythings();
+   vTaskStartScheduler();
+   while(1)
        ;
 }

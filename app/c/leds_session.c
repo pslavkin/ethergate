@@ -66,7 +66,7 @@ struct Led_Effect_Struct Led_Effects[]=
  {0xAAAA ,0x8FFF ,Led_Power_Set    ,Led_Power_Reset}    ,
  {0xF000 ,0x01FF ,Led_Link_Set     ,Led_Link_Reset}     ,
  {0xFF00 ,0x003F ,Led_Run_Set      ,Led_Run_Reset}      ,
- {0xFFF0 ,0x0007 ,Led_One_Wire_Set ,Led_One_Wire_Reset} ,
+ {0x0000 ,0x0001 ,Led_One_Wire_Set ,Led_One_Wire_Reset} ,
 };
 //----------
 void Set_Led_Effect       ( unsigned char Led,unsigned int Effect ) { Led_Effects[Led].Effect=Led_Effects[Led].Temp_Effect=Effect                                               ;}
