@@ -269,7 +269,7 @@
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 //dale 1024 o se ahoga....
-#define TCPIP_THREAD_STACKSIZE          configMINIMAL_STACK_SIZE*12
+#define TCPIP_THREAD_STACKSIZE          2600 
 #define TCPIP_THREAD_PRIO               3
 #define TCPIP_MBOX_SIZE                 32
 //#define SLIPIF_THREAD_NAME             "slipif_loop"

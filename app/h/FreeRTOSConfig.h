@@ -2,13 +2,13 @@
 #define FREERTOS_CONFIG_H
 
 #define configUSE_PREEMPTION                1
-#define configUSE_IDLE_HOOK                 0
+#define configUSE_IDLE_HOOK                 1
 #define configUSE_TICK_HOOK                 0
 #define configCPU_CLOCK_HZ                  ( ( unsigned long ) 120000000 )
 #define configTICK_RATE_HZ                  ( ( portTickType ) 1000 )
-#define configMINIMAL_STACK_SIZE            ( ( unsigned short ) 200 )
-#define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 20240 ) )
-#define configMAX_TASK_NAME_LEN             ( 12 )
+#define configMINIMAL_STACK_SIZE            ( ( unsigned short ) 100 )
+#define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 20000 ) )
+#define configMAX_TASK_NAME_LEN             ( 16 )
 #define configUSE_TRACE_FACILITY            1
 #define configUSE_STATS_FORMATTING_FUNCTIONS 1
 #define configUSE_16_BIT_TICKS              0
@@ -24,6 +24,7 @@
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
+#define configUSE_COUNTING_SEMAPHORES        1
 
 #define INCLUDE_vTaskPrioritySet            1
 #define INCLUDE_uxTaskPriorityGet           1

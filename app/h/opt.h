@@ -1,27 +1,10 @@
 #ifndef __OPT_H__
 #define __OPT_H__
 
-//*****************************************************************************
-//
-// If building with a C++ compiler, make all of the definitions in this header
-// have a C binding.
-//
-//*****************************************************************************
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
-
-#define APP_INPUT_BUF_SIZE 256
-
-//*****************************************************************************
-//
-// Mark the end of the C bindings section for C++ compilers.
-//
-//*****************************************************************************
-#ifdef __cplusplus
-}
-#endif
+#define APP_INPUT_BUF_SIZE      128
+#define UART_BUFFERED
+#define UART_RX_BUFFER_SIZE     128
+#define UART_TX_BUFFER_SIZE     512
 
 #endif // __COMMANDS_H__

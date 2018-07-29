@@ -1,66 +1,29 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
-#include "inc/hw_nvic.h"
-#include "inc/hw_types.h"
 #include "driverlib/flash.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/timer.h"
-#include "driverlib/rom_map.h"
-#include "utils/lwiplib.h"
 #include "utils/uartstdio.h"
-#include "utils/ustdlib.h"
-#include "drivers/pinout.h"
-#include "io.h"
+#include "driverlib/rom.h"
+#include "driverlib/rom_map.h"
+#include "driverlib/pin_map.h"
 #include "commands.h"
 #include "clk.h"
-#include "rti.h"
 #include "state_machine.h"
 #include "events.h"
-#include "everythings.h"
-
+#include "wdog.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "leds_session.h"
+#include "commands.h"
+#include "schedule.h"
+#include "telnet.h"
+#include "udp.h"
 
 
-//*****************************************************************************
-//
-// Interrupt priority definitions.  The top 3 bits of these values are
-// significant with lower values indicating higher priority interrupts.
-//
-//*****************************************************************************
-#define SYSTICK_INT_PRIORITY    0x80
-#define ETHERNET_INT_PRIORITY   0xC0
-
-
-//*****************************************************************************
-//
-// Timeout for DHCP address request (in seconds).
-//
-//*****************************************************************************
-#ifndef DHCP_EXPIRE_TIMER_SECS
-#define DHCP_EXPIRE_TIMER_SECS  45
-#endif
-
-//*****************************************************************************
-//
-// The current IP address.
-//
-//*****************************************************************************
-//uint32_t g_ui32IPAddress;
-
-//*****************************************************************************
-//
 // The error routine that is called if the driver library encounters an error.
-//
-//*****************************************************************************
 #ifdef DEBUG
 void
 __error__(char *pcFilename, uint32_t ui32Line)
@@ -69,17 +32,7 @@ __error__(char *pcFilename, uint32_t ui32Line)
 #endif
 
 
-//*****************************************************************************
-//
-// The interrupt handler for the SysTick interrupt.
-//
-//*****************************************************************************
-
-//*****************************************************************************
-//
 // Required by lwIP library to support any host-related timer functions.
-//
-//*****************************************************************************
 void lwIPHostTimerHandler(void)
 {
 }
@@ -94,11 +47,14 @@ int main(void)
     //
     // Configure the device pins.
     //
-    PinoutSet(true, false);
+    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+    ROM_GPIOPinConfigure(GPIO_PA0_U0RX);
+    ROM_GPIOPinConfigure(GPIO_PA1_U0TX);
+    ROM_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
-    UARTStdioConfig ( 0, 115200, Actual_Clk_Get( ));
-    UARTprintf      ( "\033[2J\033[H"            ) ;
-    UARTprintf      ( "Ethergate\n\n"            ) ;
+    UARTStdioConfig ( 0, 115200, configCPU_CLOCK_HZ);
+    UART_ETHprintf ( NULL,"\033[2J\033[H" );
+    UART_ETHprintf ( NULL,"Ethergate\n\n" );
 
     //
     // Configure the hardware MAC address for Ethernet Controller filtering of
@@ -121,24 +77,22 @@ int main(void)
     pui8MACArray[4] = ((ui32User1 >>  8) & 0xff);
     pui8MACArray[5] = ((ui32User1 >> 16) & 0xff);
 
-    //
-    // Set the interrupt priorities.  We set the SysTick interrupt to a higher
-    // priority than the Ethernet interrupt to ensure that the file system
-    // tick is processed if SysTick occurs while the Ethernet handler is being
-    // processed.  This is very likely since all the TCP/IP and HTTP work is
-    // done in the context of the Ethernet interrupt.
-    //
-    MAP_IntPrioritySet(INT_EMAC0, ETHERNET_INT_PRIORITY);
-    MAP_IntPrioritySet(FAULT_SYSTICK, SYSTICK_INT_PRIORITY);
-    //
-    // Initialze the lwIP library, using DHCP.
-    //
-   lwIPInit(Actual_Clk_Get(), pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
 
-   xTaskCreate(State_Machine ,"sm"  ,configMINIMAL_STACK_SIZE*2 ,NULL ,2 ,NULL);
+   lwIPInit(configCPU_CLOCK_HZ, pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
 
-   Init_Events();
-   Init_Everythings();
+
+   Init_Wdog();
+   Init_Leds   ( );
+   Init_Events ( );
+   xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE ,NULL ,2 ,NULL );
+   xTaskCreate ( Schedule           ,"schedule"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   xTaskCreate ( Led_Link_Task      ,"led link"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   xTaskCreate ( Led_Eth_Data_Task  ,"led eth data"  ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   Init_Telnet ( );
+   Init_Udp    ( );
+
+
    vTaskStartScheduler();
    while(1)
        ;

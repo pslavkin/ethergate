@@ -2,6 +2,7 @@
 # Defines the part type that this project uses.
 #
 
+# VERBOSE
 DEBUG=1
 
 PART=TM4C1294NCPDT
@@ -67,10 +68,8 @@ ${COMPILER}:
 # Rules for building the Sample Ethernet I/O Control Application using lwIP.
 #
 ${COMPILER}/out.axf: ${COMPILER}/main.o
-${COMPILER}/out.axf: ${COMPILER}/rti.o
 ${COMPILER}/out.axf: ${COMPILER}/events.o
 ${COMPILER}/out.axf: ${COMPILER}/schedule.o
-${COMPILER}/out.axf: ${COMPILER}/everythings.o
 ${COMPILER}/out.axf: ${COMPILER}/leds_session.o
 ${COMPILER}/out.axf: ${COMPILER}/state_machine.o
 ${COMPILER}/out.axf: ${COMPILER}/telnet.o
@@ -79,9 +78,7 @@ ${COMPILER}/out.axf: ${COMPILER}/snmp_agent.o
 ${COMPILER}/out.axf: ${COMPILER}/clk.o
 ${COMPILER}/out.axf: ${COMPILER}/wdog.o
 ${COMPILER}/out.axf: ${COMPILER}/commands.o
-${COMPILER}/out.axf: ${COMPILER}/io.o
 ${COMPILER}/out.axf: ${COMPILER}/lwiplib.o
-${COMPILER}/out.axf: ${COMPILER}/pinout.o
 ${COMPILER}/out.axf: ${COMPILER}/startup_${COMPILER}.o
 ${COMPILER}/out.axf: ${COMPILER}/cmdline.o
 ${COMPILER}/out.axf: ${COMPILER}/uartstdio.o
@@ -101,6 +98,9 @@ SCATTERgcc_out=${APP}/ld/out.ld
 ENTRY_out=ResetISR
 CFLAGSgcc=-DTARGET_IS_TM4C129_RA0
 
+
+
+LDFLAGS=-nostartfiles -gc-sections -Map=gcc/map.map --cref
 #
 # Include the automatically generated dependency files.
 #

@@ -1298,42 +1298,25 @@ void
 UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 {
    va_list vaArgP;
-   char buf[APP_INPUT_BUF_SIZE];
+   char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
    int len;
     //
     // Start the varargs processing.
     //
      va_start(vaArgP, pcString);
-     len=uvsnprintf(buf,sizeof(buf),pcString, vaArgP);
+     len=uvsnprintf(Buff,UART_TX_BUFFER_SIZE,pcString, vaArgP);
      if(tpcb==NULL)
-        UARTwrite(buf,len);
+        UARTwrite(Buff,len);
      else
-        tcp_write(tpcb,buf,len,TCP_WRITE_FLAG_COPY|TCP_WRITE_FLAG_MORE);
-    //
+        tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY|TCP_WRITE_FLAG_MORE);
+     vPortFree(Buff);
+  
+     //
     // We're finished with the varargs now.
     //
     va_end(vaArgP);
 
 }
-
-void UARTprintf(const char *pcString, ...)
-{
-   va_list vaArgP;
-   char buf[APP_INPUT_BUF_SIZE];
-   int len;
-    //
-    // Start the varargs processing.
-    //
-     va_start(vaArgP, pcString);
-     len=uvsnprintf(buf,sizeof(buf),pcString, vaArgP);
-     UARTwrite(buf,len);
-    //
-    // We're finished with the varargs now.
-    //
-    va_end(vaArgP);
-
-}
-
 //*****************************************************************************
 //
 //! Returns the number of bytes available in the receive buffer.

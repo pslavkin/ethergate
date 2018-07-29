@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "utils/lwiplib.h"
+#include "leds_session.h"
 
 //*****************************************************************************
 //
@@ -410,9 +411,10 @@ lwIPInterruptTask(void *pvArg)
         //
         // Wait until the semaphore has been signaled.
         //
-        while(xQueueReceive(g_pInterrupt, &pvArg, portMAX_DELAY) != pdPASS)
+       while(xQueueReceive(g_pInterrupt, &pvArg, portMAX_DELAY) != pdPASS)
         {
         }
+        xSemaphoreGive(Led_Eth_Data_Semphr);
 
         //
         // Processes any packets waiting to be sent or received.

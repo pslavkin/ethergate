@@ -4,36 +4,44 @@
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
-#include "inc/hw_types.h"
-#include "driverlib/flash.h"
 #include "utils/uartstdio.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
 #include "driverlib/timer.h"
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "wdog.h"
-#include "clk.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
 
 void Wdog_Handler ( void )
 {
 //   MAP_WatchdogIntClear(WATCHDOG0_BASE);
-   UARTprintf("wdog\n");
+   MAP_UARTCharPut(UART0_BASE, 'w');
+   MAP_UARTCharPut(UART0_BASE, 'd');
+   MAP_UARTCharPut(UART0_BASE, 'o');
+   MAP_UARTCharPut(UART0_BASE, 'g');
+   MAP_UARTCharPut(UART0_BASE, ' ');
 }
 
-void Wdog_Clear(void)
+void Wdog_Task(void* nil)
 {
-  MAP_WatchdogReloadSet(WATCHDOG0_BASE, Actual_Clk_Get());
+   while(1) {
+      vTaskDelay(pdMS_TO_TICKS(500));
+      MAP_WatchdogReloadSet(WATCHDOG0_BASE, configCPU_CLOCK_HZ);
+   }
 }
-
 void Init_Wdog(void)
 {
-   MAP_SysCtlPeripheralEnable ( SYSCTL_PERIPH_WDOG0             ) ;
-   MAP_IntEnable(INT_WATCHDOG);
-   MAP_WatchdogIntEnable      ( WATCHDOG0_BASE                  ) ; // Enable the watchdog interrupt.
-   MAP_WatchdogReloadSet      ( WATCHDOG0_BASE, Actual_Clk_Get( )); // Set the period of the watchdog timer to 1 second.
-   MAP_WatchdogResetEnable    ( WATCHDOG0_BASE                  ) ; // Enable reset generation from the watchdog timer.
-   MAP_WatchdogEnable         ( WATCHDOG0_BASE                  ) ; // Enable the watchdog timer.
+   MAP_SysCtlPeripheralEnable ( SYSCTL_PERIPH_WDOG0                );
+   MAP_IntEnable              ( INT_WATCHDOG                       );
+   MAP_WatchdogIntEnable      ( WATCHDOG0_BASE                     ); // Enable the watchdog interrupt.
+   MAP_WatchdogReloadSet      ( WATCHDOG0_BASE, configCPU_CLOCK_HZ ); // Set the period of the watchdog timer to 1 second.
+   MAP_WatchdogResetEnable    ( WATCHDOG0_BASE                     ); // Enable reset generation from the watchdog timer.
+   MAP_WatchdogEnable         ( WATCHDOG0_BASE                     ); // Enable the watchdog timer.
+   xTaskCreate ( Wdog_Task ,"wdog" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
 }
+
+

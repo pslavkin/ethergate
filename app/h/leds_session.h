@@ -7,25 +7,35 @@
 #include <string.h>
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
 //-----------------------------------------------------------
-void Led_Effects_Func            ( void* nil );
+extern SemaphoreHandle_t Led_Eth_Data_Semphr;
+void Led_Link_Task        ( void* nil );
+void Led_Eth_Data_Task    ( void* nil );
+void vApplicationIdleHook ( void      );
+void Init_Leds            ( void      );
 //----------------------------------------------------
 //degino la posicino de los leds en el puerto N
-#define LED_POWER_PIN      GPIO_PIN_1
-#define LED_POWER_PORT     GPIO_PORTN_BASE
-#define LED_POWER_PERIPH   SYSCTL_PERIPH_GPION
+#define LED_RUN_PIN      GPIO_PIN_1
+#define LED_RUN_PORT     GPIO_PORTN_BASE
+#define LED_RUN_PERIPH   SYSCTL_PERIPH_GPION
 
-#define LED_LINK_PIN       GPIO_PIN_0
-#define LED_LINK_PORT      GPIO_PORTN_BASE
-#define LED_LINK_PERIPH    SYSCTL_PERIPH_GPION
+#define LED_ONE_WIRE_PIN      GPIO_PIN_0
+#define LED_ONE_WIRE_PORT     GPIO_PORTN_BASE
+#define LED_ONE_WIRE_PERIPH   SYSCTL_PERIPH_GPION
+
+#define LED_LINK_PIN          GPIO_PIN_0
+#define LED_LINK_PORT         GPIO_PORTF_BASE
+#define LED_LINK_PERIPH       SYSCTL_PERIPH_GPIOF
 
 //degino la posicino de los leds en el puerto F
-#define LED_RUN_PIN         GPIO_PIN_4
-#define LED_RUN_PORT        GPIO_PORTF_BASE
-#define LED_RUN_PERIPH      SYSCTL_PERIPH_GPIOF
-#define LED_ONE_WIRE_PIN    GPIO_PIN_0
-#define LED_ONE_WIRE_PORT   GPIO_PORTF_BASE
-#define LED_ONE_WIRE_PERIPH SYSCTL_PERIPH_GPIOF
+#define LED_ETH_DATA_PIN         GPIO_PIN_4
+#define LED_ETH_DATA_PORT        GPIO_PORTF_BASE
+#define LED_ETH_DATA_PERIPH      SYSCTL_PERIPH_GPIOF
+
 
 //degino la posicino del boton
 #define BUTTON1_PIN    GPIO_PIN_0
@@ -34,34 +44,6 @@ void Led_Effects_Func            ( void* nil );
 #define BUTTON2_PIN    GPIO_PIN_1
 #define BUTTON2_PORT   GPIO_PORTJ_BASE
 #define BUTTON2_PERIPH SYSCTL_PERIPH_GPIOJ
-//---------------------------------------------------------
-void Set_Led_Effect       ( unsigned char Led,unsigned int Effect );
-void Set_Temp_Led_Effect  ( unsigned char Led,unsigned int Effect );
-void Set_Fixed_Led_Effect ( unsigned char Led,unsigned int Effect );
-//---------------------------------------------------------
-enum Leds_Position
-{
- Led_Power    = 0,
- Led_Link     = 1,
- Led_Run      = 2,
- Led_One_Wire = 3
-};
-struct Led_Effect_Struct
- {
-  unsigned int Effect;
-  unsigned int Temp_Effect;
-  void (*On_Function)(void);
-  void (*Off_Function)(void);
- };
-//---------------------------------------------------------
-void Led_Power_Set      ( void );
-void Led_Power_Reset    ( void );
-void Led_Link_Set       ( void );
-void Led_Link_Reset     ( void );
-void Led_Run_Set        ( void );
-void Led_Run_Reset      ( void );
-void Led_One_Wire_Set   ( void );
-void Led_One_Wire_Reset ( void );
 //---------------------------------------------------------
 
 #endif

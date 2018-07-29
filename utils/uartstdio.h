@@ -27,6 +27,7 @@
 
 #include "utils/lwiplib.h"
 #include <stdarg.h>
+#include "app/h/opt.h"
 
 //*****************************************************************************
 //
@@ -50,7 +51,7 @@ extern "C"
 #define UART_RX_BUFFER_SIZE     128
 #endif
 #ifndef UART_TX_BUFFER_SIZE
-#define UART_TX_BUFFER_SIZE     512
+#define UART_TX_BUFFER_SIZE     256
 #endif
 #endif
 
@@ -64,7 +65,7 @@ extern void UARTStdioConfig(uint32_t ui32Port, uint32_t ui32Baud,
 extern int UARTgets(char *pcBuf, uint32_t ui32Len);
 extern unsigned char UARTgetc(void);
 extern void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...);
-extern void UARTprintf(const char *pcString, ...);
+//extern void UARTprintf(const char *pcString, ...);
 //extern void UARTvprintf(const char *pcString, va_list vaArgP);
 extern int UARTwrite(const char *pcBuf, uint32_t ui32Len);
 #ifdef UART_BUFFERED

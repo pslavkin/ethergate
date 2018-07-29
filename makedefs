@@ -69,7 +69,6 @@ CFLAGS=-mthumb             \
        -Wall               \
        -pedantic           \
        -DPART_${PART}      \
-       -DUART_BUFFERED     \
        -c
 
 #
@@ -85,7 +84,7 @@ LD=${PREFIX}-ld
 #
 # The flags passed to the linker.
 #
-LDFLAGS=--gc-sections
+LDFLAGS+=--gc-sections
 
 #
 # Get the location of libgcc.a from the GCC front-end.
@@ -106,6 +105,7 @@ LIBM:=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
 # The command for extracting images from the linked executables.
 #
 OBJCOPY=${PREFIX}-objcopy
+OBJSIZE=${PREFIX}-size
 
 #
 # Tell the compiler to include debugging information if the DEBUG environment
@@ -202,6 +202,7 @@ ${COMPILER}${SUFFIX}/%.axf:
 	      ${LDFLAGSgcc_${notdir ${@:.axf=}}}                              \
 	      ${LDFLAGS} -o ${@} $(filter %.o %.a, ${^})                      \
 	      '${LIBM}' '${LIBC}' '${LIBGCC}'
-	@${OBJCOPY} -O binary ${@} ${@:.axf=.bin}
+	@${OBJCOPY} -v -O binary ${@} ${@:.axf=.bin}
+	@${OBJSIZE} ${@}
 endif
 

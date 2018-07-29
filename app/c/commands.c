@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include "driverlib/sysctl.h"
 #include "driverlib/emac.h"
-//#include "inc/hw_memmap.h"
-//#include "inc/hw_emac.h"
 #include "utils/cmdline.h"
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
@@ -30,7 +28,6 @@ tCmdLineEntry g_psCmdTable[] =
     { "?"    ,Cmd_help        ,": alias for help" }           ,
     { "Mac"  ,Cmd_Mac         ,": show MAC address" }         ,
     { "ip"   ,Cmd_Ip          ,": show IP address" }          ,
-    { "W"    ,Cmd_Write2Eth   ,": add data 2 ethernet" }      ,
     { "task" ,Cmd_TaskList    ,": lista de tareas" }          ,
     { "link" ,Cmd_Links_State ,": Estado del link ethernet" } ,
     { 0      ,0               ,0 }
@@ -65,11 +62,6 @@ int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
    DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
    return(0);
 }
-int Cmd_Write2Eth(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   UART_ETHprintf(tpcb,"hola\n");
-   return(0);
-}
 
 void UpdateMACAddr(struct tcp_pcb* tpcb)
 {
@@ -86,9 +78,10 @@ void DisplayIPAddress(struct tcp_pcb* tpcb,uint32_t ui32Addr)
 
 int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   char cBuffer[ 1000 ];
-   vTaskList( cBuffer );
-   UART_ETHprintf(tpcb,cBuffer);
+   char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
+   vTaskList( Buff );
+   UART_ETHprintf(tpcb,Buff);
+   vPortFree(Buff);
    return 0;
 }
 
@@ -108,18 +101,19 @@ int Cmd_Links_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 // input. This function will return after the execution of a single command.
 //
 //*****************************************************************************
-void CheckForUserCommands(void* nil)
+void User_Commands_Task(void* nil)
 {
    while(1) {
       if(UARTPeek('\r') != -1) {
-         char g_cInput[APP_INPUT_BUF_SIZE];
+         char* Buff =(char*)pvPortMalloc(APP_INPUT_BUF_SIZE);
          while(UARTPeek('\r') != -1)
          {
-           UARTgets(g_cInput, APP_INPUT_BUF_SIZE);
-           CmdLineProcess(g_cInput,NULL);
+           UARTgets(Buff, APP_INPUT_BUF_SIZE);
+           CmdLineProcess(Buff,NULL);
          }
+        vPortFree(Buff);
       }
-      vTaskDelay( 100 / portTICK_RATE_MS ); 
+      vTaskDelay( 100 / portTICK_RATE_MS );
    }
 
 }

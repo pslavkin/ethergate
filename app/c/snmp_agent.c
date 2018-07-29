@@ -17,7 +17,6 @@
 #include "utils/ustdlib.h"
 #include "utils/cmdline.h"
 #include "drivers/pinout.h"
-#include "io.h"
 #include "commands.h"
 #include "opt.h"
 #include "commands.h"
