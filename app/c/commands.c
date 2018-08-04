@@ -9,6 +9,8 @@
 #include "utils/ustdlib.h"
 #include "utils/lwiplib.h"
 #include "commands.h"
+#include "leds.h"
+#include "buttons.h"
 #include "opt.h"
 
 #include "FreeRTOS.h"
@@ -23,13 +25,14 @@
 //*****************************************************************************
 tCmdLineEntry g_psCmdTable[] =
 {
-    { "help" ,Cmd_help        ,": Display list of commands" } ,
-    { "h"    ,Cmd_help        ,": alias for help" }           ,
-    { "?"    ,Cmd_help        ,": alias for help" }           ,
-    { "Mac"  ,Cmd_Mac         ,": show MAC address" }         ,
-    { "ip"   ,Cmd_Ip          ,": show IP address" }          ,
-    { "task" ,Cmd_TaskList    ,": lista de tareas" }          ,
-    { "link" ,Cmd_Links_State ,": Estado del link ethernet" } ,
+    { "help" ,Cmd_help         ,": Display list of commands" } ,
+    { "h"    ,Cmd_help         ,": alias for help" }           ,
+    { "?"    ,Cmd_help         ,": alias for help" }           ,
+    { "Mac"  ,Cmd_Mac          ,": show MAC address" }         ,
+    { "ip"   ,Cmd_Ip           ,": show IP address" }          ,
+    { "task" ,Cmd_TaskList     ,": lista de tareas" }          ,
+    { "link" ,Cmd_Links_State  ,": Estado del link ethernet" } ,
+    { "bt"   ,Cmd_Button_State ,": Estado del boton" }         ,
     { 0      ,0               ,0 }
 };
 
@@ -88,6 +91,11 @@ int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 int Cmd_Links_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"PHY=%d",EMACPHYLinkUp());
+   return 0;
+}
+int Cmd_Button_State(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"boton=%d",Button1_Read());
    return 0;
 }
 //*****************************************************************************

@@ -16,7 +16,8 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
-#include "leds_session.h"
+#include "leds.h"
+#include "buttons.h"
 #include "commands.h"
 #include "schedule.h"
 #include "telnet.h"
@@ -81,14 +82,15 @@ int main(void)
    lwIPInit(configCPU_CLOCK_HZ, pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
 //
 //
-   Init_Leds   ( );
-   Init_Wdog();
-   Init_Events ( );
+   Init_Wdog    ( );
+   Init_Events  ( );
    xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE ,NULL ,2 ,NULL );
    xTaskCreate ( Schedule           ,"schedule"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Led_Link_Task      ,"led link"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
-   xTaskCreate ( Led_Eth_Data_Task  ,"led eth data"  ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   xTaskCreate ( Led_Rgb_Task       ,"leds RGB"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   xTaskCreate ( Led_Serial_Task    ,"led serial"    ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   xTaskCreate ( Button1_Task       ,"Button1"       ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    Init_Telnet ( );
    Init_Udp    ( );
 //

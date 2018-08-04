@@ -1174,6 +1174,19 @@ void GPIOPinReset(uint32_t ui32Port, uint8_t ui8Pins)
     HWREG(ui32Port + (GPIO_O_DATA + (ui8Pins << 2))) = 0;
 }
 
+void GPIOPinToogle(uint32_t ui32Port, uint8_t ui8Pins)
+{
+//*****************************************************************************
+// pslavkinL agrego esta funcion para setera un pin.. 
+// como lo uso mucho, me evito un parametro
+//! \return None.
+//
+//*****************************************************************************
+    //
+    // Write the pins.
+    //
+    GPIOPinWrite(ui32Port,ui8Pins,~GPIOPinRead(ui32Port,ui8Pins));
+}
 //*****************************************************************************
 //
 //! Configures pin(s) for use as analog-to-digital converter inputs.

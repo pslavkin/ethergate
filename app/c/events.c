@@ -1,5 +1,5 @@
 #include <events.h>
-
+  
 Events Event_Buffer[MAX_EVENTS+1];        //array usado de buffer para almacenar los datos...
 unsigned char Point2Write,Point2Read;     //puntero para escritura y lectura...
  

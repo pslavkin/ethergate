@@ -7,7 +7,7 @@
 #include "inc/hw_memmap.h"
 #include "driverlib/emac.h"
 #include "driverlib/rom_map.h"
-#include "leds_session.h"
+#include "buttons.h"
 //*****************************************************************************
 //
 // Forward declaration of the default fault handlers.
@@ -66,20 +66,11 @@ void (* const g_pfnVectors[])(void) =
     0,                                      // Reserved
     0,                                      // Reserved
     0,                                      // Reserved
-
-
     vPortSVCHandler,                        // SVCall handler
     IntDefaultHandler,                      // Debug monitor handler
     0,                                      // Reserved
     xPortPendSVHandler,                     // The PendSV handler
     xPortSysTickHandler,                    // The SysTick handler
-
-
-//    IntDefaultHandler,                      // SVCall handler
-//    IntDefaultHandler,                      // Debug monitor handler
-//    0,                                      // Reserved
-//    IntDefaultHandler,                      // The PendSV handler
-//    SysTickIntHandler,                      // The SysTick handler
     IntDefaultHandler,                      // GPIO Port A
     IntDefaultHandler,                      // GPIO Port B
     IntDefaultHandler,                      // GPIO Port C
@@ -112,7 +103,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // FLASH Control
     IntDefaultHandler,                      // GPIO Port F
     IntDefaultHandler,                      // GPIO Port G
-    IntDefaultHandler,                      // GPIO Port H
+    Button1IntHandler,                      // GPIO Port H
     IntDefaultHandler,                      // UART2 Rx and Tx
     IntDefaultHandler,                      // SSI1 Rx and Tx
     IntDefaultHandler,                      // Timer 3 subtimer A
