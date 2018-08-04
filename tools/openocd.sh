@@ -1,1 +1,1 @@
-openocd -f tiva.cfg
+openocd -d -f tiva.cfg

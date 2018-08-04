@@ -27,21 +27,21 @@ uint8_t Button1_Read (void)
 
 void Init_Leds(void)
 {
- MAP_SysCtlPeripheralEnable (LED_RUN_PERIPH);
- MAP_GPIOPinTypeGPIOOutput  (LED_RUN_PORT,LED_RUN_PIN);
-
- MAP_SysCtlPeripheralEnable (LED_ONE_WIRE_PERIPH);
- MAP_GPIOPinTypeGPIOOutput  (LED_ONE_WIRE_PORT,LED_ONE_WIRE_PIN);
+ MAP_SysCtlPeripheralEnable (LED_GREEN_PERIPH);
+ MAP_GPIOPinTypeGPIOOutput  (LED_GREEN_PORT,LED_GREEN_PIN);
+ Led_Green_Reset();
 }
 
-void Led_One_Wire_Set   ( void ) { GPIOPinSet (LED_ONE_WIRE_PORT,LED_ONE_WIRE_PIN)   ;}
-void Led_One_Wire_Reset ( void ) { GPIOPinReset  (LED_ONE_WIRE_PORT,LED_ONE_WIRE_PIN);}
+void Led_Green_Set      ( void ) { GPIOPinSet   (LED_GREEN_PORT,LED_GREEN_PIN)      ;}
+void Led_Green_Reset    ( void ) { GPIOPinReset (LED_GREEN_PORT,LED_GREEN_PIN)      ;}
+void Led_One_Wire_Set   ( void ) { GPIOPinSet   (LED_ONE_WIRE_PORT,LED_ONE_WIRE_PIN);}
+void Led_One_Wire_Reset ( void ) { GPIOPinReset (LED_ONE_WIRE_PORT,LED_ONE_WIRE_PIN);}
 
 
 void vApplicationIdleHook(void)
 {
    static uint16_t State=0;
-   MAP_GPIOPinWrite(LED_RUN_PORT,LED_RUN_PIN,++State&0x2000?LED_RUN_PIN:0);
+   MAP_GPIOPinWrite(LED_GREEN_PORT,LED_GREEN_PIN,++State&0x2000?LED_GREEN_PIN:0);
 }
 
 
@@ -66,7 +66,7 @@ void Led_Link_Task(void* nil)
    GPIOPinTypeGPIOOutput  (LED_LINK_PORT,LED_LINK_PIN);
    while(1) {
       vTaskDelay(pdMS_TO_TICKS(1000));
-      GPIOPinWrite(LED_LINK_PORT, LED_LINK_PIN, EMACPHYLinkUp());
+      GPIOPinWrite(LED_LINK_PORT, LED_LINK_PIN, EMACPHYLinkUp()==true?LED_LINK_PIN:0);
    }
 }
 //------------------------------------------------------------------

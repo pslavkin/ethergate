@@ -19,6 +19,10 @@ void vApplicationIdleHook ( void      );
 void Init_Leds            ( void      );
 //----------------------------------------------------
 //degino la posicino de los leds en el puerto N
+#define LED_GREEN_PIN      GPIO_PIN_0
+#define LED_GREEN_PORT     GPIO_PORTM_BASE
+#define LED_GREEN_PERIPH   SYSCTL_PERIPH_GPIOM
+
 #define LED_RUN_PIN      GPIO_PIN_1
 #define LED_RUN_PORT     GPIO_PORTN_BASE
 #define LED_RUN_PERIPH   SYSCTL_PERIPH_GPION
@@ -27,14 +31,14 @@ void Init_Leds            ( void      );
 #define LED_ONE_WIRE_PORT     GPIO_PORTN_BASE
 #define LED_ONE_WIRE_PERIPH   SYSCTL_PERIPH_GPION
 
-#define LED_LINK_PIN          GPIO_PIN_0
-#define LED_LINK_PORT         GPIO_PORTF_BASE
-#define LED_LINK_PERIPH       SYSCTL_PERIPH_GPIOF
+#define LED_LINK_PIN          GPIO_PIN_6
+#define LED_LINK_PORT         GPIO_PORTC_BASE
+#define LED_LINK_PERIPH       SYSCTL_PERIPH_GPIOC
 
 //degino la posicino de los leds en el puerto F
-#define LED_ETH_DATA_PIN         GPIO_PIN_4
-#define LED_ETH_DATA_PORT        GPIO_PORTF_BASE
-#define LED_ETH_DATA_PERIPH      SYSCTL_PERIPH_GPIOF
+#define LED_ETH_DATA_PIN         GPIO_PIN_6
+#define LED_ETH_DATA_PORT        GPIO_PORTK_BASE
+#define LED_ETH_DATA_PERIPH      SYSCTL_PERIPH_GPIOK
 
 
 //degino la posicino del boton
@@ -45,6 +49,8 @@ void Init_Leds            ( void      );
 #define BUTTON2_PORT   GPIO_PORTJ_BASE
 #define BUTTON2_PERIPH SYSCTL_PERIPH_GPIOJ
 //---------------------------------------------------------
+extern void Led_Green_Set      ( void );
+extern void Led_Green_Reset    ( void );
 
 #endif
 

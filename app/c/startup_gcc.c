@@ -2,6 +2,12 @@
 #include "inc/hw_nvic.h"
 #include "inc/hw_types.h"
 
+#include <stdbool.h>
+#include <stdint.h>
+#include "inc/hw_memmap.h"
+#include "driverlib/emac.h"
+#include "driverlib/rom_map.h"
+#include "leds_session.h"
 //*****************************************************************************
 //
 // Forward declaration of the default fault handlers.
@@ -215,7 +221,6 @@ void
 ResetISR(void)
 {
     uint32_t *pui32Src, *pui32Dest;
-
     //
     // Copy the data segment initializers from flash to SRAM.
     //
