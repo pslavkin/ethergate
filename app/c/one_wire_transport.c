@@ -44,18 +44,15 @@ void  Init_One_Wire_Transport ( void )
 void Reset_Actual_Node              ( void ) { Actual_Node=0                                                                                                                    ;}
 void Inc_Actual_Node                ( void ) { Actual_Node++                                                                                                                    ;}
 void Parse_Next_Family_Code         ( void ) { Atomic_Send_Event(Actual_Node<One_Wire_On_Line_Nodes()?One_Wire_Family_Code(Actual_Node):End_Of_Nodes_Event,One_Wire_Transport());}
-void Read_Actual_DS18B20_Scratchpad ( void ) {
-   UART_ETHprintf  ( NULL,"Scratchpad\n" );
-   Read_DS18B20_Scratchpad(Actual_Node)                                                                                             ;
-}
+void Read_Actual_DS18B20_Scratchpad ( void ) { Read_DS18B20_Scratchpad(Actual_Node)                                                                                             ;}
 void Reload_One_Wire_Codes          ( void )
 {
  Mark_All_Crc_Fail();
  Atomic_Send_Event(Reload_Codes_Event,One_Wire_Transport());
 }
 //------------------------------------------------------------------
-void Print_Nobody_On_Bus ( void ) { UART_ETHprintf(NULL,"Nobody on Bus\n");}
-void Print_All_Measured  ( void ) { UART_ETHprintf(NULL,"All Measured\n") ;}
+void Print_Nobody_On_Bus ( void ) { UART_ETHprintf(DEBUG_MSG,"Nobody on Bus\n");}
+void Print_All_Measured  ( void ) { UART_ETHprintf(DEBUG_MSG,"All Measured\n") ;}
 //-------------------------------------------------
 void Check_Crcs(void)
 {
@@ -66,15 +63,15 @@ void Check_Crcs(void)
 //-------------------------------------------------
 void Reset_Actual_Node_And_Parse_Next_Family_Code                             ( void ) { Reset_Actual_Node()                   ;Parse_Next_Family_Code();}
 void Print_All_Measured_And_Broadcast_T                                       ( void ) { Print_All_Measured()                  ;Broadcast_T()           ;}
-void Print_Nobody_On_Bus_And_Wait1Sec                                         ( void ) { Print_Nobody_On_Bus()                 ;None_Periodic_1Sec()     ;}
-void Calculate_DS18B20_12Bit_T_And_Inc_Actual_Node_And_Parse_Next_Family_Code ( void ) {
-   UART_ETHprintf  ( NULL,"Calculate T\n" );
-   Calculate_DS18B20_12Bit_T(Actual_Node);
-   Inc_Actual_Node()       ;
-   Parse_Next_Family_Code();
+void Print_Nobody_On_Bus_And_Wait1Sec                                         ( void ) { Print_Nobody_On_Bus()                 ;None_Periodic_1Sec()    ;}
+void Calculate_DS18B20_12Bit_T_And_Inc_Actual_Node_And_Parse_Next_Family_Code ( void ) { Calculate_DS18B20_12Bit_T(Actual_Node);Inc_Actual_Node()       ;Parse_Next_Family_Code();}
+void Free_Wait1Sec_And_Search_Codes                                           ( void ) { Free_Schedule_1Sec()                  ;Search_Codes()          ;}
+void One_Wire_Power_On_Reset_And_Wait1Sec                                     ( void ) { One_Wire_Power_On_Reset()             ;None_Periodic_1Sec()    ;}
+void Broadcast_T_And_Set_Led(void)
+{
+   Broadcast_T();
+   GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
 }
-void Free_Wait1Sec_And_Search_Codes                                           ( void ) { Free_Schedule_1Sec()                       ;Search_Codes()          ;}
-void One_Wire_Power_On_Reset_And_Wait1Sec                                     ( void ) { One_Wire_Power_On_Reset()             ;None_Periodic_1Sec()     ;}
 //-------------------------------------------------
 const State Searching_Rom_Codes       [ ]=
 {
@@ -117,7 +114,7 @@ const State Reading_DS18B20_Scratchpad[ ]=
 //----------------------------------------------
 const State Checking_Crcs             [ ]=
 {
-   { Crc_Ok_Event              ,Broadcast_T                                                              ,Broadcasting_T             },//si esta todo ok                                                           ,sigue..
+   { Crc_Ok_Event              ,Broadcast_T_And_Set_Led                                                              ,Broadcasting_T             },//si esta todo ok                                                           ,sigue..
    { Crc_Fail_Event            ,One_Wire_Power_On_Reset_And_Wait1Sec                                     ,Searching_Rom_Codes        },//si fallo OJO que esto entra si el CRC llego a '1' desde un valor mayor... ,APAGA el bus... durante 1 segundo y busca nodos nuevamente...
    { Reload_Codes_Event        ,Search_Codes                                                             ,Searching_Rom_Codes        },//
    { ANY_Event                 ,Rien                                                                     ,Checking_Crcs              },

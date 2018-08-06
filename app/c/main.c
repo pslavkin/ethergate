@@ -55,8 +55,8 @@ int main(void)
     ROM_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
     UARTStdioConfig ( 0, 115200, configCPU_CLOCK_HZ);
-    UART_ETHprintf ( NULL,"\033[2J\033[H" );
-    UART_ETHprintf ( NULL,"Ethergate\n\n" );
+    UART_ETHprintf ( UART_MSG,"\033[2J\033[H" );
+    UART_ETHprintf ( UART_MSG,"Ethergate\n\n" );
 //
 //    //
 //    // Configure the hardware MAC address for Ethernet Controller filtering of

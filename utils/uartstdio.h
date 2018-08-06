@@ -29,6 +29,8 @@
 #include <stdarg.h>
 #include "app/h/opt.h"
 
+#define DEBUG_MSG ((struct tcp_pcb*)(NULL))
+#define UART_MSG ((struct tcp_pcb*)(1))
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header

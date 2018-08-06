@@ -64,25 +64,25 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
    Snmp_Addr = *addr;
    Snmp_Port = port;
    Atomic_Send_Event(Rx_Snmp_Header()->Version,Snmp_Agent())                                                                                                                                                             ;
-   UART_ETHprintf ( NULL,"Version\r\n" );
+   UART_ETHprintf ( DEBUG_MSG,"Version\r\n" );
 }
 void  Parse_Community            ( void )
 {
    Atomic_Send_Event(strncmp(Rx_Snmp_Header()->Community,Community,strlen(Community))==0,Actual_Sm());
-   UART_ETHprintf ( NULL,"Community\r\n" );
+   UART_ETHprintf ( DEBUG_MSG,"Community\r\n" );
 }
 void  Parse_Msg_Code             ( void )
 { 
    Atomic_Send_Event(Rx_Snmp_Msg()->Msg_Code,Actual_Sm());
-   UART_ETHprintf ( NULL,"Msg Code\r\n" );
+   UART_ETHprintf ( DEBUG_MSG,"Msg Code\r\n" );
 }
 void  Parse_Object_Name          ( void ) {
    Atomic_Send_Event ( memcmp(Object_Name,Rx_Snmp_Object( )->Object_Name,Object_Name_Length)==0,Actual_Sm());
-   UART_ETHprintf ( NULL,"Object Name\r\n");
+   UART_ETHprintf ( DEBUG_MSG,"Object Name\r\n");
 }
 void  Parse_Msg_Code_Or_SysDescr ( void ) {
    Atomic_Send_Event ( (Rx_Snmp_Msg( )->Msg_Code<<8)|Rx_Snmp_Object()->Object_Name[Rx_Snmp_Object()->Object_Name_Length-1],Actual_Sm());
-   UART_ETHprintf ( NULL,"Msg Code | SysDescr\n" );
+   UART_ETHprintf ( DEBUG_MSG,"Msg Code | SysDescr\n" );
 }
 //-----------------------------------------------------------------------------
 void Send_Snmp_Ans(void* nil) {
@@ -93,7 +93,7 @@ void Send_Snmp_Ans(void* nil) {
 }
 void Response_Int(unsigned char SysDescr,signed int Value)/*{{{*/
 {
- UART_ETHprintf(NULL,"Snmp Response\n");
+ UART_ETHprintf(DEBUG_MSG,"Snmp Response\n");
 
  Rx_Snmp_Object ( )->Object_Name_Length              = Object_Name_Length+1;// el +1 del final es porque el OID que se graba en el equipo puede tener muchos 'hijos' de 1 byte. por que es el que se mueve en el bulk de hecho y se recibe como parametro aca...
  Rx_Snmp_Object ( )->Object_Name[Object_Name_Length] = SysDescr;       // como ultimo valor pone el OID que piden...
@@ -145,7 +145,7 @@ void Response_Err(void)/*{{{*/
 //-----------------------------------------------------------------------------
 void Response_No_Such_Name (void)   {
    Response_Err ( );
-   UART_ETHprintf ( NULL,"No Such Name\n" );
+   UART_ETHprintf ( DEBUG_MSG,"No Such Name\n" );
 }
 //------------------------------------------------------------------------------
 void Response_All_One_Wire_T  (void)   /*{{{*/
@@ -157,24 +157,24 @@ void Response_All_One_Wire_T  (void)   /*{{{*/
 // else             Response_No_Such_Name();
 // Send_NVDebug_Snmp_Agent_Data2Serial(11,"One Wire T\n");
    Response_Int(0,4321);
-   UART_ETHprintf ( NULL,"snmp ans int\n" );
+   UART_ETHprintf ( DEBUG_MSG,"snmp ans int\n" );
 }/*}}}*/
 void Response_First_One_Wire_T(void)/*{{{*/
 {
 // if(On_Line_Nodes())    Response_Int(0,One_Wire_Bin(0));
 // else          Response_No_Such_Name();
    Response_Int(0,1234);
-   UART_ETHprintf ( NULL,"snmp ans int\n" );
+   UART_ETHprintf ( DEBUG_MSG,"snmp ans int\n" );
 
 }/*}}}*/
 //------------------------------------------------------------------------------
 void Print_Bad_Version     (void)   {
    pbuf_free(Snmp_Data);                    //libreo bufer
-   UART_ETHprintf ( NULL,"Bad Version\n" );
+   UART_ETHprintf ( DEBUG_MSG,"Bad Version\n" );
 }
 void Print_Bad_Community   (void)   {
    pbuf_free(Snmp_Data);                    //libreo bufer
-   UART_ETHprintf ( NULL,"Bad Community\n" );
+   UART_ETHprintf ( DEBUG_MSG,"Bad Community\n" );
 }
 //------------------------------------------------------------------------------
 /*{{{*/

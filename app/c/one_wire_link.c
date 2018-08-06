@@ -20,20 +20,21 @@
 void     Bus_Hi   ( void ) {
  MAP_GPIOPinTypeGPIOOutput ( ONE_WIRE_PORT,ONE_WIRE_PIN );
  MAP_GPIOPinWrite ( ONE_WIRE_PORT,ONE_WIRE_PIN , ONE_WIRE_PIN);
-// GPIOPinSet                ( ONE_WIRE_PORT,ONE_WIRE_PIN );
-}//PORT_PTDD        |=  Ch;PORT_PTDOE |=  Ch;}
+}
 void     Bus_Lo   ( void ) {
  MAP_GPIOPinTypeGPIOOutput ( ONE_WIRE_PORT,ONE_WIRE_PIN );
  MAP_GPIOPinWrite ( ONE_WIRE_PORT,ONE_WIRE_PIN , 0);
-// GPIOPinReset              ( ONE_WIRE_PORT,ONE_WIRE_PIN );
-}//PORT_PTDD        &= ~Ch;PORT_PTDOE |=  Ch;}
+}
 void     Bus_Hz   ( void ) {
  MAP_GPIOPinTypeGPIOInput ( ONE_WIRE_PORT,ONE_WIRE_PIN );
-}//PORT_PTDOE       &= ~Ch;}
+}
 uint8_t  Bus_Read ( void ) {
- return (MAP_GPIOPinRead ( ONE_WIRE_PORT,ONE_WIRE_PIN ))!=0?0x01:0x00;
-}//return PORT_PTDD &  Ch ;}
-void     Pullup   ( void ) { Bus_Hi();              Bus_Hz()         ;}
+ return (MAP_GPIOPinRead ( ONE_WIRE_PORT,ONE_WIRE_PIN ))!=0;
+}
+void     Pullup   ( void ) {
+   Bus_Hi ( );
+   Bus_Hz ( );
+}
 
 void Init_One_Wire_Link(void) {
    MAP_SysCtlPeripheralEnable (ONE_WIRE_PERIPH);
@@ -87,14 +88,14 @@ CPUcpsid   (    );
    Delay_Useg   ( 10 ); // 1<T<15 espera 6useg (offset 3+3)
    Pullup       (    ); // sube el bus con fuerza, espera y luego lo libera...
    Delay_Useg   ( 5  ); // 1u<T<15 del total, es 2+3+4+3=12 + lo que tarda el Strong_Pullup   espera 8useg (offset 3+5)
-   GPIOPinSet   ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
+//  GPIOPinSet   ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Ans=Bus_Read (    ); // samplea a los 14useg (Texas obliga a 15 como maximo)
-   GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
+//   GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Delay_Useg   ( 55 ); // 45 como minimo.. despues de los 15 de lectura...+ 1us de recupero
 CPUcpsie     (    );
 //   Pullup       (    ); // sube el bus con fuerza, espera y luego lo libera...
    Bus_Hi       (    ); // arriba
-   return Ans                  ;
+   return Ans;
 }
 //------------------------------------------------------------------
 uint8_t Write_Read_Bit ( uint8_t Bit ) {

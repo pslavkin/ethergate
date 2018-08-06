@@ -1,6 +1,7 @@
 #ifndef __OPT_H__
 #define __OPT_H__
 
+//#define DEBUG_UART
 
 #define APP_INPUT_BUF_SIZE      128
 #define UART_BUFFERED

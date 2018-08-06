@@ -865,6 +865,10 @@ UARTgetc(void)
 void
 UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 {
+#ifndef DEBUG_UART
+   if(tpcb==DEBUG_MSG) return;
+#endif
+{
    va_list vaArgP;
    char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
    int len;
@@ -873,7 +877,7 @@ UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
     //
      va_start(vaArgP, pcString);
      len=uvsnprintf(Buff,UART_TX_BUFFER_SIZE,pcString, vaArgP);
-     if(tpcb==NULL)
+     if(tpcb==UART_MSG || tpcb==DEBUG_MSG)
         UARTwrite(Buff,len);
      else
         tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY|TCP_WRITE_FLAG_MORE);
@@ -883,7 +887,7 @@ UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
     // We're finished with the varargs now.
     //
     va_end(vaArgP);
-
+}
 }
 
 //print  string in hexa

@@ -20,6 +20,7 @@
 #include "queue.h"
 #include "semphr.h"
 
+
 const State
    Idle                   [ ],
    Detecting              [ ],
@@ -128,7 +129,7 @@ const State**  One_Wire_Network ( void ) { return &One_Wire_Network_Sm;}
 uint8_t        One_Wire_Rx_As_Char  ( uint8_t Pos ) { return Rx_Buffer[Pos];}
 uint8_t*       One_Wire_Rx_As_PChar ( uint8_t Pos ) { return Rx_Buffer+Pos ;}
 unsigned int   One_Wire_Rx_As_Int   ( uint8_t Pos ) { return *(unsigned int*) (Rx_Buffer+Pos);}
-  int16_t 	One_Wire_Rx_As_SInt	(unsigned char Pos)	{
+  int16_t   One_Wire_Rx_As_SInt  (unsigned char Pos)  {
     char Ans[2];
     Ans[0]=Rx_Buffer[Pos+1]; 
     Ans[1]=Rx_Buffer[Pos+0]; 
@@ -145,26 +146,23 @@ void Execute_Cmd(uint8_t Length,uint8_t* Cmd)
 //----------------------------
 void Write_Read_Next_Byte  (void)
 {
+ GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
  Bytes2Read--;
- UART_ETHprintf(NULL,"Send Byte=%x\n",Point2Write[Bytes2Read]);
  Point2Read[Bytes2Read]=Write_Read_Byte(Point2Write[Bytes2Read]);
- UART_ETHprintf(NULL,"Receive Byte=%x\n",Point2Read[Bytes2Read]);
  Atomic_Send_Event(Bytes2Read?One_Wire_Read_Next_Byte_Event:One_Wire_End_Of_Read_Event,One_Wire_Network());
+ GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
 }
 //------------------------------------------------
-void           Read_Presence        ( void              ) { Atomic_Send_Event(Presence()?One_Wire_Not_Detected_Event:One_Wire_Detected_Event,One_Wire_Network());}
-void           Search_Codes         ( void              ) {
-   Atomic_Send_Event(Search_Codes_Event,One_Wire_Network())                                            ;
-   UART_ETHprintf(NULL,"search codes\n");
+void           Read_Presence ( void              ) {
+   GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
+   Atomic_Send_Event(Presence()?One_Wire_Not_Detected_Event:One_Wire_Detected_Event,One_Wire_Network());
 }
-void           Search_Rom           ( void              ) { Write_Read_Byte(SEARCH_ROM)                                                                         ;}
-void           Read_Rom             ( void              ) { Execute_Cmd(9,(uint8_t*)READ_ROM_STRING)                                                                      ;}
-void           Match_Rom            ( uint8_t* Rom_Code ) { Execute_Cmd(9,Rom_Code)                                                                             ;}
-void           Skip_Rom             ( void              ) { Execute_Cmd(1,(uint8_t*)SKIP_ROM_STRING)                                                                      ;}
-void           Broadcast_T          ( void              ) {
-  
-   UART_ETHprintf(NULL,"Broadcast T\n");
-   Execute_Cmd(2,(uint8_t*)"\x44\xCC")                                                                           ;}
+void           Search_Codes  ( void              ) { Atomic_Send_Event(Search_Codes_Event,One_Wire_Network())                                            ;}
+void           Search_Rom    ( void              ) { Write_Read_Byte(SEARCH_ROM)                                                                         ;}
+void           Read_Rom      ( void              ) { Execute_Cmd(9,(uint8_t*)READ_ROM_STRING)                                                            ;}
+void           Match_Rom     ( uint8_t* Rom_Code ) { Execute_Cmd(9,Rom_Code)                                                                             ;}
+void           Skip_Rom      ( void              ) { Execute_Cmd(1,(uint8_t*)SKIP_ROM_STRING)                                                            ;}
+void           Broadcast_T   ( void              ) { Execute_Cmd(2,(uint8_t*)"\x44\xCC")                                                                 ;}
 
 uint8_t        One_Wire_Crc         ( uint8_t Node      ) { return Rom_Codes[Node].Crc                                                                          ;}
 unsigned int   One_Wire_T           ( uint8_t Node      ) { return Rom_Codes[Node].T                                                                            ;}
@@ -176,24 +174,17 @@ void Read_DS18B20_Scratchpad  (uint8_t Node)
  static const char Scratchpad_Template[]="\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xBE\x00\x00\x00\x00\x00\x00\x00\x00\x55";
  memcpy ( (char*)One_Wire_Rx_As_PChar(0  ),Scratchpad_Template,sizeof(Scratchpad_Template)-1);
  memcpy ( (char*)One_Wire_Rx_As_PChar(10 ),(char*)&Rom_Codes[Node].Code[0],sizeof(Rom_Codes[0].Code));
- UART_ETHprintf(NULL,"Scratchpad read Cmd Nodo%d=",Node);
- UART_ETH_Hex_printf(NULL,(char*)One_Wire_Rx_As_PChar(0),sizeof(Scratchpad_Template));
-
  Execute_Cmd ( sizeof(Scratchpad_Template                   )-1,One_Wire_Rx_As_PChar(0))    ;
 }
 void Calculate_DS18B20_12Bit_T   (uint8_t Node)
 {
-// if(Calculate_One_Wire_Crc(One_Wire_Rx_As_PChar(0),9))
-  {
-//esta linea estaba mal y no andaba para numeros negativos.. porque lo estaba casteando a unsigned...
-   UART_ETHprintf(NULL,"CRC ok, raw T=0x%x%x\n",One_Wire_Rx_As_Char(7),One_Wire_Rx_As_Char(8));
-     Rom_Codes[Node].T=(((  int32_t)One_Wire_Rx_As_SInt(7))*100)/16;			//ver documento DS18B20 pag.4, se multiplica por 100 para tener 2 decimales y se divide por 16 porque la parte decimal del sensor son 4 bits...
-    Rom_Codes[Node].Crc=4;
+ if(Calculate_One_Wire_Crc(One_Wire_Rx_As_PChar(0),9)) {             // esta linea estaba mal y no andaba para numeros negativos.. porque lo estaba casteando a unsigned...
+     Rom_Codes[Node].T=(((  int32_t)One_Wire_Rx_As_SInt(7))*100)/16; // ver documento DS18B20 pag.4, se multiplica por 100 para tener 2 decimales y se divide por 16 porque la parte decimal del sensor son 4 bits...
+     Rom_Codes[Node].Crc=4;
   }
-// else {
-//   UART_ETHprintf(NULL,"CRC Bad\n");
-//   if(Rom_Codes[Node].Crc) Rom_Codes[Node].Crc--;
-// }
+ else {
+   if(Rom_Codes[Node].Crc) Rom_Codes[Node].Crc--;
+ }
 }
 
 const uint8_t Code_T_Template[]="0123456789012345=+327.67 C Crc=Ok \r\n";
@@ -209,7 +200,7 @@ void Print_Temp_Node0(void)
 {
    uint8_t Buf[60];
    DS18B20_Convert_Bin2Ascci_T ( Buf,0);
-   UART_ETHprintf          ( NULL,(char*)Buf);
+   UART_ETHprintf ( UART_MSG,(char* )Buf);
 }
 //-----------------SEARCH ROM FUNC-----------------------------------
 void Reset_Actual_Bit    ( void ) { Actual_Bit    = 64;}
@@ -228,13 +219,13 @@ void Mark_All_Crc_Fail   ( void ) {
       Rom_Codes[i].Crc=0;
 }
 //-------------------------------------------------
-void Bit_Colision     ( void ) { Atomic_Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(NULL,"Colision\n")  ;}
+void Bit_Colision     ( void ) { Atomic_Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(DEBUG_MSG,"Colision\n")  ;}
 void Select_Bit_One ( void ) { Write_Bit_One_And_Read();Set_Bit_On_String(Rom_Codes[Actual_Code].Code,Actual_Bit);}
 void Select_Bit_Zero  ( void ) { Write_Bit_Zero()                                                                                                                                                 ;Clear_Bit_On_String(Rom_Codes[Actual_Code].Code,Actual_Bit);}
 void Search_Next_Bit  ( void ) { Atomic_Send_Event(Actual_Bit--?Read2Bits():Actual_Code_End_Event,One_Wire_Network())                                                                             ;}
 void Search_Next_Code ( void )
 {
- UART_ETHprintf(NULL,"Next Code\n");
+ UART_ETHprintf(DEBUG_MSG,"Next Code\n");
  Actual_Marker2Last  ( );
  Reset_Actual_Bit    ( );
  Reset_Actual_Marker ( );
@@ -249,9 +240,12 @@ void           Ans_Anybody2App        ( void ) { Atomic_Send_Event(Anybody_On_Bu
 void           Ans_Nobody2App         ( void ) { Atomic_Send_Event(Nobody_On_Bus_Event,One_Wire_Transport())                                              ;}
 void           Ans_End_Of_Msg2App     ( void ) { Atomic_Send_Event(End_Of_One_Wire_Msg_Event,One_Wire_Transport())                                        ;}
 //-------------------------------------------------
-void           Print_Detected         ( void ) { UART_ETHprintf(NULL,"Detected\n")                                                ;}
-void           Print_Not_Detected     ( void ) { UART_ETHprintf(NULL,"Not Detected\n")                                           ;}
-void           Print_Bit_Error        ( void ) { UART_ETHprintf(NULL,"Bit Error\n")                                              ;}
+void           Print_Detected         ( void ) { UART_ETHprintf(DEBUG_MSG,"Detected\n")                                                ;}
+void           Print_Not_Detected     ( void ) {
+   GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
+   UART_ETHprintf(DEBUG_MSG,"Not Detected\n")                                           ;
+}
+void           Print_Bit_Error        ( void ) { UART_ETHprintf(DEBUG_MSG,"Bit Error\n")                                              ;}
 //-------------------------------------------------
 void     Init_One_Wire_Network   (void)
 {
@@ -265,10 +259,15 @@ void Print_Detected_And_Write_Read_Next_Byte                     ( void ) { Prin
 void Read_Presence_And_Init_Markers                              ( void ) { Read_Presence()                        ;Init_Markers()        ;}
 void Print_Detected_And_Search_Rom_And_Search_Next_Bit           ( void ) { Print_Detected()                       ;Search_Rom()          ;Search_Next_Bit()  ;}
 void Select_Bit_One_And_Search_Next_Bit                          ( void ) {
+   GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Select_Bit_One  (                         );
    Search_Next_Bit (                         );
 }
-void Select_Bit_Zero_And_Search_Next_Bit                         ( void ) { Select_Bit_Zero()                      ;Search_Next_Bit()     ;}
+void Select_Bit_Zero_And_Search_Next_Bit                         ( void ) {
+   GPIOPinReset      ( LED_SERIAL_PORT, LED_SERIAL_PIN );
+   Select_Bit_Zero (                                 );
+   Search_Next_Bit (                                 );
+}
 void Select_Bit_Zero_And_Actual_Bit2Marker_And_Search_Next_Bit   ( void ) { Select_Bit_Zero()                      ;Actual_Bit2Marker()   ;Search_Next_Bit()  ;}
 void Print_Not_Detected_And_Ans_Nobody2App                       ( void ) { Print_Not_Detected()                   ;Ans_Nobody2App()      ;}
 void Print_Not_Detected_And_Ans_Nobody2App_And_Reset_Actual_Code ( void ) { Print_Not_Detected_And_Ans_Nobody2App();Reset_Actual_Code()   ;}

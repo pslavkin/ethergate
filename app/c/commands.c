@@ -126,7 +126,7 @@ void User_Commands_Task(void* nil)
          while(UARTPeek('\r') != -1)
          {
            UARTgets(Buff, APP_INPUT_BUF_SIZE);
-           CmdLineProcess(Buff,NULL);
+           CmdLineProcess(Buff,UART_MSG);
          }
         vPortFree(Buff);
       }
