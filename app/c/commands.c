@@ -8,10 +8,12 @@
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
 #include "utils/lwiplib.h"
+#include "state_machine.h"
 #include "commands.h"
 #include "leds.h"
 #include "buttons.h"
 #include "opt.h"
+#include "one_wire_network.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -33,6 +35,7 @@ tCmdLineEntry g_psCmdTable[] =
     { "task" ,Cmd_TaskList     ,": lista de tareas" }          ,
     { "link" ,Cmd_Links_State  ,": Estado del link ethernet" } ,
     { "bt"   ,Cmd_Button_State ,": Estado del boton" }         ,
+    { "t"    ,Cmd_Print_T      ,": Temperatura nodo 0" }       ,
     { 0      ,0               ,0 }
 };
 
@@ -98,6 +101,12 @@ int Cmd_Button_State(struct tcp_pcb* tpcb, int argc, char *argv[])
    UART_ETHprintf(tpcb,"boton=%d",Button1_Read());
    return 0;
 }
+int Cmd_Print_T(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   Print_Temp_Node0();
+   return 0;
+}
+//
 //*****************************************************************************
 //
 // Input buffer for the command line interpreter.

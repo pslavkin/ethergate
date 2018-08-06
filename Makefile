@@ -57,6 +57,7 @@ clean:
 
 dow: all
 	tools/lm4flash_64b ${COMPILER}/out.bin
+	./tools/reset.sh
 
 #
 # The rule to create the target directory.
@@ -70,6 +71,9 @@ ${COMPILER}:
 ${COMPILER}/out.axf: ${COMPILER}/main.o
 ${COMPILER}/out.axf: ${COMPILER}/events.o
 ${COMPILER}/out.axf: ${COMPILER}/schedule.o
+${COMPILER}/out.axf: ${COMPILER}/one_wire_link.o
+${COMPILER}/out.axf: ${COMPILER}/one_wire_network.o
+${COMPILER}/out.axf: ${COMPILER}/one_wire_transport.o
 ${COMPILER}/out.axf: ${COMPILER}/buttons.o
 ${COMPILER}/out.axf: ${COMPILER}/leds.o
 ${COMPILER}/out.axf: ${COMPILER}/state_machine.o

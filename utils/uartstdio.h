@@ -65,6 +65,7 @@ extern void UARTStdioConfig(uint32_t ui32Port, uint32_t ui32Baud,
 extern int UARTgets(char *pcBuf, uint32_t ui32Len);
 extern unsigned char UARTgetc(void);
 extern void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...);
+extern void UART_ETH_Hex_printf(struct tcp_pcb* tpcb,const char *pcString, uint16_t length);
 //extern void UARTprintf(const char *pcString, ...);
 //extern void UARTvprintf(const char *pcString, va_list vaArgP);
 extern int UARTwrite(const char *pcBuf, uint32_t ui32Len);

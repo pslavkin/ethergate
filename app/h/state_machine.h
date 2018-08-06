@@ -26,8 +26,7 @@ void           State_Machine ( void* nil                                        
 const State**  Empty_Sm      ( void                                         );
 const State*   Empty_App     ( void                                         );
 void           Soft_Reset    ( void                                         );
-// void     Delay_100useg  (void);
-void           Delay_Useg    ( unsigned int Useg                            );
+extern void Delay_Useg(uint32_t d);
 //------------------------------------------------------------------
 #define  Empty_State_Machine     ((const State**)0x00000000)
 

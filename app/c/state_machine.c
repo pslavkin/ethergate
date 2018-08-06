@@ -1,3 +1,6 @@
+#include <stdbool.h>
+#include <stdint.h>
+#include "driverlib/sysctl.h"
 #include "state_machine.h"
 #include "events.h"
 #include "FreeRTOS.h"
@@ -14,11 +17,9 @@ const State**  Empty_Sm   ( void                                         ) { ret
 const State*   Empty_App  ( void                                         ) { return Doing_Nothing                     ;}
 void           Rien       ( void                                         ) { }
 // void      Delay_100useg  (void)                  {unsigned int i;for(i=0;i<400;i++);}
-void           Delay_Useg ( unsigned int Useg                            )
+void Delay_Useg(uint32_t d)
 {
- unsigned int i;
- Useg=Useg*3 + (Useg*5)/10;
- for(i=0;i<Useg;i++);
+   MAP_SysCtlDelay((configCPU_CLOCK_HZ/3000000)*d);
 }
 //-----------------------------------------------------------------------
 unsigned int   Actual_Event ( void ) { return Event.Event  ;}
@@ -35,7 +36,7 @@ void State_Machine(void* nil)               //esta funcion ejecuta la maquina de
       *Event.Machine=ActualState->Next_State;
       ActualState->Func();
    }
-   vTaskDelay( 100 / portTICK_RATE_MS ); // Envia la tarea al estado bloqueado durante 500ms
+   vTaskDelay( pdMS_TO_TICKS(100) ); // Envia la tarea al estado bloqueado durante 500ms
    }
 }
 

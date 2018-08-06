@@ -22,6 +22,7 @@
 #include "schedule.h"
 #include "telnet.h"
 #include "udp.h"
+#include "one_wire_transport.h"
 
 
 // The error routine that is called if the driver library encounters an error.
@@ -91,6 +92,7 @@ int main(void)
    xTaskCreate ( Led_Serial_Task    ,"led serial"    ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Button1_Task       ,"Button1"       ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   Init_One_Wire_Transport( );
    Init_Telnet ( );
    Init_Udp    ( );
 //
