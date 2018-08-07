@@ -164,10 +164,10 @@ void           Match_Rom     ( uint8_t* Rom_Code ) { Execute_Cmd(9,Rom_Code)    
 void           Skip_Rom      ( void              ) { Execute_Cmd(1,(uint8_t*)SKIP_ROM_STRING)                                                            ;}
 void           Broadcast_T   ( void              ) { Execute_Cmd(2,(uint8_t*)"\x44\xCC")                                                                 ;}
 
-uint8_t        One_Wire_Crc         ( uint8_t Node      ) { return Rom_Codes[Node].Crc                                                                          ;}
-unsigned int   One_Wire_T           ( uint8_t Node      ) { return Rom_Codes[Node].T                                                                            ;}
-uint8_t*       One_Wire_Code        ( uint8_t Node      ) { return Rom_Codes[Node].Code                                                                         ;}
-uint8_t        One_Wire_Family_Code ( uint8_t Node      ) { return Rom_Codes[Node].Code[7]                                                                      ;}
+uint8_t        One_Wire_Crc         ( uint8_t Node ) { return Rom_Codes[Node].Crc    ;}
+int16_t        One_Wire_T           ( uint8_t Node ) { return Rom_Codes[Node].T      ;}
+uint8_t*       One_Wire_Code        ( uint8_t Node ) { return Rom_Codes[Node].Code   ;}
+uint8_t        One_Wire_Family_Code ( uint8_t Node ) { return Rom_Codes[Node].Code[7];}
 //------------------------- DS18B20 ----------------------------------
 void Read_DS18B20_Scratchpad  (uint8_t Node)
 {
@@ -196,11 +196,14 @@ uint8_t DS18B20_Convert_Bin2Ascci_T ( uint8_t* Destiny,uint8_t Code )
    if(!Rom_Codes[Code].Crc) strcpy((char*)(Destiny+sizeof(Code_T_Template)-6),"Err");
    return sizeof(Code_T_Template)-1;
 }
-void Print_Temp_Node0(void)
+void Print_Temp_Nodes(struct tcp_pcb* tpcb)
 {
-   uint8_t Buf[60];
-   DS18B20_Convert_Bin2Ascci_T ( Buf,0);
-   UART_ETHprintf ( UART_MSG,(char* )Buf);
+   uint8_t i;
+   for(i=0;i<One_Wire_On_Line_Nodes();i++) {
+      uint8_t Buf[sizeof(Code_T_Template)];
+      DS18B20_Convert_Bin2Ascci_T ( Buf,i);
+      UART_ETHprintf ( tpcb,(char* )Buf);
+   }
 }
 //-----------------SEARCH ROM FUNC-----------------------------------
 void Reset_Actual_Bit    ( void ) { Actual_Bit    = 64;}

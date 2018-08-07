@@ -10,7 +10,6 @@ void Create_Udp_Socket(void* nil);
 //-------------------------------------------------------------------------------------
 void Init_Udp(void)
 {
-   Init_Snmp_Agent ();
    tcpip_callback(Create_Udp_Socket,0);
 }
 

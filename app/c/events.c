@@ -13,7 +13,7 @@ void Init_Events(void)
  Init_Event_Listener();          //inicializa el sistema de redireccionamiento multiple de eventos..
 }
 //-----------------------------------------------------------------
-void Send_Event(unsigned int Event,const State** Machine)   //escribe un nuevo dato a la cola...
+void Send_Event(uint16_t Event,const State** Machine)   //escribe un nuevo dato a la cola...
 {
  unsigned char Next=Next_Pointer(Point2Write);
  if (Next != Point2Read)            //si el siguiente casillero no esta apuntado por Point2Read...
@@ -26,9 +26,9 @@ void Send_Event(unsigned int Event,const State** Machine)   //escribe un nuevo d
     for(;;);                  //debug
  return;
 }
-void Atomic_Send_Event(unsigned int Event,const State** Machine) {Atomic(Send_Event(Event,Machine));} 
+void Atomic_Send_Event(uint16_t Event,const State** Machine) {Atomic(Send_Event(Event,Machine));} 
 //-------------------------------------------------------------------------------------
-void Insert_Event(unsigned int Event,const State** Machine) // escribe un nuevo dato a la cola...
+void Insert_Event(uint16_t Event,const State** Machine) // escribe un nuevo dato a la cola...
 {
  unsigned char Previous=Previous_Pointer(Point2Read);
  if (Previous != Point2Write)                               // si el siguiente casillero no esta apuntado por Point2Read...
@@ -43,7 +43,7 @@ void Insert_Event(unsigned int Event,const State** Machine) // escribe un nuevo 
     for(;;);                                                // debug
    }
 }
-void Atomic_Insert_Event(unsigned int Event,const State** Machine)   {
+void Atomic_Insert_Event(uint16_t Event,const State** Machine)   {
    Atomic(Insert_Event(Event,Machine));
 }
 //-------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ Events Atomic_Read_Event(void)
 //-------------------------------------------------------------------------------------
 Events Event_Listener_Buffer[MAX_EVENT_LISTENER+1];
 //-----------------------------
-void Set_Event_Listener(unsigned char Index,unsigned int Event,const State** Machine)
+void Set_Event_Listener(unsigned char Index,uint16_t Event,const State** Machine)
 {
  Event_Listener_Buffer[Index].Event=Event;
  Event_Listener_Buffer[Index].Machine=Machine;
@@ -82,7 +82,7 @@ unsigned char Search_Empty_Event_Listener(void)
  return i;                                //si no hubo lugar, lamento mucho devuelve 0Xff...
 }
 //---------------------------------
-void Send_Event2Event_Listener(unsigned int Search_Event,unsigned int Sending_Event)
+void Send_Event2Event_Listener(uint16_t Search_Event,uint16_t Sending_Event)
 {
  unsigned char i;
 // Send_NVDebug_Events_Data2Serial(24,"Event Listener Received\n");
@@ -94,7 +94,7 @@ void Send_Event2Event_Listener(unsigned int Search_Event,unsigned int Sending_Ev
     }
 }
 //----------------------------------------------------------------------
-void Add_Event_Listener(unsigned int Event,const State** Machine)
+void Add_Event_Listener(uint16_t Event,const State** Machine)
 {
  unsigned char i=Search_Empty_Event_Listener(); 
  if(i<MAX_EVENT_LISTENER) 
@@ -105,7 +105,7 @@ void Add_Event_Listener(unsigned int Event,const State** Machine)
    }
 }
 //---------------------
-void Free_Event_Listener(unsigned int Event,const State** Machine)
+void Free_Event_Listener(uint16_t Event,const State** Machine)
 {
  unsigned char i;
  for(i=0;i<MAX_EVENT_LISTENER;i++)

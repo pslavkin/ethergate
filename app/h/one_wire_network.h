@@ -41,21 +41,21 @@ void           Match_Rom                   ( uint8_t* Rom_Code             );
 void           Skip_Rom                    ( void                          );
 void           Broadcast_T                 ( void                          );
 // -------------- ALL -------------------------------
-uint8_t        One_Wire_On_Line_Nodes      ( void                          );
-void           Print_Rom_Codes             ( void                          );
-void           Search_Codes                ( void                          );
-unsigned int   Convert_Nodes_Bin2Ascci     ( uint8_t* Buf                  );
-uint8_t        One_Wire_Family_Code        ( uint8_t Node                  );
-uint8_t        One_Wire_Crc                ( uint8_t Node                  );
-unsigned int   One_Wire_T                  ( uint8_t Node                  );
-uint8_t*       One_Wire_Code               ( uint8_t Node                  );
-void           Reload_One_Wire_Codes       ( void                          );
-void           Mark_All_Crc_Fail           ( void                          );
+uint8_t        One_Wire_On_Line_Nodes  ( void         );
+void           Print_Rom_Codes         ( void         );
+void           Search_Codes            ( void         );
+unsigned int   Convert_Nodes_Bin2Ascci ( uint8_t* Buf );
+uint8_t        One_Wire_Family_Code    ( uint8_t Node );
+uint8_t        One_Wire_Crc            ( uint8_t Node );
+int16_t        One_Wire_T              ( uint8_t Node );
+uint8_t*       One_Wire_Code           ( uint8_t Node );
+void           Reload_One_Wire_Codes   ( void         );
+void           Mark_All_Crc_Fail       ( void         );
 // ---------------DS18B20------------------------------------
 void           Read_DS18B20_Scratchpad     ( uint8_t Node                  );
 void           Calculate_DS18B20_12Bit_T   ( uint8_t Node                  );
 uint8_t        DS18B20_Convert_Bin2Ascci_T ( uint8_t* Destiny,uint8_t Code );
-void           Print_Temp_Node0            ( void                          );
+void Print_Temp_Nodes(struct tcp_pcb* tpcb);
 // ------------------------------------------------------
 
 #endif

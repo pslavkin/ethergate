@@ -103,7 +103,7 @@ int Cmd_Button_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 }
 int Cmd_Print_T(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   Print_Temp_Node0();
+   Print_Temp_Nodes(tpcb);
    return 0;
 }
 //

@@ -10,7 +10,7 @@
 //------------------------------------------------------------------
 typedef struct Efn      //Event-Function-Next
  {
-   unsigned int Event;
+   uint16_t Event;
    void (*Func) (void);
    const struct Efn *Next_State;
  } State;
@@ -20,13 +20,13 @@ typedef struct Efn      //Event-Function-Next
 //------------------------------------------------------------------
 void           Rien          ( void                                         );
 void           Set_State     ( const State* New_State,const State** Machine );
-unsigned int   Actual_Event  ( void                                         );
+uint16_t   Actual_Event      ( void                                         );
 const State**  Actual_Sm     ( void                                         );
-void           State_Machine ( void* nil                                         ); // maquina principal de principales que ejecuta la maquina de estados...
+void           State_Machine ( void* nil                                    ); // maquina principal de principales que ejecuta la maquina de estados...
 const State**  Empty_Sm      ( void                                         );
 const State*   Empty_App     ( void                                         );
 void           Soft_Reset    ( void                                         );
-extern void Delay_Useg(uint32_t d);
+extern void Delay_Useg       ( uint32_t d                                   );
 //------------------------------------------------------------------
 #define  Empty_State_Machine     ((const State**)0x00000000)
 

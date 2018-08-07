@@ -7,22 +7,22 @@
 
 typedef struct Events
    {
-    unsigned int Event;
+    uint16_t Event;
     const State** Machine;
    }Events;
 //-----------------------------------------------------------
 void    Init_Events         ( void                                     );
-void    Atomic_Send_Event   ( unsigned int Event,const State** Machine );
-void    Send_Event          ( unsigned int Event,const State** Machine );
-void    Atomic_Insert_Event ( unsigned int Event,const State** Machine );
-void    Insert_Event        ( unsigned int Event,const State** Machine );
+void    Atomic_Send_Event   ( uint16_t Event,const State** Machine );
+void    Send_Event          ( uint16_t Event,const State** Machine );
+void    Atomic_Insert_Event ( uint16_t Event,const State** Machine );
+void    Insert_Event        ( uint16_t Event,const State** Machine );
 Events  Atomic_Read_Event   ( void                                     );
 
 //--------------EVENT LISTENER-------------------------------------------
 void    Init_Event_Listener       ( void                                                 );
-void    Send_Event2Event_Listener ( unsigned int Search_Event,unsigned int Sending_Event );
-void    Add_Event_Listener        ( unsigned int Event,const State** Machine             );
-void    Free_Event_Listener       ( unsigned int Event,const State** Machine             );
+void    Send_Event2Event_Listener ( uint16_t Search_Event,uint16_t Sending_Event );
+void    Add_Event_Listener        ( uint16_t Event,const State** Machine             );
+void    Free_Event_Listener       ( uint16_t Event,const State** Machine             );
 void    Free_All_Event_Listener   ( const State** Machine                                );
 //-------------------------------------------------------------
 #endif

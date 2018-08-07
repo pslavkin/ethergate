@@ -3,8 +3,6 @@
 
 enum Snmp_Events
        {
-   Snmp_Packet_Received_Event = 0x0000,
-   No_Such_Name_Error_Event   = 0x0001,
    Get_Request_Event          = 0x00A0,
    Get_Next_Request_Event     = 0x00A1,
    Get_Response_Event         = 0x00A2,
@@ -66,6 +64,8 @@ extern void    View_Loaded_Community ( void );
 extern void    Save_Community4Loaded ( void );
 extern void    View_Actual_Community ( void );
 //------------------------------------------------------------------------------
+void Response_One_Wire_T(uint8_t Node);
+void Response_Err(void);
 
 #endif
 
