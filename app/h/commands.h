@@ -9,7 +9,9 @@ extern int Cmd_TaskList     ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
 extern int Cmd_Links_State  ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Button_State ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Print_T(struct tcp_pcb* tpcb, int argc, char *argv[]);
-extern void UpdateMACAddr    ( struct tcp_pcb* tpcb                         );
+extern int Cmd_Print_Usr_Params(struct tcp_pcb* tpcb, int argc, char *argv[]);
+extern int Cmd_Reboot(struct tcp_pcb* tpcb, int argc, char *argv[]);
+extern int Cmd_Save_Usr_Params(struct tcp_pcb* tpcb, int argc, char *argv[]);
 void User_Commands_Task      ( void* nil                                    );
 extern void DisplayIPAddress ( struct tcp_pcb* tpcb,uint32_t ui32Addr       );
 

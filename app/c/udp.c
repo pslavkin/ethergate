@@ -4,6 +4,7 @@
 #include "opt.h"
 #include "udp.h"
 #include "snmp_agent.h"
+#include "usr_flash.h"
 
 struct udp_pcb* usoc;
 void Create_Udp_Socket(void* nil);
@@ -22,6 +23,6 @@ void URcv_Fn (void *arg, struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr, 
 void Create_Udp_Socket(void* nil)
 {
    usoc=udp_new (                          );
-   udp_bind     ( usoc ,IP_ADDR_ANY ,161 );
+   udp_bind     ( usoc ,IP_ADDR_ANY ,Usr_Flash_Params.Snmp_Port );
    udp_recv     ( usoc ,URcv_Fn     ,NULL  );
 }

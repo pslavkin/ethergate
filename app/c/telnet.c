@@ -3,6 +3,7 @@
 #include "utils/cmdline.h"
 #include "opt.h"
 #include "telnet.h"
+#include "usr_flash.h"
 
 struct tcp_pcb* soc;
 
@@ -40,7 +41,7 @@ err_t accept_fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 void Create_Socket(void* nil)
 {
    soc=tcp_new                 (                        );
-   tcp_bind                    ( soc ,IP_ADDR_ANY ,1234 );
+   tcp_bind                    ( soc ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
    soc=tcp_listen_with_backlog ( soc ,3                 );
    tcp_accept                  ( soc,accept_fn          );
 }

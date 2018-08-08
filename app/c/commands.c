@@ -1,9 +1,10 @@
-//*****************************************************************************
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "driverlib/sysctl.h"
 #include "driverlib/emac.h"
+#include "driverlib/flash.h"
 #include "utils/cmdline.h"
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
@@ -14,11 +15,14 @@
 #include "buttons.h"
 #include "opt.h"
 #include "one_wire_network.h"
+#include "usr_flash.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+
+
 //*****************************************************************************
 //
 // This is the table that holds the command names, implementing functions, and
@@ -27,15 +31,18 @@
 //*****************************************************************************
 tCmdLineEntry g_psCmdTable[] =
 {
-    { "help" ,Cmd_help         ,": Display list of commands" } ,
-    { "h"    ,Cmd_help         ,": alias for help" }           ,
-    { "?"    ,Cmd_help         ,": alias for help" }           ,
-    { "Mac"  ,Cmd_Mac          ,": show MAC address" }         ,
-    { "ip"   ,Cmd_Ip           ,": show IP address" }          ,
-    { "task" ,Cmd_TaskList     ,": lista de tareas" }          ,
-    { "link" ,Cmd_Links_State  ,": Estado del link ethernet" } ,
-    { "bt"   ,Cmd_Button_State ,": Estado del boton" }         ,
-    { "t"    ,Cmd_Print_T      ,": Temperatura nodo 0" }       ,
+    { "help"   ,Cmd_help             ,": Display list of commands" }          ,
+    { "h"      ,Cmd_help             ,": alias for help" }                    ,
+    { "?"      ,Cmd_help             ,": alias for help" }                    ,
+    { "Mac"    ,Cmd_Mac              ,": show MAC address" }                  ,
+    { "ip"     ,Cmd_Ip               ,": show and/or save ip" }                   ,
+    { "task"   ,Cmd_TaskList         ,": lista de tareas" }                   ,
+    { "link"   ,Cmd_Links_State      ,": Estado del link ethernet" }          ,
+    { "bt"     ,Cmd_Button_State     ,": Estado del boton" }                  ,
+    { "t"      ,Cmd_Print_T          ,": Temperatura nodo 0" }                ,
+    { "p"      ,Cmd_Print_Usr_Params ,": Muestra los parametros de usuario" } ,
+    { "s"      ,Cmd_Save_Usr_Params  ,": Graba los parametros de usuario" }   ,
+    { "reboot" ,Cmd_Reboot           ,": Reboot" }                            ,
     { 0      ,0               ,0 }
 };
 
@@ -57,28 +64,35 @@ int Cmd_help(struct tcp_pcb* tpcb, int argc, char *argv[])
     return 0;
 }
 //----------------------------------------------------------------------------------------------------
+void Print_Mac_Addr(struct tcp_pcb* tpcb, uint8_t* Mac)
+{
+    UART_ETHprintf(tpcb,"MAC: %02x:%02x:%02x:%02x:%02x:%02x",
+            Mac[0], Mac[1], Mac[2], Mac[3], Mac[4], Mac[5]);
+}
 int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   UART_ETHprintf(tpcb,"parametros %d\n",argc);
-   UpdateMACAddr(tpcb);
+   uint8_t Mac[6];
+   lwIPLocalMACGet ( Mac      );
+   Print_Mac_Addr  ( tpcb,Mac );
    return(0);
 }
 int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
+   UART_ETHprintf(tpcb,"Actual Ip=");
    DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
+   if(argc>1) {
+      uint32_t New_Ip=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Ip=");
+      DisplayIPAddress(tpcb,New_Ip);
+      Usr_Flash_Params.Ip_Addr=New_Ip;
+      Save_Usr_Flash();
+   }
    return(0);
 }
 
-void UpdateMACAddr(struct tcp_pcb* tpcb)
-{
-    uint8_t pui8MACAddr[6]={1,2,3,4,5,6};
-    UART_ETHprintf(tpcb,"MAC: %02x:%02x:%02x:%02x:%02x:%02x",
-            pui8MACAddr[0], pui8MACAddr[1], pui8MACAddr[2], pui8MACAddr[3],
-            pui8MACAddr[4], pui8MACAddr[5]);
-}
 void DisplayIPAddress(struct tcp_pcb* tpcb,uint32_t ui32Addr)
 {
-    UART_ETHprintf(tpcb, "%d.%d.%d.%d", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
+    UART_ETHprintf(tpcb, "%d.%d.%d.%d\n", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
             (ui32Addr >> 16) & 0xff, (ui32Addr >> 24) & 0xff);
 }
 
@@ -107,6 +121,34 @@ int Cmd_Print_T(struct tcp_pcb* tpcb, int argc, char *argv[])
    return 0;
 }
 //
+int Cmd_Print_Usr_Params(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   Get_Usr_Flash();
+   UART_ETHprintf(tpcb,"user ip=");
+   DisplayIPAddress(tpcb,Usr_Flash_Params.Ip_Addr);
+   return 0;
+}
+int Cmd_Save_Usr_Params(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   uint32_t New_Number=atoi(argv[1]);
+   UART_ETHprintf(tpcb,"Nuevo numero=%d\n",New_Number);
+   Usr_Flash_Params.Ip_Addr=New_Number;
+   Save_Usr_Flash();
+   return 0;
+}
+int Cmd_Reboot(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   Soft_Reset();
+   return 0;
+}
+
+
+//
+//
+//
+
+
+
 //*****************************************************************************
 //
 // Input buffer for the command line interpreter.

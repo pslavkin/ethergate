@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "driverlib/sysctl.h"
+#include "inc/hw_types.h"
+#include "inc/hw_nvic.h"
 #include "state_machine.h"
 #include "events.h"
 #include "FreeRTOS.h"
@@ -23,7 +25,9 @@ void Delay_Useg(uint32_t d)
 //-----------------------------------------------------------------------
 uint16_t   Actual_Event ( void ) { return Event.Event  ;}
 const State**  Actual_Sm    ( void ) { return Event.Machine;}
-void           Soft_Reset   ( void ) { }
+void           Soft_Reset   ( void ) {
+ HWREG(NVIC_APINT) = NVIC_APINT_VECTKEY | NVIC_APINT_SYSRESETREQ;
+}
 //-----------------------------------------------------------------------
 void State_Machine(void* nil)               //esta funcion ejecuta la maquina de estados donde el evento viene en la variable Event... que se decidio que no sea por parametro para permitir la recursividad infinita...  
 {

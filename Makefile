@@ -56,7 +56,7 @@ clean:
 	@mkdir -p ${COMPILER}
 
 dow: all
-	tools/lm4flash_64b ${COMPILER}/out.bin
+	tools/lm4flash_64b  ${COMPILER}/out.bin
 	./tools/reset.sh
 
 #
@@ -78,6 +78,8 @@ ${COMPILER}/out.axf: ${COMPILER}/buttons.o
 ${COMPILER}/out.axf: ${COMPILER}/leds.o
 ${COMPILER}/out.axf: ${COMPILER}/state_machine.o
 ${COMPILER}/out.axf: ${COMPILER}/telnet.o
+${COMPILER}/out.axf: ${COMPILER}/usr_flash.o
+${COMPILER}/out.axf: ${COMPILER}/flash_pb.o
 ${COMPILER}/out.axf: ${COMPILER}/udp.o
 ${COMPILER}/out.axf: ${COMPILER}/snmp_agent.o
 ${COMPILER}/out.axf: ${COMPILER}/clk.o

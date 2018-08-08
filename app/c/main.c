@@ -23,6 +23,7 @@
 #include "telnet.h"
 #include "udp.h"
 #include "one_wire_transport.h"
+#include "usr_flash.h"
 
 
 // The error routine that is called if the driver library encounters an error.
@@ -41,9 +42,6 @@ void lwIPHostTimerHandler(void)
 
 int main(void)
 {
-    uint32_t ui32User0, ui32User1;
-    uint8_t pui8MACArray[8];
-
    Init_Clk();
 //
 //    //
@@ -57,30 +55,18 @@ int main(void)
     UARTStdioConfig ( 0, 115200, configCPU_CLOCK_HZ);
     UART_ETHprintf ( UART_MSG,"\033[2J\033[H" );
     UART_ETHprintf ( UART_MSG,"Ethergate\n\n" );
-//
-//    //
-//    // Configure the hardware MAC address for Ethernet Controller filtering of
-//    // incoming packets.  The MAC address will be stored in the non-volatile
-//    // USER0 and USER1 registers.
-//    //
-    MAP_FlashUserGet(&ui32User0, &ui32User1);
-    ui32User0=0x786000;
-    ui32User1=0xb5e406;
-//    //
-//    //
 //    // Convert the 24/24 split MAC address from NV ram into a 32/16 split
 //    // MAC address needed to program the hardware registers, then program
 //    // the MAC address into the Ethernet Controller registers.
 //    //
-    pui8MACArray[0] = ((ui32User0 >>  0) & 0xff);
-    pui8MACArray[1] = ((ui32User0 >>  8) & 0xff);
-    pui8MACArray[2] = ((ui32User0 >> 16) & 0xff);
-    pui8MACArray[3] = ((ui32User1 >>  0) & 0xff);
-    pui8MACArray[4] = ((ui32User1 >>  8) & 0xff);
-    pui8MACArray[5] = ((ui32User1 >> 16) & 0xff);
-//
+   Init_Usr_Flash          ( );
 
-   lwIPInit(configCPU_CLOCK_HZ, pui8MACArray,0xC0A8020A, 0xFFFFFF00,0xC0A80201, IPADDR_USE_STATIC);
+   lwIPInit(configCPU_CLOCK_HZ,
+            Usr_Flash_Params.Mac_Addr,
+            Usr_Flash_Params.Ip_Addr,
+            Usr_Flash_Params.Mask_Addr,
+            Usr_Flash_Params.Gateway_Addr,
+            IPADDR_USE_STATIC);
 //
 //
    Init_Wdog    ( );
@@ -92,9 +78,9 @@ int main(void)
    xTaskCreate ( Led_Serial_Task    ,"led serial"    ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Button1_Task       ,"Button1"       ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
-   Init_One_Wire_Transport( );
-   Init_Telnet ( );
-   Init_Udp    ( );
+   Init_One_Wire_Transport ( );
+   Init_Telnet             ( );
+   Init_Udp                ( );
 //
 //
    vTaskStartScheduler();
