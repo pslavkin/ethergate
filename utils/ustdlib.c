@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include "driverlib/debug.h"
 #include "utils/ustdlib.h"
+#include "utils/uartstdio.h"
 
 //*****************************************************************************
 //
@@ -41,6 +42,15 @@
 //*****************************************************************************
 static const char * const g_pcHex = "0123456789abcdef";
 
+char* ctohex(char* Bcd,uint8_t Bin)
+{
+   uint8_t i;
+      Bcd[0]=Bin/16;
+      Bcd[1]=Bin%16;
+   for (i=0;i<2;i++) 
+      Bcd[i]+=(Bcd[i]>9)?('A'-10):'0';
+   return Bcd;
+}
 //*****************************************************************************
 //
 //! Copies a certain number of characters from one string to another.
@@ -102,6 +112,26 @@ ustrncpy(char * restrict s1, const char * restrict s2, size_t n)
     //
     return(s1);
 }
+
+//float to string a manopla
+//
+char* ftostr  (float fVal,char* str,uint8_t size)
+{
+    int32_t dVal, dec;
+    uint8_t  len;
+
+    dVal = fVal;
+    dec = (int32_t)(fVal * 1000);
+    dec %= 1000;
+    if(dec<0) dec=-dec;
+    len=usnprintf(str,size-6,"%d",dVal);
+    str[len] = '.';
+    usnprintf(str+len+1,100-len-6,"%03d",dec);
+    return str;
+}
+
+
+
 
 //*****************************************************************************
 //
@@ -443,6 +473,23 @@ again:
                     //
                     break;
                 }
+                case 'H': //agrego string en hexa
+                {
+                    //
+                    // Get the string pointer from the varargs.
+                    //
+                    pcStr = va_arg(arg, char *);
+                    uint8_t len=va_arg(arg, int);
+
+                    for(ulIdx = 0; n>1 &&  ulIdx<len ; ulIdx++)
+                    {
+                        ctohex(s,pcStr[ulIdx]);
+                        s+=2;
+                        n-=2;
+                    }
+                     iConvertCount += len*2;
+                    break;
+                }
 
                 //
                 // Handle the %u command.
@@ -477,6 +524,19 @@ again:
                 // instead of the upper case letters is should use.  We also
                 // alias %p to %x.
                 //
+                case 'f':
+                {
+                    //
+                    // Get the value from the varargs.
+                    //
+                    double f = va_arg(arg, double);
+                    uint8_t len=ustrlen(ftostr(f,s,n));
+                    iConvertCount+=len;
+                    s+=len;
+                    break;
+                }
+
+                    //
                 case 'x':
                 case 'X':
                 case 'p':

@@ -31,19 +31,23 @@
 //*****************************************************************************
 tCmdLineEntry g_psCmdTable[] =
 {
-    { "help"   ,Cmd_help             ,": Display list of commands" }          ,
-    { "h"      ,Cmd_help             ,": alias for help" }                    ,
-    { "?"      ,Cmd_help             ,": alias for help" }                    ,
-    { "Mac"    ,Cmd_Mac              ,": show MAC address" }                  ,
-    { "ip"     ,Cmd_Ip               ,": show and/or save ip" }                   ,
-    { "task"   ,Cmd_TaskList         ,": lista de tareas" }                   ,
-    { "link"   ,Cmd_Links_State      ,": Estado del link ethernet" }          ,
-    { "bt"     ,Cmd_Button_State     ,": Estado del boton" }                  ,
-    { "t"      ,Cmd_Print_T          ,": Temperatura nodo 0" }                ,
-    { "p"      ,Cmd_Print_Usr_Params ,": Muestra los parametros de usuario" } ,
-    { "s"      ,Cmd_Save_Usr_Params  ,": Graba los parametros de usuario" }   ,
-    { "reboot" ,Cmd_Reboot           ,": Reboot" }                            ,
-    { 0      ,0               ,0 }
+    { "help"   ,Cmd_help         ,": Display list of commands" }                              ,
+    { "h"      ,Cmd_help         ,": alias for help" }                                        ,
+    { "?"      ,Cmd_help         ,": alias for help" }                                        ,
+    { "Mac"    ,Cmd_Mac          ,": show MAC address" }                                      ,
+    { "ip"     ,Cmd_Ip           ,": show and/or save ip" }                                   ,
+    { "mask"   ,Cmd_Mask         ,": show and/or save mask" }                                 ,
+    { "gw"     ,Cmd_Gateway      ,": show and/or save gateway" }                              ,
+    { "cp"     ,Cmd_Config_Port  ,": show and/or save config tcp port [default 49152]" }      ,
+    { "tp"     ,Cmd_Temp_Port    ,": show and/or save temperature tcp port [default 49153]" } ,
+    { "t"      ,Cmd_T            ,": show temperature" }                                      ,
+    { "tmax"   ,Cmd_Tmax         ,": show and/or save tmax" }                                 ,
+    { "tmin"   ,Cmd_Tmin         ,": show and/or save tmin" }                                 ,
+    { "task"   ,Cmd_TaskList     ,": lista de tareas" }                                       ,
+    { "link"   ,Cmd_Links_State  ,": Estado del link ethernet" }                              ,
+    { "bt"     ,Cmd_Button_State ,": Estado del boton" }                                      ,
+    { "reboot" ,Cmd_Reboot       ,": Reboot" }                                                ,
+    { 0        ,0                ,0 }
 };
 
 //*****************************************************************************
@@ -64,17 +68,13 @@ int Cmd_help(struct tcp_pcb* tpcb, int argc, char *argv[])
     return 0;
 }
 //----------------------------------------------------------------------------------------------------
-void Print_Mac_Addr(struct tcp_pcb* tpcb, uint8_t* Mac)
-{
-    UART_ETHprintf(tpcb,"MAC: %02x:%02x:%02x:%02x:%02x:%02x",
-            Mac[0], Mac[1], Mac[2], Mac[3], Mac[4], Mac[5]);
-}
 int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    uint8_t Mac[6];
-   lwIPLocalMACGet ( Mac      );
-   Print_Mac_Addr  ( tpcb,Mac );
-   return(0);
+   lwIPLocalMACGet ( Mac );
+    UART_ETHprintf(tpcb,"MAC: %02x:%02x:%02x:%02x:%02x:%02x",
+            Mac[0], Mac[1], Mac[2], Mac[3], Mac[4], Mac[5]);
+   return 0;
 }
 int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
@@ -83,12 +83,61 @@ int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
    if(argc>1) {
       uint32_t New_Ip=atoi(argv[1]);
       UART_ETHprintf(tpcb,"New Ip=");
-      DisplayIPAddress(tpcb,New_Ip);
+      DisplayIPAddress(tpcb,htonl(New_Ip));
       Usr_Flash_Params.Ip_Addr=New_Ip;
       Save_Usr_Flash();
    }
-   return(0);
+   return 0;
 }
+int Cmd_Mask(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Actual Mask=");
+   DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
+   if(argc>1) {
+      uint32_t New_Ip=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Mask=");
+      DisplayIPAddress(tpcb,htonl(New_Ip));
+      Usr_Flash_Params.Mask_Addr=New_Ip;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Gateway(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Actual Gateway=");
+   DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
+   if(argc>1) {
+      uint32_t New_Ip=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Gateway=");
+      DisplayIPAddress(tpcb,htonl(New_Ip));
+      Usr_Flash_Params.Gateway_Addr=New_Ip;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Config_Port(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Actual Port=%d\n",Usr_Flash_Params.Config_Port);
+   if(argc>1) {
+      uint16_t New_Port=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Port=%d \n",New_Port);
+      Usr_Flash_Params.Config_Port=New_Port;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Temp_Port(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Actual Port=%d\n",Usr_Flash_Params.Temp_Port);
+   if(argc>1) {
+      uint16_t New_Port=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Port=%d \n",New_Port);
+      Usr_Flash_Params.Temp_Port=New_Port;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+
 
 void DisplayIPAddress(struct tcp_pcb* tpcb,uint32_t ui32Addr)
 {
@@ -96,6 +145,33 @@ void DisplayIPAddress(struct tcp_pcb* tpcb,uint32_t ui32Addr)
             (ui32Addr >> 16) & 0xff, (ui32Addr >> 24) & 0xff);
 }
 
+int Cmd_T(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   Print_Temp_Nodes(tpcb);
+   return 0;
+}
+int Cmd_Tmax       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   UART_ETHprintf(tpcb,"Actual Tmax=%f\n",Usr_Flash_Params.Tmax);
+   if(argc>1) {
+      float fVal= ustrtof(argv[1],NULL);
+      UART_ETHprintf(tpcb,"New Tmax=%f\n",fVal);
+      Usr_Flash_Params.Tmax=fVal;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Tmin       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   UART_ETHprintf(tpcb,"Actual Tmin=%f\n",Usr_Flash_Params.Tmin);
+   if(argc>1) {
+      float fVal= ustrtof(argv[1],NULL);
+      UART_ETHprintf(tpcb,"New Tmin=%f\n",fVal);
+      Usr_Flash_Params.Tmin=fVal;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
 int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
@@ -113,27 +189,6 @@ int Cmd_Links_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 int Cmd_Button_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"boton=%d",Button1_Read());
-   return 0;
-}
-int Cmd_Print_T(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   Print_Temp_Nodes(tpcb);
-   return 0;
-}
-//
-int Cmd_Print_Usr_Params(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   Get_Usr_Flash();
-   UART_ETHprintf(tpcb,"user ip=");
-   DisplayIPAddress(tpcb,Usr_Flash_Params.Ip_Addr);
-   return 0;
-}
-int Cmd_Save_Usr_Params(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   uint32_t New_Number=atoi(argv[1]);
-   UART_ETHprintf(tpcb,"Nuevo numero=%d\n",New_Number);
-   Usr_Flash_Params.Ip_Addr=New_Number;
-   Save_Usr_Flash();
    return 0;
 }
 int Cmd_Reboot(struct tcp_pcb* tpcb, int argc, char *argv[])

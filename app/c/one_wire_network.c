@@ -8,6 +8,7 @@
 #include "driverlib/interrupt.h"
 #include "inc/hw_ints.h"
 #include "utils/uartstdio.h"
+#include "utils/ustdlib.h"
 #include "state_machine.h"
 #include "events.h"
 #include "one_wire_link.h"
@@ -42,56 +43,6 @@ static uint8_t             Bytes2Read;
 static uint8_t             *Point2Write;
 static uint8_t             *Point2Read;
 //------------------------------------------------------------------
-static const unsigned int Dec[]= { //este array de long se usa para las restas suscesivas en las funciones de conversion de long a BCD y de char a BCD. Notar que no banca el maximo de los long ,porque por ahora no se necesita ,en caso de requerir habra que seguir agragando potencias de 10 a este array///
-               10000 ,//si bien esto es un desperdicion de flash (guardar un uno en
-               1000  ,
-               100   ,
-               10    ,
-               1
-               };
-static const unsigned long Hex[]= {    //este array de long se usa para las restas suscesivas en las funciones de conversion de long a BCD y de char a BCD. Notar que no banca el maximo de los long, porque por ahora no se necesita, en caso de requerir habra que seguir agragando potencias de 10 a este array///
-               0x1000 ,//si bien esto es un desperdicion de flash (guardar un uno en
-               0x0100 ,
-               0x0010 ,
-               0x0001 ,
-};
-unsigned char* Int2Bcd(unsigned char* Bcd,unsigned int Bin) //convierte un Long (OJO menor a 99999, si se requiere mayor rango solamente se deberan agregar valores al array de const de arriba y reservar lugar para mas BCD claro) en su BCD y coloca cada BCD en 1 byte entero (no se puso 2 por bytes porque fue menos eficiente en espacio de flash y despues para procesarlos con los bits de paridad pesaba mas, el calsico Flash Vs Ram)...
-{
- unsigned char i;                                     //contador auxiliar...
- unsigned int Aux;                                       //es un long auxiliar para acordarse del valor de una resta de longs...
- for (i=0;i<5;i++)   
-  for(Bcd[i]='0';Aux=-Dec[i],(Aux+=Bin)<Bin;Bcd[i]++)    //se inicializa la posicion a guardar;mientras la resta del binario con la tabla que se guarda en aux sea menor que el binario mismo;incrementar el BCD y...
-    Bin=Aux;                                    //como no se paso bin pasa a ser aux que ahora es menor que el original. Notar que se destruye bin...
- return Bcd;
-}
-unsigned char* Char2Hex_Bcd(unsigned char* Bcd,unsigned char Bin) // convierte un Long (OJO menor a 99999, si se requiere mayor rango solamente se deberan agregar valores al array de const de arriba y reservar lugar para mas BCD claro) en su BCD y coloca cada BCD en 1 byte entero (no se puso 2 por bytes porque fue menos eficiente en espacio de flash y despues para procesarlos con los bits de paridad pesaba mas, el calsico Flash Vs Ram)...
-{
- unsigned char i;                                                 // contador auxiliar...
- unsigned int Aux;                                                // es un long auxiliar para acordarse del valor de una resta de longs...
- for (i=0;i<2;i++)
-  for(Bcd[i]=0;Aux=-Hex[i+2],(Aux+=Bin)<Bin;Bcd[i]++)             // se inicializa la posicion a guardar;mientras la resta del binario con la tabla que se guarda en aux sea menor que el binario mismo;incrementar el BCD y...
-    Bin=Aux;                                                      // como no se paso bin pasa a ser aux que ahora es menor que el original. Notar que se destruye bin...
- for(i=0;i<2;i++) Bcd[i]+=(Bcd[i]>9)?('A'-10):'0';
- return Bcd;
-}
-unsigned char* String2Hex_Bcd(unsigned char* Bcd,unsigned char* String,unsigned char Length)
-{
- while(Length--) Char2Hex_Bcd(Bcd+2*Length,String[Length]);
- return Bcd;
-}
-void Shift_String2Rigth(unsigned char* Source,unsigned int Length, unsigned int Displacement)
-{
- while(Length--) Source[Length+Displacement]=Source[Length];
-}
-unsigned char* Signed_Int2_2Dec_Fix_Point_Bcd(unsigned char* Bcd,signed int Bin) //convierte un entero pero lo considera como punto fijo y lo pasa a bcd considerando 2 decimales mas signo, del tipo "+655.35"
-{
- strcpy((char*)Bcd,"+655.35");    // copia el formato en el destino
- if(Bin<0) {Bcd[0]='-';Bin=-Bin;} // si el valore es negativo, se cambia el signo y se complementa el daro para poder convertir a bcd
- Int2Bcd(Bcd+1,Bin);              // convioerte a bcd y pisa la respuesta salteando la primera posicion reservada para el signo...
- Shift_String2Rigth(Bcd+4,2,1);   // hace lugar para poner el punto decimal..
- Bcd[4]='.';                      // agrega el puntito...
- return Bcd;
-}
 void Clear_Bit_On_String(unsigned char* Data, unsigned char Bit)
 {
  Data[Bit/8]&=~(0x80>>Bit%8);
@@ -131,8 +82,8 @@ uint8_t*       One_Wire_Rx_As_PChar ( uint8_t Pos ) { return Rx_Buffer+Pos ;}
 unsigned int   One_Wire_Rx_As_Int   ( uint8_t Pos ) { return *(unsigned int*) (Rx_Buffer+Pos);}
   int16_t   One_Wire_Rx_As_SInt  (unsigned char Pos)  {
     char Ans[2];
-    Ans[0]=Rx_Buffer[Pos+1]; 
-    Ans[1]=Rx_Buffer[Pos+0]; 
+    Ans[0]=Rx_Buffer[Pos+1];
+    Ans[1]=Rx_Buffer[Pos+0];
     return *(int16_t*) Ans;
 }
 //---------------------------------
@@ -187,23 +138,14 @@ void Calculate_DS18B20_12Bit_T   (uint8_t Node)
  }
 }
 
-const uint8_t Code_T_Template[]="0123456789012345=+327.67 C Crc=Ok \r\n";
-uint8_t DS18B20_Convert_Bin2Ascci_T ( uint8_t* Destiny,uint8_t Code )
-{
-   strcpy((char*)Destiny,(char*)Code_T_Template);
-   String2Hex_Bcd(Destiny,Rom_Codes[Code].Code,sizeof(Rom_Codes[0].Code));
-   Signed_Int2_2Dec_Fix_Point_Bcd(Destiny+17,Rom_Codes[Code].T);
-   if(!Rom_Codes[Code].Crc) strcpy((char*)(Destiny+sizeof(Code_T_Template)-6),"Err");
-   return sizeof(Code_T_Template)-1;
-}
 void Print_Temp_Nodes(struct tcp_pcb* tpcb)
 {
    uint8_t i;
-   for(i=0;i<One_Wire_On_Line_Nodes();i++) {
-      uint8_t Buf[sizeof(Code_T_Template)];
-      DS18B20_Convert_Bin2Ascci_T ( Buf,i);
-      UART_ETHprintf ( tpcb,(char* )Buf);
-   }
+   for(i=0;i<One_Wire_On_Line_Nodes();i++)
+      UART_ETHprintf(tpcb,"Code: %H Temp: %f Crc: %s \n",
+            Rom_Codes[i].Code,sizeof(Rom_Codes[0].Code),
+            (float)Rom_Codes[i].T/100,
+            Rom_Codes[i].Crc?"ok ":"err");
 }
 //-----------------SEARCH ROM FUNC-----------------------------------
 void Reset_Actual_Bit    ( void ) { Actual_Bit    = 64;}

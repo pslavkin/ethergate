@@ -49,6 +49,8 @@ extern "C"
 // Prototypes for the APIs.
 //
 //*****************************************************************************
+extern char* ctohex(char* Bcd,uint8_t Bin);
+extern char* ftostr  (float fVal,char* str,uint8_t size);
 extern void ulocaltime(time_t timer, struct tm *tm);
 extern time_t umktime(struct tm *timeptr);
 extern int urand(void);
