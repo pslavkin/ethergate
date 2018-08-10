@@ -160,8 +160,10 @@ void Actual_Marker2Last  ( void ) { Last_Marker=Actual_Marker;}
 void Actual_Bit2Marker   ( void ) { Actual_Marker=Actual_Bit ;}
 void Mark_All_Crc_Fail   ( void ) {
    uint8_t i=0;
-   for ( i=0;i<MAX_ROM_CODES;i++ )
+   for ( i=0;i<MAX_ROM_CODES;i++ ) {
       Rom_Codes[i].Crc=0;
+      Rom_Codes[i].T=0x7FFF;
+      }
 }
 //-------------------------------------------------
 void Bit_Colision     ( void ) { Atomic_Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(DEBUG_MSG,"Colision\n")  ;}

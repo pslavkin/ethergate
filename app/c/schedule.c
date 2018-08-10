@@ -32,7 +32,6 @@ void Init_Schedule(void)            //iniicializa la lista de tiempos...
 void Schedule(void* nil)
 {
    uint8_t i;
-   Init_Schedule();           //iniicializa la lista de tiempos...
    while(1) {
       for(i=0;i<MAX_SCHEDULE_INDEX;i++)                       //para toda la lista...
          if(Schedule_List[i].Sm_Func.Machine!=Empty_State_Machine && Schedule_List[i].Enable)   {//si la entrada no es libre
@@ -129,11 +128,17 @@ void Free_Func_Schedule(void (*Func)(void))
  for(i=0;i<MAX_SCHEDULE_INDEX && Schedule_List[i].Sm_Func.Func!=Func;i++); //recorre todas las entradas fijas en busca de un lugar vacio...
  if(i<MAX_SCHEDULE_INDEX) Add_Schedule(i,0,0,0,Empty_State_Machine,Rien,0);
 }
-void Update_Func_Schedule(uint32_t Time_Out,void (*Func)(void))  
+void Update_Or_New_Func_Schedule(uint32_t Time_Out,void (*Func)(void))  
+{
+ if(!(Update_Func_Schedule(Time_Out,Func)<MAX_SCHEDULE_INDEX))
+    New_Periodic_Func_Schedule(Time_Out,Func);
+}
+uint8_t  Update_Func_Schedule(uint32_t Time_Out,void (*Func)(void))  
 {
  uint8_t i;
  for(i=0;i<MAX_SCHEDULE_INDEX && Schedule_List[i].Sm_Func.Func!=Func;i++); //recorre todas las entradas fijas en busca de un lugar vacio...
  if(i<MAX_SCHEDULE_INDEX) Add_Schedule(i,Time_Out,Time_Out,Invalid_Event,Empty_Sm(),Func,1);
+ return i;
 }
 void New_None_Periodic_Func_Schedule(uint32_t Time_Out,void (*Func)(void))    //enlista una nueva entrada de tiempo ...
 {
@@ -164,6 +169,13 @@ uint8_t Resume_Func_Schedule     (void (*Func)(void))
 void Resume_Or_New_Periodic_Func_Schedule (uint32_t Time_Out,void (*Func)(void))
 {
  if(!(Resume_Func_Schedule(Func)<MAX_SCHEDULE_INDEX)) New_Periodic_Func_Schedule(Time_Out,Func);
+}
+uint32_t Read_Func_Schedule_TOut(void (*Func)(void))
+{
+ uint8_t i;
+ for(i=0;i<MAX_SCHEDULE_INDEX && (Schedule_List[i].Sm_Func.Func!=Func || Schedule_List[i].Event!=Invalid_Event);i++); //recorre todas las entradas fijas en busca de un lugar vacio...
+ if(i<MAX_SCHEDULE_INDEX) return Schedule_List[i].Time_Out;
+ return 0;
 }
 //----------------------------------------------------------------------
 void Periodic_1Sec4Sm   ( const State** Machine ) { New_Periodic_Schedule(10,Sec1_Event,Machine)         ;}

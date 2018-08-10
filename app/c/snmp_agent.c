@@ -25,12 +25,12 @@
 #include "state_machine.h"
 #include "events.h"
 #include "one_wire_network.h"
+#include "usr_flash.h"
 
 
 //#pragma section {Flash_UData}
-char           Community[20]       = "public";
-unsigned int   Object_Name_Length  = 9;
-unsigned char  Object_Name[12]      = {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07};
+//unsigned int   Usr_Flash_Params.Snmp_Iso_Len  = 9;
+//unsigned char  Usr_Flash_Params.Snmp_Iso[12]      = {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07};
 //#pragma section const {}
 const State* Snmp_Agent_Sm;
 struct pbuf* Snmp_Data=NULL;
@@ -46,10 +46,10 @@ struct Snmp_Object_Struct*    Rx_Snmp_Object ( void ) { return (struct Snmp_Obje
 struct Snmp_Value_Struct*     Rx_Snmp_Value  ( void ) { return (struct Snmp_Value_Struct*)     (Rx_Snmp_Object()->Object_Name+Rx_Snmp_Object()->Object_Name_Length);}
 //------------------------------------------------------------------------------
 bool  Parse_Version   ( void ) { return Rx_Snmp_Header()->Version==0 || Rx_Snmp_Header()->Version==1       ;}
-bool  Parse_Community ( void ) { return strncmp(Rx_Snmp_Header()->Community,Community,Rx_Snmp_Header()->Community_Length)==0;}
+bool  Parse_Community ( void ) { return strncmp(Rx_Snmp_Header()->Community,Usr_Flash_Params.Snmp_Community,Rx_Snmp_Header()->Community_Length)==0;}
 bool  Object_Name_Match ( void ) {
-   return (Rx_Snmp_Object( )->Object_Name_Length==Object_Name_Length+1 &&             // la longitud del MIB tiene que ser justo uno mas que mi MIB, para que considere que indexa justo ese
-           memcmp(Object_Name,Rx_Snmp_Object( )->Object_Name,Object_Name_Length)==0); // ah, y ademas tiene que condicid con mi MIB claro
+   return (Rx_Snmp_Object( )->Object_Name_Length==Usr_Flash_Params.Snmp_Iso_Len+1 &&             // la longitud del MIB tiene que ser justo uno mas que mi MIB, para que considere que indexa justo ese
+           memcmp(Usr_Flash_Params.Snmp_Iso,Rx_Snmp_Object( )->Object_Name,Usr_Flash_Params.Snmp_Iso_Len)==0); // ah, y ademas tiene que condicid con mi MIB claro
 }
 bool  Next_Or_Bulk ( void ) { return Rx_Snmp_Msg( )->Msg_Code==Get_Next_Request_Event || Rx_Snmp_Msg( )->Msg_Code==Get_Bulk_Request_Event;}
 //------------------------------------------------------------------------------
@@ -94,9 +94,9 @@ void Response_Int(unsigned char SysDescr,uint16_t Value)/*{{{*/
 {
  UART_ETHprintf(DEBUG_MSG,"Snmp Response\n");
 
- Rx_Snmp_Object ( )->Object_Name_Length              = Object_Name_Length+1; // el +1 del final es porque el OID que se graba en el equipo puede tener muchos 'hijos' de 1 byte. por que es el que se mueve en el bulk de hecho y se recibe como parametro aca...
- Rx_Snmp_Object ( )->Object_Name[Object_Name_Length] = SysDescr            ; // como ultimo valor pone el OID que piden...
- memcpy ( Rx_Snmp_Object( )->Object_Name,Object_Name,Object_Name_Length);    // aca se copua todo el header del OID que faltaba...
+ Rx_Snmp_Object ( )->Object_Name_Length              = Usr_Flash_Params.Snmp_Iso_Len+1; // el +1 del final es porque el OID que se graba en el equipo puede tener muchos 'hijos' de 1 byte. por que es el que se mueve en el bulk de hecho y se recibe como parametro aca...
+ Rx_Snmp_Object ( )->Object_Name[Usr_Flash_Params.Snmp_Iso_Len] = SysDescr            ; // como ultimo valor pone el OID que piden...
+ memcpy ( Rx_Snmp_Object( )->Object_Name,Usr_Flash_Params.Snmp_Iso,Usr_Flash_Params.Snmp_Iso_Len);    // aca se copua todo el header del OID que faltaba...
 
  Rx_Snmp_Value ( )->Value_Code   = 0x02;                                     // codigo que corresponde a Integer...
  Rx_Snmp_Value ( )->Value_Length = 2           ;                             // solo mando integer de 2 bytes...
@@ -139,7 +139,7 @@ void Response_Err(void)/*{{{*/
 //-----------------------------------------------------------------------------
 void Response_One_Wire_T(uint8_t Node)
 {
-  if ( One_Wire_On_Line_Nodes( ) >= Node)
+  if ( One_Wire_On_Line_Nodes( ) > Node)
      Response_Int(Node,One_Wire_T(Node));
   else
      Response_Err();

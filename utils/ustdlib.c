@@ -51,6 +51,7 @@ char* ctohex(char* Bcd,uint8_t Bin)
       Bcd[i]+=(Bcd[i]>9)?('A'-10):'0';
    return Bcd;
 }
+
 //*****************************************************************************
 //
 //! Copies a certain number of characters from one string to another.

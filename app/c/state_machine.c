@@ -39,7 +39,7 @@ void State_Machine(void* nil)               //esta funcion ejecuta la maquina de
       *Event.Machine=ActualState->Next_State;
       ActualState->Func();
    }
-   vTaskDelay( pdMS_TO_TICKS(50) ); // Envia la tarea al estado bloqueado durante 500ms
+   vTaskDelay( pdMS_TO_TICKS(100) ); // Envia la tarea al estado bloqueado durante 500ms
    }
 }
 

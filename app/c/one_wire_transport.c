@@ -15,6 +15,7 @@
 #include "one_wire_transport.h"
 #include "leds.h"
 #include "schedule.h"
+#include "usr_flash.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -37,8 +38,16 @@ void  Init_One_Wire_Transport ( void )
 {
  Init_One_Wire_Network ( );
  One_Wire_Transport_Sm = Searching_Rom_Codes;
- //New_None_Periodic_Schedule ( 10,Sec1_Event,One_Wire_Transport( ));
- Atomic_Send_Event(Sec1_Event,One_Wire_Transport());
+ Refresh_One_Wire_Reload_TOut(Usr_Flash_Params.Reload_T_TOut);
+ Reload_One_Wire_Codes();
+}
+void      Refresh_One_Wire_Reload_TOut(uint32_t TOut)
+{
+ if(TOut) Update_Or_New_Func_Schedule(600*TOut,Reload_One_Wire_Codes);
+}
+uint32_t One_Wire_Next_Reload_Time(void)
+{
+   return Read_Func_Schedule_TOut(Reload_One_Wire_Codes);
 }
 //------------------------------------------------------------------
 void Reset_Actual_Node              ( void ) { Actual_Node=0                                                                                                                    ;}

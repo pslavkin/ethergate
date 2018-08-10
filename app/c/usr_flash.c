@@ -17,9 +17,11 @@ struct Usr_Flash_Struct Usr_Flash_Params = {
       .Temp_Port      = 49153,
       .Snmp_Port      = 161,
       .Snmp_Community = "public",
-      .Snmp_Osi       = {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07},
+      .Snmp_Iso       = {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07},
+      .Snmp_Iso_Len   = 9,
       .Tmax           = 30,
       .Tmin           = 25,
+      .Reload_T_TOut  = 2,
 };
 
 

@@ -13,7 +13,7 @@ void           Init_Schedule   ( void                                           
 void           Schedule        ( void* nil                                              );
 uint8_t        Update_Schedule ( uint32_t Time_Out,uint16_t Event,const State** Machine );
 //------------------------------------------------------------------------
-void           Update_Func_Schedule       ( uint32_t Time_Out,void (*Func )(void));
+uint8_t        Update_Func_Schedule       ( uint32_t Time_Out,void (*Func )(void));
 void           Free_Schedule              ( uint16_t Event,const State** Machine                   )       ;
 void           Free_All_Schedule          ( const State** Machine                                  )       ;
 void           Pause_Schedule             ( uint16_t Event,const State** Machine                   )       ;
@@ -27,8 +27,10 @@ void           New_Periodic_Func_Schedule           ( uint32_t Time_Out,void (*F
 void           Pause_Func_Schedule                  ( void (*Func                                            )(void));
 uint8_t        Resume_Func_Schedule                 ( void (*Func                                            )(void));
 void           Free_Func_Schedule                   ( void (*Func                                            )(void));
+void           Update_Or_New_Func_Schedule(uint32_t Time_Out,void (*Func)(void))  ;
 void           Resume_Or_New_Periodic_Func_Schedule ( uint32_t Time_Out,void (*Func                          )(void));
 void           Update_Or_New_None_Periodic_Schedule ( uint32_t Time_Out,uint16_t Event,const State** Machine )       ;
+uint32_t       Read_Func_Schedule_TOut              ( void (*Func                             )(void));
 //------------------------------------------------------------------------
 void       Periodic_1Sec4Sm            ( const State** Machine );
 void       None_Periodic_1Sec          ( void                  );

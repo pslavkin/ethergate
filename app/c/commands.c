@@ -15,8 +15,9 @@
 #include "buttons.h"
 #include "opt.h"
 #include "one_wire_network.h"
+#include "one_wire_transport.h"
 #include "usr_flash.h"
-
+#include "third_party/lwip-1.4.1/src/include/ipv4/lwip/ip_addr.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -31,22 +32,25 @@
 //*****************************************************************************
 tCmdLineEntry g_psCmdTable[] =
 {
-    { "help"   ,Cmd_help         ,": Display list of commands" }                              ,
-    { "h"      ,Cmd_help         ,": alias for help" }                                        ,
-    { "?"      ,Cmd_help         ,": alias for help" }                                        ,
-    { "Mac"    ,Cmd_Mac          ,": show MAC address" }                                      ,
-    { "ip"     ,Cmd_Ip           ,": show and/or save ip" }                                   ,
-    { "mask"   ,Cmd_Mask         ,": show and/or save mask" }                                 ,
-    { "gw"     ,Cmd_Gateway      ,": show and/or save gateway" }                              ,
-    { "cp"     ,Cmd_Config_Port  ,": show and/or save config tcp port [default 49152]" }      ,
-    { "tp"     ,Cmd_Temp_Port    ,": show and/or save temperature tcp port [default 49153]" } ,
-    { "t"      ,Cmd_T            ,": show temperature" }                                      ,
-    { "tmax"   ,Cmd_Tmax         ,": show and/or save tmax" }                                 ,
-    { "tmin"   ,Cmd_Tmin         ,": show and/or save tmin" }                                 ,
-    { "task"   ,Cmd_TaskList     ,": lista de tareas" }                                       ,
-    { "link"   ,Cmd_Links_State  ,": Estado del link ethernet" }                              ,
-    { "bt"     ,Cmd_Button_State ,": Estado del boton" }                                      ,
-    { "reboot" ,Cmd_Reboot       ,": Reboot" }                                                ,
+    { "ls"        ,Cmd_help           ,": Display list of commands" }                              ,
+    { "?"         ,Cmd_help           ,": alias for help" }                                        ,
+    { "Mac"       ,Cmd_Mac            ,": show MAC address" }                                      ,
+    { "ip"        ,Cmd_Ip             ,": show and/or save ip" }                                   ,
+    { "mask"      ,Cmd_Mask           ,": show and/or save mask" }                                 ,
+    { "gw"        ,Cmd_Gateway        ,": show and/or save gateway" }                              ,
+    { "cp"        ,Cmd_Config_Port    ,": show and/or save config tcp port [default 49152]" }      ,
+    { "tp"        ,Cmd_Temp_Port      ,": show and/or save temperature tcp port [default 49153]" } ,
+    { "t"         ,Cmd_T              ,": show temperature" }                                      ,
+    { "tmax"      ,Cmd_Tmax           ,": show and/or save tmax" }                                 ,
+    { "tmin"      ,Cmd_Tmin           ,": show and/or save tmin" }                                 ,
+    { "rf"        ,Cmd_Reload_T       ,": refresh sensor list" }                                   ,
+    { "rft"       ,Cmd_Reload_T_TOut  ,": show and/or save refresh sensor list tout" }             ,
+    { "task"      ,Cmd_TaskList       ,": lista de tareas" }                                       ,
+    { "link"      ,Cmd_Links_State    ,": Ethernet link" }                                         ,
+    { "bt"        ,Cmd_Button_State   ,": button state" }                                          ,
+    { "community" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                                      ,
+    { "iso" ,Cmd_Snmp_Iso ,": show and/or save snmp Iso" }                                      ,
+    { "reboot"    ,Cmd_Reboot         ,": Reboot" }                                                ,
     { 0        ,0                ,0 }
 };
 
@@ -76,29 +80,38 @@ int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
             Mac[0], Mac[1], Mac[2], Mac[3], Mac[4], Mac[5]);
    return 0;
 }
+
 int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   UART_ETHprintf(tpcb,"Actual Ip=");
+   UART_ETHprintf(tpcb,"Actual Ip:");
    DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
    if(argc>1) {
-      uint32_t New_Ip=atoi(argv[1]);
-      UART_ETHprintf(tpcb,"New Ip=");
-      DisplayIPAddress(tpcb,htonl(New_Ip));
-      Usr_Flash_Params.Ip_Addr=New_Ip;
-      Save_Usr_Flash();
+      ip_addr_t New_Ip;
+      UART_ETHprintf(tpcb,"New Ip:");
+      if(ipaddr_aton(argv[1],&New_Ip) == 1) {
+         DisplayIPAddress(tpcb,New_Ip.addr);
+         Usr_Flash_Params.Ip_Addr=htonl(New_Ip.addr);
+         Save_Usr_Flash();
+      }
+      else
+         UART_ETHprintf(tpcb,"Invalid\n");
    }
    return 0;
 }
 int Cmd_Mask(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   UART_ETHprintf(tpcb,"Actual Mask=");
+   UART_ETHprintf(tpcb,"Actual Mask:");
    DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
    if(argc>1) {
-      uint32_t New_Ip=atoi(argv[1]);
-      UART_ETHprintf(tpcb,"New Mask=");
-      DisplayIPAddress(tpcb,htonl(New_Ip));
-      Usr_Flash_Params.Mask_Addr=New_Ip;
-      Save_Usr_Flash();
+      ip_addr_t New_Ip;
+      UART_ETHprintf(tpcb,"New Mask:");
+      if(ipaddr_aton(argv[1],&New_Ip) == 1) {
+         DisplayIPAddress(tpcb,New_Ip.addr);
+         Usr_Flash_Params.Mask_Addr=htonl(New_Ip.addr);
+         Save_Usr_Flash();
+      }
+      else
+         UART_ETHprintf(tpcb,"Invalid\n");
    }
    return 0;
 }
@@ -107,11 +120,15 @@ int Cmd_Gateway(struct tcp_pcb* tpcb, int argc, char *argv[])
    UART_ETHprintf(tpcb,"Actual Gateway=");
    DisplayIPAddress(tpcb,lwIPLocalIPAddrGet());
    if(argc>1) {
-      uint32_t New_Ip=atoi(argv[1]);
-      UART_ETHprintf(tpcb,"New Gateway=");
-      DisplayIPAddress(tpcb,htonl(New_Ip));
-      Usr_Flash_Params.Gateway_Addr=New_Ip;
-      Save_Usr_Flash();
+      ip_addr_t New_Ip;
+      UART_ETHprintf(tpcb,"New Gateway:");
+      if(ipaddr_aton(argv[1],&New_Ip) == 1) {
+         DisplayIPAddress(tpcb,New_Ip.addr);
+         Usr_Flash_Params.Gateway_Addr=htonl(New_Ip.addr);
+         Save_Usr_Flash();
+      }
+      else
+         UART_ETHprintf(tpcb,"Invalid\n");
    }
    return 0;
 }
@@ -172,6 +189,27 @@ int Cmd_Tmin       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
    }
    return 0;
 }
+int Cmd_Reload_T_TOut    ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   UART_ETHprintf(tpcb,"Actual reload T Tout=%d mins\nNext reload in %f mins\n",
+         Usr_Flash_Params.Reload_T_TOut,
+         (float)One_Wire_Next_Reload_Time()/600
+         );
+   if(argc>1) {
+      uint8_t TOut= atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New reload T Tout=%d mins\n",TOut);
+      Usr_Flash_Params.Reload_T_TOut=TOut;
+      Refresh_One_Wire_Reload_TOut(TOut);
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Reload_T       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   UART_ETHprintf(tpcb,"Searching T Sensors\n");
+   Reload_One_Wire_Codes( );
+   return 0;
+}
 int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
@@ -189,6 +227,29 @@ int Cmd_Links_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 int Cmd_Button_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"boton=%d",Button1_Read());
+   return 0;
+}
+int Cmd_Snmp_Community(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Actual snmp community:%s \n", Usr_Flash_Params.Snmp_Community);
+   if(argc>1) {
+      UART_ETHprintf(tpcb,"New snmp community:%s \n",argv[1]);
+      ustrncpy(Usr_Flash_Params.Snmp_Community,argv[1],sizeof(Usr_Flash_Params.Snmp_Community)-1);
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Actual snmp Iso:%H \n", Usr_Flash_Params.Snmp_Iso,Usr_Flash_Params.Snmp_Iso_Len);
+   if(argc>1) {
+         uint8_t i;
+         for(i=1;i<argc && i<sizeof(Usr_Flash_Params.Snmp_Iso);i++)
+            Usr_Flash_Params.Snmp_Iso[i-1]=atoi(argv[i]);
+         Usr_Flash_Params.Snmp_Iso_Len=argc-1;
+         UART_ETHprintf(tpcb,"New snmp community:%H \n",Usr_Flash_Params.Snmp_Iso,Usr_Flash_Params.Snmp_Iso_Len);
+         Save_Usr_Flash();
+   }
    return 0;
 }
 int Cmd_Reboot(struct tcp_pcb* tpcb, int argc, char *argv[])
