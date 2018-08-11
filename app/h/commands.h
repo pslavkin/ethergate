@@ -6,13 +6,14 @@ extern int Cmd_Mac              ( struct tcp_pcb* tpcb ,int argc ,char *argv[] )
 extern int Cmd_Ip               ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
 extern int Cmd_Mask             ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Gateway          ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Dhcp(struct tcp_pcb* tpcb, int argc, char *argv[]);
 extern int Cmd_Temp_Port(struct tcp_pcb* tpcb, int argc, char *argv[]);
 extern int Cmd_Config_Port(struct tcp_pcb* tpcb, int argc, char *argv[]);
 extern int Cmd_Send2Eth         ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
 extern int Cmd_TaskList         ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
 extern int Cmd_Links_State      ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-extern int Cmd_Button_State     ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_T          ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_T_Prom(struct tcp_pcb* tpcb, int argc, char *argv[]);
 extern int Cmd_Tmax       ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Tmin       ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Reload_T       ( struct tcp_pcb* tpcb, int argc, char *argv[] );

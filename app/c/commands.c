@@ -38,20 +38,21 @@ tCmdLineEntry g_psCmdTable[] =
     { "ip"        ,Cmd_Ip             ,": show and/or save ip" }                                   ,
     { "mask"      ,Cmd_Mask           ,": show and/or save mask" }                                 ,
     { "gw"        ,Cmd_Gateway        ,": show and/or save gateway" }                              ,
+    { "dhcp"      ,Cmd_Dhcp       ,": show and/or save dhcp (0=disable, 1=enable)" }                              ,
     { "cp"        ,Cmd_Config_Port    ,": show and/or save config tcp port [default 49152]" }      ,
     { "tp"        ,Cmd_Temp_Port      ,": show and/or save temperature tcp port [default 49153]" } ,
     { "t"         ,Cmd_T              ,": show temperature" }                                      ,
+    { "tprom"     ,Cmd_T_Prom         ,": show mean temperature" }                                 ,
     { "tmax"      ,Cmd_Tmax           ,": show and/or save tmax" }                                 ,
     { "tmin"      ,Cmd_Tmin           ,": show and/or save tmin" }                                 ,
     { "rf"        ,Cmd_Reload_T       ,": refresh sensor list" }                                   ,
     { "rft"       ,Cmd_Reload_T_TOut  ,": show and/or save refresh sensor list tout" }             ,
     { "task"      ,Cmd_TaskList       ,": lista de tareas" }                                       ,
     { "link"      ,Cmd_Links_State    ,": Ethernet link" }                                         ,
-    { "bt"        ,Cmd_Button_State   ,": button state" }                                          ,
-    { "community" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                                      ,
-    { "iso" ,Cmd_Snmp_Iso ,": show and/or save snmp Iso" }                                      ,
+    { "community" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                  ,
+    { "iso"       ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso" }                             ,
     { "reboot"    ,Cmd_Reboot         ,": Reboot" }                                                ,
-    { 0        ,0                ,0 }
+    { 0           ,0                  ,0 }
 };
 
 //*****************************************************************************
@@ -132,6 +133,17 @@ int Cmd_Gateway(struct tcp_pcb* tpcb, int argc, char *argv[])
    }
    return 0;
 }
+int Cmd_Dhcp(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Dhcp =%d\n",Usr_Flash_Params.Dhcp_Enable);
+   if(argc>1) {
+      uint16_t New=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Dhcp=%d \n",New);
+      Usr_Flash_Params.Dhcp_Enable=New;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
 int Cmd_Config_Port(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"Actual Port=%d\n",Usr_Flash_Params.Config_Port);
@@ -165,6 +177,11 @@ void DisplayIPAddress(struct tcp_pcb* tpcb,uint32_t ui32Addr)
 int Cmd_T(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    Print_Temp_Nodes(tpcb);
+   return 0;
+}
+int Cmd_T_Prom(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Mean temperature=%f\n",Get_T_Prom());
    return 0;
 }
 int Cmd_Tmax       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
@@ -222,11 +239,6 @@ int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 int Cmd_Links_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"PHY=%d",EMACPHYLinkUp());
-   return 0;
-}
-int Cmd_Button_State(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   UART_ETHprintf(tpcb,"boton=%d",Button1_Read());
    return 0;
 }
 int Cmd_Snmp_Community(struct tcp_pcb* tpcb, int argc, char *argv[])

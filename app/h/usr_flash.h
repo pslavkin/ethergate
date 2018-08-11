@@ -21,9 +21,10 @@ struct Usr_Flash_Struct {
 };
 extern struct Usr_Flash_Struct Usr_Flash_Params;
 
-void Init_Usr_Flash(void);
-extern void Save_Usr_Flash(void);
-extern void Get_Usr_Flash(void);
+void Init_Usr_Flash                 ( void );
+extern void Usr_Flash2Defult_Values ( void );
+extern void Save_Usr_Flash          ( void );
+extern void Get_Usr_Flash           ( void );
 
 #endif
 

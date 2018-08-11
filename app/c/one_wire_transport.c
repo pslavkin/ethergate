@@ -52,12 +52,12 @@ uint32_t One_Wire_Next_Reload_Time(void)
 //------------------------------------------------------------------
 void Reset_Actual_Node              ( void ) { Actual_Node=0                                                                                                                    ;}
 void Inc_Actual_Node                ( void ) { Actual_Node++                                                                                                                    ;}
-void Parse_Next_Family_Code         ( void ) { Atomic_Send_Event(Actual_Node<One_Wire_On_Line_Nodes()?One_Wire_Family_Code(Actual_Node):End_Of_Nodes_Event,One_Wire_Transport());}
+void Parse_Next_Family_Code         ( void ) { Send_Event(Actual_Node<One_Wire_On_Line_Nodes()?One_Wire_Family_Code(Actual_Node):End_Of_Nodes_Event,One_Wire_Transport());}
 void Read_Actual_DS18B20_Scratchpad ( void ) { Read_DS18B20_Scratchpad(Actual_Node)                                                                                             ;}
 void Reload_One_Wire_Codes          ( void )
 {
  Mark_All_Crc_Fail();
- Atomic_Send_Event(Reload_Codes_Event,One_Wire_Transport());
+ Send_Event(Reload_Codes_Event,One_Wire_Transport());
 }
 //------------------------------------------------------------------
 void Print_Nobody_On_Bus ( void ) { UART_ETHprintf(DEBUG_MSG,"Nobody on Bus\n");}
@@ -67,7 +67,7 @@ void Check_Crcs(void)
 {
  unsigned char i=One_Wire_On_Line_Nodes();
  while(i && One_Wire_Crc(i-1)>1) i--;                 //con que uno este fallado, pagan todos...
- Atomic_Send_Event(i?Crc_Fail_Event:Crc_Ok_Event,One_Wire_Transport());    //sino llego a recorrer todos... falla.
+ Send_Event(i?Crc_Fail_Event:Crc_Ok_Event,One_Wire_Transport());    //sino llego a recorrer todos... falla.
 }
 //-------------------------------------------------
 void Reset_Actual_Node_And_Parse_Next_Family_Code                             ( void ) { Reset_Actual_Node()                   ;Parse_Next_Family_Code();}

@@ -92,7 +92,7 @@ void Execute_Cmd(uint8_t Length,uint8_t* Cmd)
  Bytes2Read  = Length;
  Point2Write = Cmd;
  Point2Read  = One_Wire_Rx_As_PChar(0);
- Atomic_Send_Event(One_Wire_Cmd_Event,One_Wire_Network());
+ Send_Event(One_Wire_Cmd_Event,One_Wire_Network());
 }
 //----------------------------
 void Write_Read_Next_Byte  (void)
@@ -100,15 +100,15 @@ void Write_Read_Next_Byte  (void)
  GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
  Bytes2Read--;
  Point2Read[Bytes2Read]=Write_Read_Byte(Point2Write[Bytes2Read]);
- Atomic_Send_Event(Bytes2Read?One_Wire_Read_Next_Byte_Event:One_Wire_End_Of_Read_Event,One_Wire_Network());
+ Send_Event(Bytes2Read?One_Wire_Read_Next_Byte_Event:One_Wire_End_Of_Read_Event,One_Wire_Network());
  GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
 }
 //------------------------------------------------
 void           Read_Presence ( void              ) {
    GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
-   Atomic_Send_Event(Presence()?One_Wire_Not_Detected_Event:One_Wire_Detected_Event,One_Wire_Network());
+   Send_Event(Presence()?One_Wire_Not_Detected_Event:One_Wire_Detected_Event,One_Wire_Network());
 }
-void           Search_Codes  ( void              ) { Atomic_Send_Event(Search_Codes_Event,One_Wire_Network())                                            ;}
+void           Search_Codes  ( void              ) { Send_Event(Search_Codes_Event,One_Wire_Network())                                            ;}
 void           Search_Rom    ( void              ) { Write_Read_Byte(SEARCH_ROM)                                                                         ;}
 void           Read_Rom      ( void              ) { Execute_Cmd(9,(uint8_t*)READ_ROM_STRING)                                                            ;}
 void           Match_Rom     ( uint8_t* Rom_Code ) { Execute_Cmd(9,Rom_Code)                                                                             ;}
@@ -166,10 +166,10 @@ void Mark_All_Crc_Fail   ( void ) {
       }
 }
 //-------------------------------------------------
-void Bit_Colision     ( void ) { Atomic_Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(DEBUG_MSG,"Colision\n")  ;}
-void Select_Bit_One ( void ) { Write_Bit_One_And_Read();Set_Bit_On_String(Rom_Codes[Actual_Code].Code,Actual_Bit);}
+void Bit_Colision     ( void ) { Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(DEBUG_MSG,"Colision\n")                     ;}
+void Select_Bit_One   ( void ) { Write_Bit_One_And_Read()                                                                                                                                         ;Set_Bit_On_String(Rom_Codes[Actual_Code].Code,Actual_Bit)  ;}
 void Select_Bit_Zero  ( void ) { Write_Bit_Zero()                                                                                                                                                 ;Clear_Bit_On_String(Rom_Codes[Actual_Code].Code,Actual_Bit);}
-void Search_Next_Bit  ( void ) { Atomic_Send_Event(Actual_Bit--?Read2Bits():Actual_Code_End_Event,One_Wire_Network())                                                                             ;}
+void Search_Next_Bit  ( void ) { Send_Event(Actual_Bit--?Read2Bits():Actual_Code_End_Event,One_Wire_Network())                                                                             ;}
 void Search_Next_Code ( void )
 {
  UART_ETHprintf(DEBUG_MSG,"Next Code\n");
@@ -177,15 +177,15 @@ void Search_Next_Code ( void )
  Reset_Actual_Bit    ( );
  Reset_Actual_Marker ( );
  Calculate_One_Wire_Crc ( Rom_Codes[Actual_Code].Code,sizeof(Rom_Codes[0].Code                     ))?Inc_Actual_Code():Inc_Fail_Codes()                                         ;//de paso caniazo revisa el crc. Si esta ok, incrementa el indexador de la lizta, sino incrementa la cantidad de codigos fallidos para que no quede aca para siempres y PISA el que salio mal!!! De manera que SOLo se enlistan los buenos...
- ( Last_Marker<64 && Actual_Code<MAX_ROM_CODES && Fail_Codes<MAX_FAIL_CODES )?Read_Presence():Atomic_Send_Event(Search_Codes_End_Event,One_Wire_Network());//si el marcador es menor que 64 quiere decir que hay que resolver una colision, y eso implica que hay mas dispositivos que detetar. Por otro lado no podemos detectar mas nodos que el lugar disponible....
+ ( Last_Marker<64 && Actual_Code<MAX_ROM_CODES && Fail_Codes<MAX_FAIL_CODES )?Read_Presence():Send_Event(Search_Codes_End_Event,One_Wire_Network());//si el marcador es menor que 64 quiere decir que hay que resolver una colision, y eso implica que hay mas dispositivos que detetar. Por otro lado no podemos detectar mas nodos que el lugar disponible....
 }
-void           Send_Last_Code_Bit     ( void ) { Atomic_Send_Event(Read_Bit4String(Rom_Codes[Actual_Code-1].Code,Actual_Bit),One_Wire_Network())          ;}
+void           Send_Last_Code_Bit     ( void ) { Send_Event(Read_Bit4String(Rom_Codes[Actual_Code-1].Code,Actual_Bit),One_Wire_Network())          ;}
 //-------------------------------------------------
 uint8_t        One_Wire_On_Line_Nodes ( void ) { return Actual_Code                                                                                       ;}
-void           Check_On_Lines_Nodes   ( void ) { Atomic_Send_Event(One_Wire_On_Line_Nodes()?Anybody_On_Bus_Event:Nobody_On_Bus_Event,One_Wire_Transport());}
-void           Ans_Anybody2App        ( void ) { Atomic_Send_Event(Anybody_On_Bus_Event,One_Wire_Transport())                                             ;}
-void           Ans_Nobody2App         ( void ) { Atomic_Send_Event(Nobody_On_Bus_Event,One_Wire_Transport())                                              ;}
-void           Ans_End_Of_Msg2App     ( void ) { Atomic_Send_Event(End_Of_One_Wire_Msg_Event,One_Wire_Transport())                                        ;}
+void           Check_On_Lines_Nodes   ( void ) { Send_Event(One_Wire_On_Line_Nodes()?Anybody_On_Bus_Event:Nobody_On_Bus_Event,One_Wire_Transport());}
+void           Ans_Anybody2App        ( void ) { Send_Event(Anybody_On_Bus_Event,One_Wire_Transport())                                             ;}
+void           Ans_Nobody2App         ( void ) { Send_Event(Nobody_On_Bus_Event,One_Wire_Transport())                                              ;}
+void           Ans_End_Of_Msg2App     ( void ) { Send_Event(End_Of_One_Wire_Msg_Event,One_Wire_Transport())                                        ;}
 //-------------------------------------------------
 void           Print_Detected         ( void ) { UART_ETHprintf(DEBUG_MSG,"Detected\n")                                                ;}
 void           Print_Not_Detected     ( void ) {

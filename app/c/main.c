@@ -61,18 +61,26 @@ int main(void)
 //    //
    Init_Usr_Flash          ( );
 
-   lwIPInit(configCPU_CLOCK_HZ,
-            Usr_Flash_Params.Mac_Addr,
-            Usr_Flash_Params.Ip_Addr,
-            Usr_Flash_Params.Mask_Addr,
-            Usr_Flash_Params.Gateway_Addr,
-            IPADDR_USE_STATIC);
+   if(Usr_Flash_Params.Dhcp_Enable==false)
+      lwIPInit(configCPU_CLOCK_HZ,
+               Usr_Flash_Params.Mac_Addr,
+               Usr_Flash_Params.Ip_Addr,
+               Usr_Flash_Params.Mask_Addr,
+               Usr_Flash_Params.Gateway_Addr,
+               IPADDR_USE_STATIC);
+   else
+      lwIPInit(configCPU_CLOCK_HZ,
+               Usr_Flash_Params.Mac_Addr,
+               0,
+               0,
+               0,
+               IPADDR_USE_DHCP);
 //
 //
    Init_Wdog    ( );
    Init_Events  ( );
    Init_Schedule();
-   xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE ,NULL ,2 ,NULL );
+   xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Schedule           ,"schedule"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Led_Link_Task      ,"led link"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Led_Rgb_Task       ,"leds RGB"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );

@@ -7,6 +7,12 @@
 #include "driverlib/interrupt.h"
 #include "inc/hw_ints.h"
 #include "leds.h"
+#include "state_machine.h"
+#include "events.h"
+#include "utils/uartstdio.h"
+#include "utils/ustdlib.h"
+#include "one_wire_network.h"
+#include "usr_flash.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -68,23 +74,89 @@ void Led_Link_Task ( void* nil )
 //--------------------------------------------------------------------------------
 void Led_Serial_Task(void* nil)
 {
+   SysCtlPeripheralEnable ( LED_SERIAL_PERIPH               );
+   GPIOPinTypeGPIOOutput  ( LED_SERIAL_PORT,LED_SERIAL_PIN  );
+   GPIOPinReset           ( LED_SERIAL_PORT, LED_SERIAL_PIN );
    while(1)
-      vTaskDelay ( pdMS_TO_TICKS(100000 ));
+      vTaskDelay ( portMAX_DELAY);
 }
 //--------------------------------------------------------------------------------
+float T_Prom;
+void Led_Rgb_Only_Red(void)
+{
+      Led_Green_Reset ( );
+      Led_Blue_Reset  ( );
+      Led_Red_Set     ( );
+}
+void Led_Rgb_Only_Green(void)
+{
+      Led_Red_Reset  ( );
+      Led_Blue_Reset ( );
+      Led_Green_Set  ( );
+}
+void Led_Rgb_Only_Blue(void)
+{
+      Led_Green_Reset ( );
+      Led_Red_Reset   ( );
+      Led_Blue_Set    ( );
+}
+void Led_Rgb_Only_White(void)
+{
+      Led_Red_Set   ( );
+      Led_Green_Set ( );
+      Led_Blue_Set  ( );
+}
+void Led_Rgb_Only_Magenta(void)
+{
+      Led_Green_Reset ( );
+      Led_Red_Set     ( );
+      Led_Blue_Set    ( );
+}
+void Led_Rgb_Only_Black(void)
+{
+      Led_Green_Reset ( );
+      Led_Red_Reset   ( );
+      Led_Blue_Reset  ( );
+}
+float Get_T_Prom(void)
+{
+   return T_Prom;
+}
 void Led_Rgb_Task(void* nil)
 {
    Init_Led_RGB();
+   uint8_t Nodes,i;
    while(1) {
-      Led_Red_Set();
+      Nodes=One_Wire_On_Line_Nodes();
+      if(Nodes>0) {
+         T_Prom=0;
+         for(i=0;i<Nodes;i++)
+             if(One_Wire_Crc(i)!=0) T_Prom+=One_Wire_T(i);
+         T_Prom/=Nodes;
+      }
+      else
+         T_Prom=0x7FFF;
+      T_Prom/=100;
+      UART_ETHprintf(DEBUG_MSG,"T promedio=%f\n",T_Prom);
+
+      if(T_Prom<Usr_Flash_Params.Tmin)
+            Led_Rgb_Only_Blue();
+      else 
+         if(T_Prom>Usr_Flash_Params.Tmin &&
+            T_Prom<Usr_Flash_Params.Tmax)
+               Led_Rgb_Only_Green();
+         else 
+            if(T_Prom>Usr_Flash_Params.Tmax &&
+               T_Prom<200)
+                  Led_Rgb_Only_Red();
+            else 
+               if(T_Prom>200) {
+                     Led_Rgb_Only_Magenta();
+                     vTaskDelay ( pdMS_TO_TICKS(200 ));
+                     Led_Rgb_Only_Black();
+               }
+
       vTaskDelay ( pdMS_TO_TICKS(1000 ));
-      Led_Red_Reset();
-      Led_Green_Set();
-      vTaskDelay ( pdMS_TO_TICKS(1000 ));
-      Led_Green_Reset();
-      Led_Blue_Set();
-      vTaskDelay ( pdMS_TO_TICKS(1000 ));
-      Led_Blue_Reset();
    }
 }
 //------------------------------------------------------------------
