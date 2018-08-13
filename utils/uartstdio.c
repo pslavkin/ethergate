@@ -336,8 +336,7 @@ UARTPrimeTransmit(uint32_t ui32Base)
 //! \return None.
 //
 //*****************************************************************************
-void
-UARTStdioConfig(uint32_t ui32PortNum, uint32_t ui32Baud, uint32_t ui32SrcClock)
+void UARTStdioConfig(uint32_t ui32PortNum, uint32_t ui32Baud, uint32_t ui32SrcClock)
 {
     //
     // Check the arguments.
@@ -349,6 +348,7 @@ UARTStdioConfig(uint32_t ui32PortNum, uint32_t ui32Baud, uint32_t ui32SrcClock)
     //
     // In buffered mode, we only allow a single instance to be opened.
     //
+    Uart_Studio_Semphr = xSemaphoreCreateCounting ( 10, 0 );
     ASSERT(g_ui32Base == 0);
 #endif
 
@@ -646,7 +646,7 @@ UARTgets(char *pcBuf, uint32_t ui32Len)
     //
     return(ui32Count);
 #else
-    uint32_t ui32Count = 0;
+    uint32_t ui32Count = 0;/*{{{*/
     int8_t cChar;
     static int8_t bLastWasCR = 0;
 
@@ -656,8 +656,8 @@ UARTgets(char *pcBuf, uint32_t ui32Len)
     ASSERT(pcBuf != 0);
     ASSERT(ui32Len != 0);
     ASSERT(g_ui32Base != 0);
-
-    //
+/*{{{*/
+    //}}}
     // Adjust the length back by 1 to leave space for the trailing
     // null terminator.
     //
@@ -705,7 +705,7 @@ UARTgets(char *pcBuf, uint32_t ui32Len)
         // If this character is LF and last was CR, then just gobble up the
         // character because the EOL processing was taken care of with the CR.
         //
-        if((cChar == '\n') && bLastWasCR)
+        if((cChar == '\n') && bLastWasCR == 1)
         {
             bLastWasCR = 0;
             continue;
@@ -769,7 +769,7 @@ UARTgets(char *pcBuf, uint32_t ui32Len)
     //
     // Return the count of int8_ts in the buffer, not counting the trailing 0.
     //
-    return(ui32Count);
+    return(ui32Count);/*}}}*/
 #endif
 }
 
@@ -890,14 +890,6 @@ UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 }
 }
 
-//print  string in hexa
-void UART_ETH_Hex_printf(struct tcp_pcb* tpcb,const char *pcString, uint16_t length)
-{
-   uint16_t i;
-   for(i=0;i<length;i++)
-       UART_ETHprintf(tpcb,"%02x ",pcString[i]);
-    UART_ETHprintf(tpcb,"\n");
-}
 
 //*****************************************************************************
 //
@@ -1139,8 +1131,10 @@ UARTEchoSet(bool bEnable)
 //
 //*****************************************************************************
 #if defined(UART_BUFFERED) || defined(DOXYGEN)
-void
-UARTStdioIntHandler(void)
+
+SemaphoreHandle_t Uart_Studio_Semphr;
+
+void UARTStdioIntHandler(void)
 {
     uint32_t ui32Ints;
     int8_t cChar;
@@ -1189,7 +1183,7 @@ UARTStdioIntHandler(void)
             cChar = (unsigned char)(i32Char & 0xFF);
 
             //
-            // If echo is disabled, we skip the various text filtering
+            // If echo is ENABLED, we skip the various text filtering
             // operations that would typically be required when supporting a
             // command line.
             //
@@ -1241,6 +1235,7 @@ UARTStdioIntHandler(void)
                 if((cChar == '\n') && bLastWasCR)
                 {
                     bLastWasCR = false;
+                    UARTwrite("\n", 1);
                     continue;
                 }
 
@@ -1256,7 +1251,7 @@ UARTStdioIntHandler(void)
                     //
                     if(cChar == '\r')
                     {
-                        bLastWasCR = 1;
+                        bLastWasCR = true;
                     }
 
                     //
@@ -1267,7 +1262,7 @@ UARTStdioIntHandler(void)
                     // receives both CR and LF.
                     //
                     cChar = '\r';
-                    UARTwrite("\n", 1);
+             //       UARTwrite("\n", 1);
                 }
             }
 
@@ -1280,10 +1275,13 @@ UARTStdioIntHandler(void)
                 //
                 // Store the new character in the receive buffer
                 //
-                g_pcUARTRxBuffer[g_ui32UARTRxWriteIndex] =
-                    (unsigned char)(i32Char & 0xFF);
+                g_pcUARTRxBuffer[g_ui32UARTRxWriteIndex] = cChar;
                 ADVANCE_RX_BUFFER_INDEX(g_ui32UARTRxWriteIndex);
 
+                if(cChar == '\r')
+                {
+                   xSemaphoreGiveFromISR(Uart_Studio_Semphr,NULL);
+                }
                 //
                 // If echo is enabled, write the character to the transmit
                 // buffer so that the user gets some immediate feedback.

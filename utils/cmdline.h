@@ -110,7 +110,7 @@ tCmdLineEntry;
 //! a NULL pointer.
 //
 //*****************************************************************************
-extern tCmdLineEntry g_psCmdTable[];
+extern tCmdLineEntry* g_psCmdTable;
 
 //*****************************************************************************
 //

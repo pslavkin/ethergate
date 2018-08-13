@@ -12,12 +12,14 @@ struct Usr_Flash_Struct {
    uint16_t    Config_Port         ;
    uint16_t    Temp_Port           ;
    uint16_t    Snmp_Port           ;
-   char     Snmp_Community[ 20 ];
-   char     Snmp_Iso      [ 20 ];
+   char        Snmp_Community[ 20 ];
+   char        Snmp_Iso      [ 20 ];
    uint8_t     Snmp_Iso_Len;
    float       Tmax;
    float       Tmin;
    uint16_t    Reload_T_TOut;
+   char        Id[ 20 ];
+   char        Pwd[ 10 ];
 };
 extern struct Usr_Flash_Struct Usr_Flash_Params;
 

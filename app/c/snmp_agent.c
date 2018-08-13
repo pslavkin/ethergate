@@ -59,8 +59,12 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
       pbuf_free(p);
       return;
    }
+   struct pbuf* q = pbuf_alloc(PBUF_RAW,2,PBUF_RAM);
+   pbuf_chain(p,q);
    Snmp_Data=p;                                  // me guardo en una local el puntero al mensaje
-   pbuf_realloc(Snmp_Data,Snmp_Data->tot_len+2); // estiro 2 bytes... porque necesito 2 mas para mandar un entero
+   //no funciona realloc para estirar pbuf aun.. tengo que hacerme una copia lamentablemente0
+//   pbuf_realloc(Snmp_Data,Snmp_Data->tot_len+2); // estiro 2 bytes... porque necesito 2 mas para mandar un entero
+   
    Snmp_Pcb  = *upcb;
    Snmp_Addr = *addr;
    Snmp_Port = port;
