@@ -24,9 +24,9 @@ enum One_Wire_Network_Events {
 //------------------------------------------------------
 struct Rom_Codes_Struct
 {
- uint8_t Code[8]; // guarda el codigo del nodo...
- int16_t T ;      // guarda la temperatura actual del nodo,
- uint8_t Crc    ; // Crc
+ uint8_t Code[8]     ; // guarda el codigo del nodo...
+ int16_t T           ; // guarda la temperatura actual del nodo,
+ uint8_t Crc         ; // Crc
 };
 //---------------------------------------------------
 void           Init_One_Wire_Network       ( void                          );

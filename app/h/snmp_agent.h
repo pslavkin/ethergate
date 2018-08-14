@@ -63,6 +63,7 @@ extern void    Load_Community4Tcp    ( void );
 extern void    View_Loaded_Community ( void );
 extern void    Save_Community4Loaded ( void );
 extern void    View_Actual_Community ( void );
+extern void Response_Int(unsigned char Node,uint16_t Value);
 //------------------------------------------------------------------------------
 void Response_One_Wire_T(uint8_t Node);
 void Response_Err(void);

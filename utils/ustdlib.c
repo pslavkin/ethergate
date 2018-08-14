@@ -52,6 +52,13 @@ char* ctohex(char* Bcd,uint8_t Bin)
    return Bcd;
 }
 
+//esta la escribo yo.. aprende.. 1 linea de codigo
+uint8_t hextoc(char* Bcd)
+{
+      return (Bcd[0]-(Bcd[0]>='A'?('A'-10):'0'))*16 +
+             (Bcd[1]-(Bcd[1]>='A'?('A'-10):'0'))*1;
+}
+
 //*****************************************************************************
 //
 //! Copies a certain number of characters from one string to another.

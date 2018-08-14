@@ -83,10 +83,10 @@ tCmdLineEntry T_Cmd_Table[] =
 };
 tCmdLineEntry Snmp_Cmd_Table[] =
 {
-    { "community" ,Cmd_Snmp_Community ,": show and/or save snmp community name" } ,
-    { "iso"       ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso" }            ,
-    { "?"         ,Cmd_Help           ,": help" }                                 ,
-    { "<"         ,Cmd_Back2Main      ,": back" }                                 ,
+    { "community" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                        ,
+    { "iso"       ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso. i.e: iso 0 1122334455667788 43 6 1 2 1 33 1 2 7 1" }                                   ,
+    { "?"         ,Cmd_Help           ,": help" }                                                        ,
+    { "<"         ,Cmd_Back2Main      ,": back" }                                                        ,
     { 0           ,0                  ,0 }
 };
 tCmdLineEntry System_Cmd_Table[] =
@@ -139,37 +139,37 @@ int Cmd_Exit(struct tcp_pcb* tpcb, int argc, char *argv[])
 int Cmd_Main2Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Ip_Cmd_Table;
-   Cmd_Help(tpcb, argc, argv);
+//   Cmd_Help(tpcb, argc, argv);
    return 0;
 }
 int Cmd_Main2T(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=T_Cmd_Table;
-   Cmd_Help(tpcb, argc, argv);
+//   Cmd_Help(tpcb, argc, argv);
    return 0;
 }
 int Cmd_Main2Snmp(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Snmp_Cmd_Table;
-   Cmd_Help(tpcb, argc, argv);
+//   Cmd_Help(tpcb, argc, argv);
    return 0;
 }
 int Cmd_Main2System(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=System_Cmd_Table;
-   Cmd_Help(tpcb, argc, argv);
+//   Cmd_Help(tpcb, argc, argv);
    return 0;
 }
 int Cmd_Back2Main(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Main_Cmd_Table;
-   Cmd_Help(tpcb, argc, argv);
+//   Cmd_Help(tpcb, argc, argv);
    return 0;
 }
 int Cmd_Back2Login(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Login_Cmd_Table;
-   Cmd_Help(tpcb, argc, argv);
+//   Cmd_Help(tpcb, argc, argv);
    return 0;
 }
 //----------------------------------------------------------------------------------------------------
@@ -359,18 +359,28 @@ int Cmd_Snmp_Community(struct tcp_pcb* tpcb, int argc, char *argv[])
 }
 int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
+   uint8_t i;
    if(argc==1)
-      UART_ETHprintf(tpcb,"%H\r\n", Usr_Flash_Params.Snmp_Iso,Usr_Flash_Params.Snmp_Iso_Len);
+      for(i=0;i<MAX_ROM_CODES;i++)
+         UART_ETHprintf(tpcb,"sensor: %H snmp: %H\r\n",
+               Usr_Flash_Params.Sensor_Codes[i],8,
+               Usr_Flash_Params.Snmp_Iso[i],Usr_Flash_Params.Snmp_Iso_Len);
    else {
-         uint8_t i;
-         for(i=1;i<argc && i<sizeof(Usr_Flash_Params.Snmp_Iso);i++)
-            Usr_Flash_Params.Snmp_Iso[i-1]=atoi(argv[i]);
-         Usr_Flash_Params.Snmp_Iso_Len=argc-1;
-         UART_ETHprintf(tpcb,"new iso:%H\r\n",Usr_Flash_Params.Snmp_Iso,Usr_Flash_Params.Snmp_Iso_Len);
+      uint8_t Channel=atoi(argv[1]);
+      for(i=0;i<8;i++)
+         Usr_Flash_Params.Sensor_Codes[Channel][i]=hextoc(argv[2]+2*i);
+
+      for(i=3;i<argc && i<sizeof(Usr_Flash_Params.Snmp_Iso[0]);i++)
+            Usr_Flash_Params.Snmp_Iso[Channel][i-3]=atoi(argv[i]);
+         Usr_Flash_Params.Snmp_Iso_Len=argc-3;
+         UART_ETHprintf(tpcb,"new snmp sensor link, sensor: %H snmp: %H\r\n",
+               Usr_Flash_Params.Sensor_Codes[Channel],8,
+               Usr_Flash_Params.Snmp_Iso[Channel],Usr_Flash_Params.Snmp_Iso_Len);
          Save_Usr_Flash();
    }
    return 0;
 }
+
 int Cmd_Reboot(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    Telnet_Close(tpcb);

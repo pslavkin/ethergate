@@ -8,7 +8,7 @@
 
 
 struct Usr_Flash_Struct Default_Usr_Flash_Params = {
-      .Mac_Addr       = {0x12,0x34,0x56,0x78,0x9A,0xBC},
+      .Mac_Addr       = {0x00,0x15,0xA5,0x5D,0x03,0xE8},
       .Ip_Addr        = 0xC0A8020A,
       .Mask_Addr      = 0xFFFFFF00,
       .Gateway_Addr   = 0xC0A80201,
@@ -17,8 +17,10 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Temp_Port      = 49153,
       .Snmp_Port      = 161,
       .Snmp_Community = "public",
-      .Snmp_Iso       = {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07},
-      .Snmp_Iso_Len   = 9,
+      .Snmp_Iso       = {{0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07,0},
+                        {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07,1}},
+      .Snmp_Iso_Len   = 10,
+      .Sensor_Codes   = {{0},{0}},
       .Tmax           = 30,
       .Tmin           = 25,
       .Reload_T_TOut  = 2,

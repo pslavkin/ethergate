@@ -15,6 +15,7 @@
 #include "one_wire_network.h"
 #include "one_wire_transport.h"
 #include "leds.h"
+#include "usr_flash.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -43,25 +44,15 @@ static uint8_t             Bytes2Read;
 static uint8_t             *Point2Write;
 static uint8_t             *Point2Read;
 //------------------------------------------------------------------
-void Clear_Bit_On_String(unsigned char* Data, unsigned char Bit)
-{
- Data[Bit/8]&=~(0x80>>Bit%8);
-}
-void Set_Bit_On_String(unsigned char* Data, unsigned char Bit)
-{
- Data[Bit/8]|=(0x80>>Bit%8);
-}
-unsigned char Read_Bit4String(unsigned char* Data,unsigned char Bit)
-{
- return (Data[Bit/8]&(0x80>>Bit%8))!=0;
-}
-unsigned char Update_crc(unsigned char New, unsigned char Last)
+void           Clear_Bit_On_String ( unsigned char* Data, unsigned char Bit ) { Data[Bit/8]&=~(0x80>>Bit%8)          ;}
+void           Set_Bit_On_String   ( unsigned char* Data, unsigned char Bit ) { Data[Bit/8]|=(0x80>>Bit%8)           ;}
+unsigned char  Read_Bit4String     ( unsigned char* Data,unsigned char Bit  ) { return (Data[Bit/8]&(0x80>>Bit%8))!=0;}
+unsigned char  Update_crc          ( unsigned char New, unsigned char Last  )
 {
 //8-bit CRC value  using polynomial  X^8 + X^5 + X^4 + 1 
  #define POLYVAL 0x8C
  unsigned char i;
- for(i=0;i<8;i++) 
- {
+ for(i=0;i<8;i++) {
   Last=((Last^New)&0x01)?(Last>>1)^POLYVAL:Last>>1;
   New>>=1;
  }
@@ -80,7 +71,7 @@ const State**  One_Wire_Network ( void ) { return &One_Wire_Network_Sm;}
 uint8_t        One_Wire_Rx_As_Char  ( uint8_t Pos ) { return Rx_Buffer[Pos];}
 uint8_t*       One_Wire_Rx_As_PChar ( uint8_t Pos ) { return Rx_Buffer+Pos ;}
 unsigned int   One_Wire_Rx_As_Int   ( uint8_t Pos ) { return *(unsigned int*) (Rx_Buffer+Pos);}
-  int16_t   One_Wire_Rx_As_SInt  (unsigned char Pos)  {
+int16_t        One_Wire_Rx_As_SInt  (unsigned char Pos)  {
     char Ans[2];
     Ans[0]=Rx_Buffer[Pos+1];
     Ans[1]=Rx_Buffer[Pos+0];
@@ -104,21 +95,20 @@ void Write_Read_Next_Byte  (void)
  GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
 }
 //------------------------------------------------
-void           Read_Presence ( void              ) {
+void           Read_Presence ( void ) {
    GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Send_Event(Presence()?One_Wire_Not_Detected_Event:One_Wire_Detected_Event,One_Wire_Network());
 }
-void           Search_Codes  ( void              ) { Send_Event(Search_Codes_Event,One_Wire_Network())                                            ;}
-void           Search_Rom    ( void              ) { Write_Read_Byte(SEARCH_ROM)                                                                         ;}
-void           Read_Rom      ( void              ) { Execute_Cmd(9,(uint8_t*)READ_ROM_STRING)                                                            ;}
-void           Match_Rom     ( uint8_t* Rom_Code ) { Execute_Cmd(9,Rom_Code)                                                                             ;}
-void           Skip_Rom      ( void              ) { Execute_Cmd(1,(uint8_t*)SKIP_ROM_STRING)                                                            ;}
-void           Broadcast_T   ( void              ) { Execute_Cmd(2,(uint8_t*)"\x44\xCC")                                                                 ;}
-
-uint8_t        One_Wire_Crc         ( uint8_t Node ) { return Rom_Codes[Node].Crc    ;}
-int16_t        One_Wire_T           ( uint8_t Node ) { return Rom_Codes[Node].T      ;}
-uint8_t*       One_Wire_Code        ( uint8_t Node ) { return Rom_Codes[Node].Code   ;}
-uint8_t        One_Wire_Family_Code ( uint8_t Node ) { return Rom_Codes[Node].Code[7];}
+void           Search_Codes         ( void              ) { Send_Event(Search_Codes_Event,One_Wire_Network());}
+void           Search_Rom           ( void              ) { Write_Read_Byte(SEARCH_ROM)                      ;}
+void           Read_Rom             ( void              ) { Execute_Cmd(9,(uint8_t*)READ_ROM_STRING)         ;}
+void           Match_Rom            ( uint8_t* Rom_Code ) { Execute_Cmd(9,Rom_Code)                          ;}
+void           Skip_Rom             ( void              ) { Execute_Cmd(1,(uint8_t*)SKIP_ROM_STRING)         ;}
+void           Broadcast_T          ( void              ) { Execute_Cmd(2,(uint8_t*)"\x44\xCC")              ;}
+uint8_t        One_Wire_Crc         ( uint8_t Node      ) { return Rom_Codes[Node].Crc                       ;}
+int16_t        One_Wire_T           ( uint8_t Node      ) { return Rom_Codes[Node].T                         ;}
+uint8_t*       One_Wire_Code        ( uint8_t Node      ) { return Rom_Codes[Node].Code                      ;}
+uint8_t        One_Wire_Family_Code ( uint8_t Node      ) { return Rom_Codes[Node].Code[7]                   ;}
 //------------------------- DS18B20 ----------------------------------
 void Read_DS18B20_Scratchpad  (uint8_t Node)
 {
@@ -137,7 +127,6 @@ void Calculate_DS18B20_12Bit_T   (uint8_t Node)
    if(Rom_Codes[Node].Crc) Rom_Codes[Node].Crc--;
  }
 }
-
 void Print_Temp_Nodes(struct tcp_pcb* tpcb)
 {
    uint8_t i;
@@ -163,7 +152,7 @@ void Mark_All_Crc_Fail   ( void ) {
    for ( i=0;i<MAX_ROM_CODES;i++ ) {
       Rom_Codes[i].Crc=0;
       Rom_Codes[i].T=0x7FFF;
-      }
+   }
 }
 //-------------------------------------------------
 void Bit_Colision     ( void ) { Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(DEBUG_MSG,"Colision\n")                     ;}
@@ -181,7 +170,7 @@ void Search_Next_Code ( void )
 }
 void           Send_Last_Code_Bit     ( void ) { Send_Event(Read_Bit4String(Rom_Codes[Actual_Code-1].Code,Actual_Bit),One_Wire_Network())          ;}
 //-------------------------------------------------
-uint8_t        One_Wire_On_Line_Nodes ( void ) { return Actual_Code                                                                                       ;}
+uint8_t        One_Wire_On_Line_Nodes ( void ) { return Actual_Code                                                                                ;}
 void           Check_On_Lines_Nodes   ( void ) { Send_Event(One_Wire_On_Line_Nodes()?Anybody_On_Bus_Event:Nobody_On_Bus_Event,One_Wire_Transport());}
 void           Ans_Anybody2App        ( void ) { Send_Event(Anybody_On_Bus_Event,One_Wire_Transport())                                             ;}
 void           Ans_Nobody2App         ( void ) { Send_Event(Nobody_On_Bus_Event,One_Wire_Transport())                                              ;}
@@ -206,12 +195,12 @@ void Print_Detected_And_Write_Read_Next_Byte                     ( void ) { Prin
 void Read_Presence_And_Init_Markers                              ( void ) { Read_Presence()                        ;Init_Markers()        ;}
 void Print_Detected_And_Search_Rom_And_Search_Next_Bit           ( void ) { Print_Detected()                       ;Search_Rom()          ;Search_Next_Bit()  ;}
 void Select_Bit_One_And_Search_Next_Bit                          ( void ) {
-   GPIOPinSet ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
-   Select_Bit_One  (                         );
-   Search_Next_Bit (                         );
+   GPIOPinSet      ( LED_SERIAL_PORT, LED_SERIAL_PIN );
+   Select_Bit_One  (                                 );
+   Search_Next_Bit (                                 );
 }
 void Select_Bit_Zero_And_Search_Next_Bit                         ( void ) {
-   GPIOPinReset      ( LED_SERIAL_PORT, LED_SERIAL_PIN );
+   GPIOPinReset    ( LED_SERIAL_PORT, LED_SERIAL_PIN );
    Select_Bit_Zero (                                 );
    Search_Next_Bit (                                 );
 }

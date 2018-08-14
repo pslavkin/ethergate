@@ -47,9 +47,16 @@ struct Snmp_Value_Struct*     Rx_Snmp_Value  ( void ) { return (struct Snmp_Valu
 //------------------------------------------------------------------------------
 bool  Parse_Version   ( void ) { return Rx_Snmp_Header()->Version==0 || Rx_Snmp_Header()->Version==1       ;}
 bool  Parse_Community ( void ) { return strncmp(Rx_Snmp_Header()->Community,Usr_Flash_Params.Snmp_Community,Rx_Snmp_Header()->Community_Length)==0;}
-bool  Object_Name_Match ( void ) {
-   return (Rx_Snmp_Object( )->Object_Name_Length==Usr_Flash_Params.Snmp_Iso_Len+1 &&             // la longitud del MIB tiene que ser justo uno mas que mi MIB, para que considere que indexa justo ese
-           memcmp(Usr_Flash_Params.Snmp_Iso,Rx_Snmp_Object( )->Object_Name,Usr_Flash_Params.Snmp_Iso_Len)==0); // ah, y ademas tiene que condicid con mi MIB claro
+uint8_t  Object_Name_Match ( void ) {
+   uint8_t i;
+   if(Rx_Snmp_Object( )->Object_Name_Length!=Usr_Flash_Params.Snmp_Iso_Len)
+      return MAX_ROM_CODES;
+   for(i=0;i<MAX_ROM_CODES;i++) 
+     if(memcmp(Usr_Flash_Params.Snmp_Iso[i],Rx_Snmp_Object( )->Object_Name,Usr_Flash_Params.Snmp_Iso_Len)==0)
+        return i;
+  return MAX_ROM_CODES;
+//   return (Rx_Snmp_Object( )->Object_Name_Length==Usr_Flash_Params.Snmp_Iso_Len+1 &&             // la longitud del MIB tiene que ser justo uno mas que mi MIB, para que considere que indexa justo ese
+//           memcmp(Usr_Flash_Params.Snmp_Iso,Rx_Snmp_Object( )->Object_Name,Usr_Flash_Params.Snmp_Iso_Len)==0); // ah, y ademas tiene que condicid con mi MIB claro
 }
 bool  Next_Or_Bulk ( void ) { return Rx_Snmp_Msg( )->Msg_Code==Get_Next_Request_Event || Rx_Snmp_Msg( )->Msg_Code==Get_Bulk_Request_Event;}
 //------------------------------------------------------------------------------
@@ -64,18 +71,20 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
    Snmp_Data=p;                                  // me guardo en una local el puntero al mensaje
    //no funciona realloc para estirar pbuf aun.. tengo que hacerme una copia lamentablemente0
 //   pbuf_realloc(Snmp_Data,Snmp_Data->tot_len+2); // estiro 2 bytes... porque necesito 2 mas para mandar un entero
-   
+
    Snmp_Pcb  = *upcb;
    Snmp_Addr = *addr;
    Snmp_Port = port;
 
+   uint8_t Sensor;
    if ( Parse_Version() && Parse_Community()) {
-      if(Object_Name_Match()) {
-            Response_One_Wire_T(Rx_Snmp_Object()->Object_Name[Rx_Snmp_Object()->Object_Name_Length-1]+1);
+      Sensor=Object_Name_Match();
+      if(Sensor<MAX_ROM_CODES) {
+            Response_One_Wire_T(Sensor);
       }
       else {
          if(Next_Or_Bulk())
-               Response_One_Wire_T(0);
+               Response_Int(0,One_Wire_T(0));
          else
                Response_Err();
       }
@@ -94,13 +103,12 @@ void Send_Snmp_Ans(void* nil) {
    pbuf_free(Snmp_Data);                    //libreo bufer
    Snmp_Data=NULL;
 }
-void Response_Int(unsigned char SysDescr,uint16_t Value)/*{{{*/
+void Response_Int(unsigned char Node,uint16_t Value)/*{{{*/
 {
  UART_ETHprintf(DEBUG_MSG,"Snmp Response\n");
 
- Rx_Snmp_Object ( )->Object_Name_Length              = Usr_Flash_Params.Snmp_Iso_Len+1; // el +1 del final es porque el OID que se graba en el equipo puede tener muchos 'hijos' de 1 byte. por que es el que se mueve en el bulk de hecho y se recibe como parametro aca...
- Rx_Snmp_Object ( )->Object_Name[Usr_Flash_Params.Snmp_Iso_Len] = SysDescr            ; // como ultimo valor pone el OID que piden...
- memcpy ( Rx_Snmp_Object( )->Object_Name,Usr_Flash_Params.Snmp_Iso,Usr_Flash_Params.Snmp_Iso_Len);    // aca se copua todo el header del OID que faltaba...
+ Rx_Snmp_Object ( )->Object_Name_Length= Usr_Flash_Params.Snmp_Iso_Len;                                  // el +1 del final es porque el OID que se graba en el equipo puede tener muchos 'hijos' de 1 byte. por que es el que se mueve en el bulk de hecho y se recibe como parametro aca...
+ memcpy ( Rx_Snmp_Object( )->Object_Name,Usr_Flash_Params.Snmp_Iso[Node],Usr_Flash_Params.Snmp_Iso_Len); // aca se copua todo el header del OID que faltaba...
 
  Rx_Snmp_Value ( )->Value_Code   = 0x02;                                     // codigo que corresponde a Integer...
  Rx_Snmp_Value ( )->Value_Length = 2           ;                             // solo mando integer de 2 bytes...
@@ -143,8 +151,12 @@ void Response_Err(void)/*{{{*/
 //-----------------------------------------------------------------------------
 void Response_One_Wire_T(uint8_t Node)
 {
-  if ( One_Wire_On_Line_Nodes( ) > Node)
-     Response_Int(Node,One_Wire_T(Node));
-  else
-     Response_Err();
+   uint8_t i;
+   for ( i=0;i<MAX_ROM_CODES;i++ ) {
+      if(ustrncmp((char*)One_Wire_Code(i),Usr_Flash_Params.Sensor_Codes[Node],8)==0) {
+           Response_Int(Node,One_Wire_T(i));
+           return;
+         }
+   }
+  Response_Err();
 }

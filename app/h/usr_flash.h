@@ -1,6 +1,7 @@
 #ifndef  USR_FLASH
 #define  USR_FLASH
 
+
 struct Usr_Flash_Struct {
    uint8_t     N                   ;
    uint8_t     Crc                 ;
@@ -13,8 +14,9 @@ struct Usr_Flash_Struct {
    uint16_t    Temp_Port           ;
    uint16_t    Snmp_Port           ;
    char        Snmp_Community[ 20 ];
-   char        Snmp_Iso      [ 20 ];
+   char        Snmp_Iso[2]      [ 20 ];
    uint8_t     Snmp_Iso_Len;
+   char        Sensor_Codes[2][8];
    float       Tmax;
    float       Tmin;
    uint16_t    Reload_T_TOut;
