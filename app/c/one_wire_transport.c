@@ -56,12 +56,12 @@ void Parse_Next_Family_Code         ( void ) { Send_Event(Actual_Node<One_Wire_O
 void Read_Actual_DS18B20_Scratchpad ( void ) { Read_DS18B20_Scratchpad(Actual_Node)                                                                                             ;}
 void Reload_One_Wire_Codes          ( void )
 {
- Mark_All_Crc_Fail();
+ Mark_All_Crc_Fail(); //tiene que estar... cuando reescanea es como volver a empezar.. sino tengo que llevar cuenta de quienes estaban y en que posoicion, etc.. porque si las posiciones nuevas son diferentes,  podria mostrar la t de uno en otro durante un tiempito hasta que capture de nuevo la T.
  Send_Event(Reload_Codes_Event,One_Wire_Transport());
 }
 //------------------------------------------------------------------
-void Print_Nobody_On_Bus ( void ) { UART_ETHprintf(DEBUG_MSG,"Nobody on Bus\n");}
-void Print_All_Measured  ( void ) { UART_ETHprintf(DEBUG_MSG,"All Measured\n") ;}
+void Print_Nobody_On_Bus ( void ) { UART_ETHprintf(DEBUG_MSG,"Nobody on Bus\r\n");}
+void Print_All_Measured  ( void ) { UART_ETHprintf(DEBUG_MSG,"All Measured\r\n") ;}
 //-------------------------------------------------
 void Check_Crcs(void)
 {

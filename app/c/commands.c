@@ -22,6 +22,7 @@
 #include "one_wire_network.h"
 #include "one_wire_transport.h"
 #include "usr_flash.h"
+#include "schedule.h"
 #include "third_party/lwip-1.4.1/src/include/ipv4/lwip/ip_addr.h"
 
 #include "FreeRTOS.h"
@@ -40,11 +41,14 @@ tCmdLineEntry* g_psCmdTable;
 
 tCmdLineEntry Login_Cmd_Table[] =
 {
-    { "login" ,Cmd_Login   ,": login" }                     ,
-    { "id"    ,Cmd_Show_Id ,": show id name" }              ,
-    { "exit"  ,Cmd_Exit    ,": exit and close connection" } ,
-    { "?"     ,Cmd_Help    ,": help" }                      ,
-    { 0       ,0           ,0 }
+    { "login"  ,Cmd_Login   ,": login" }                                ,
+    { "id"     ,Cmd_Show_Id ,": show id name" }                         ,
+    { "t"      ,Cmd_T       ,": show temperatures" }                    ,
+    { "tstart" ,Cmd_T_Start ,": start show temperatures periodically" } ,
+    { "tstop"  ,Cmd_T_Stop  ,": stop show temperatures periodically" }  ,
+    { "exit"   ,Cmd_Exit    ,": exit and close connection" }            ,
+    { "?"      ,Cmd_Help    ,": help" }                                 ,
+    { 0        ,0           ,0 }
 };
 tCmdLineEntry Main_Cmd_Table[] =
 {
@@ -58,12 +62,13 @@ tCmdLineEntry Main_Cmd_Table[] =
 };
 tCmdLineEntry Ip_Cmd_Table[] =
 {
-    { "Mac"  ,Cmd_Mac         ,": show MAC address" }                                 ,
+    { "mac"  ,Cmd_Mac         ,": show MAC address" }                                 ,
     { "ip"   ,Cmd_Ip          ,": show and/or save ip" }                              ,
     { "mask" ,Cmd_Mask        ,": show and/or save mask" }                            ,
     { "gw"   ,Cmd_Gateway     ,": show and/or save gateway" }                         ,
     { "dhcp" ,Cmd_Dhcp        ,": show and/or save dhcp (0=disable 1=enable)" }       ,
     { "cp"   ,Cmd_Config_Port ,": show and/or save config tcp port [default 49152]" } ,
+    { "link" ,Cmd_Link_State  ,": show link state" } ,
     { "?"    ,Cmd_Help        ,": help" }                                             ,
     { "<"    ,Cmd_Back2Main   ,": back" }                                             ,
     { 0      ,0               ,0 }
@@ -71,6 +76,8 @@ tCmdLineEntry Ip_Cmd_Table[] =
 tCmdLineEntry T_Cmd_Table[] =
 {
     { "t"         ,Cmd_T             ,": show temperatures" }                         ,
+    { "tstart"    ,Cmd_T_Start       ,": start show temperatures periodically" }      ,
+    { "tstop"     ,Cmd_T_Stop        ,": stop show temperatures periodically" }       ,
     { "tprom"     ,Cmd_T_Prom        ,": show mean temperature" }                     ,
     { "tmax"      ,Cmd_Tmax          ,": show and/or save tmax" }                     ,
     { "tmin"      ,Cmd_Tmin          ,": show and/or save tmin" }                     ,
@@ -83,18 +90,18 @@ tCmdLineEntry T_Cmd_Table[] =
 };
 tCmdLineEntry Snmp_Cmd_Table[] =
 {
-    { "community" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                        ,
-    { "iso"       ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso. i.e: iso 0 1122334455667788 43 6 1 2 1 33 1 2 7 1" }                                   ,
-    { "?"         ,Cmd_Help           ,": help" }                                                        ,
-    { "<"         ,Cmd_Back2Main      ,": back" }                                                        ,
-    { 0           ,0                  ,0 }
+    { "com" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                                         ,
+    { "iso" ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso. i.e: iso 0 1122334455667788 43 6 1 2 1 33 1 2 7 1" } ,
+    { "?"   ,Cmd_Help           ,": help" }                                                                         ,
+    { "<"   ,Cmd_Back2Main      ,": back" }                                                                         ,
+    { 0     ,0                  ,0 }
 };
 tCmdLineEntry System_Cmd_Table[] =
 {
-    { "task"   ,Cmd_TaskList  ,": lista de tareas" }           ,
     { "id"     ,Cmd_Id        ,": show and/or save id" }       ,
     { "pwd"    ,Cmd_Pwd       ,": show and/or save password" } ,
     { "reboot" ,Cmd_Reboot    ,": reboot" }                    ,
+    { "task"   ,Cmd_TaskList  ,": rsv" }                       ,
     { "?"      ,Cmd_Help      ,": help" }                      ,
     { "<"      ,Cmd_Back2Main ,": back" }                      ,
     { 0        ,0             ,0 }
@@ -175,10 +182,22 @@ int Cmd_Back2Login(struct tcp_pcb* tpcb, int argc, char *argv[])
 //----------------------------------------------------------------------------------------------------
 int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   uint8_t Mac[6];
-   lwIPLocalMACGet ( Mac );
-    UART_ETHprintf(tpcb,"MAC: %02x:%02x:%02x:%02x:%02x:%02x",
-            Mac[0], Mac[1], Mac[2], Mac[3], Mac[4], Mac[5]);
+   uint8_t Actual_Mac[6];
+   uint8_t* Mac;
+   if(argc==7) {
+      uint8_t i;
+      Mac=Usr_Flash_Params.Mac_Addr;
+      for(i=0;i<6;i++)
+         Mac[i]=hextoc(argv[i+1]);
+      Save_Usr_Flash();
+      UART_ETHprintf(tpcb,"new ");
+   }
+   else {
+      Mac=Actual_Mac;
+      lwIPLocalMACGet ( Mac );
+   }
+   UART_ETHprintf(tpcb,"mac: %02x:%02x:%02x:%02x:%02x:%02x\r\n",
+                        Mac[0], Mac[1], Mac[2], Mac[3], Mac[4], Mac[5]);
    return 0;
 }
 int Cmd_Ip(struct tcp_pcb* tpcb, int argc, char *argv[])
@@ -281,6 +300,30 @@ int Cmd_T(struct tcp_pcb* tpcb, int argc, char *argv[])
    Print_Temp_Nodes(tpcb);
    return 0;
 }
+struct tcp_pcb* tpcb4per;
+void Print_Temp_Nodes_Per(void)
+{
+   if(tpcb4per->state!=ESTABLISHED) {
+      Free_Func_Schedule(Print_Temp_Nodes_Per);
+      tpcb4per=NULL;
+   }
+   else
+      tcpip_callback((tcpip_callback_fn)Print_Temp_Nodes,(void*)tpcb4per);
+}
+int Cmd_T_Stop(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+      Free_Func_Schedule(Print_Temp_Nodes_Per);
+      tpcb4per=NULL;
+      return 0;
+}
+int Cmd_T_Start(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   tpcb4per=tpcb;
+   Free_Func_Schedule(Print_Temp_Nodes_Per);
+   Print_Temp_Nodes(tpcb);
+   New_Periodic_Func_Schedule(20,Print_Temp_Nodes_Per);
+   return 0;
+}
 int Cmd_T_Prom(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"%f\r\n",Get_T_Prom());
@@ -334,16 +377,18 @@ int Cmd_Reload_T       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
 }
 int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
-   vTaskList( Buff );
-   UART_ETHprintf(tpcb,Buff);
-   vPortFree(Buff);
+   if(argc==2 && ustrcmp("tareas",argv[1])==0) {
+      char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
+      vTaskList( Buff );
+      UART_ETHprintf(tpcb,Buff);
+      vPortFree(Buff);
+   }
    return 0;
 }
 
-int Cmd_Links_State(struct tcp_pcb* tpcb, int argc, char *argv[])
+int Cmd_Link_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
-   UART_ETHprintf(tpcb,"PHY=%d",EMACPHYLinkUp());
+   UART_ETHprintf(tpcb,"link %s\r\n",EMACPHYLinkUp()?"up":"down");
    return 0;
 }
 int Cmd_Snmp_Community(struct tcp_pcb* tpcb, int argc, char *argv[])
@@ -357,14 +402,22 @@ int Cmd_Snmp_Community(struct tcp_pcb* tpcb, int argc, char *argv[])
    }
    return 0;
 }
+void Print_Snmp_Iso(struct tcp_pcb* tpcb,uint8_t* Iso,uint8_t Len)
+{
+   uint8_t i;
+   for(i=0;i<Len;i++)
+      UART_ETHprintf(tpcb," %02d",Iso[i]);
+   UART_ETHprintf(tpcb,"\r\n");
+}
+
 int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    uint8_t i;
    if(argc==1)
-      for(i=0;i<MAX_ROM_CODES;i++)
-         UART_ETHprintf(tpcb,"sensor: %H snmp: %H\r\n",
-               Usr_Flash_Params.Sensor_Codes[i],8,
-               Usr_Flash_Params.Snmp_Iso[i],Usr_Flash_Params.Snmp_Iso_Len);
+      for(i=0;i<MAX_ROM_CODES;i++) {
+         UART_ETHprintf(tpcb,"channel: %d sensor: %H snmp:",i,Usr_Flash_Params.Sensor_Codes[i],8);
+         Print_Snmp_Iso(tpcb,Usr_Flash_Params.Snmp_Iso[i],Usr_Flash_Params.Snmp_Iso_Len);
+      }
    else {
       uint8_t Channel=atoi(argv[1]);
       for(i=0;i<8;i++)
@@ -373,9 +426,8 @@ int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
       for(i=3;i<argc && i<sizeof(Usr_Flash_Params.Snmp_Iso[0]);i++)
             Usr_Flash_Params.Snmp_Iso[Channel][i-3]=atoi(argv[i]);
          Usr_Flash_Params.Snmp_Iso_Len=argc-3;
-         UART_ETHprintf(tpcb,"new snmp sensor link, sensor: %H snmp: %H\r\n",
-               Usr_Flash_Params.Sensor_Codes[Channel],8,
-               Usr_Flash_Params.Snmp_Iso[Channel],Usr_Flash_Params.Snmp_Iso_Len);
+         UART_ETHprintf(tpcb,"new snmp sensor link, channel: %d sensor: %H snmp:",Channel,Usr_Flash_Params.Sensor_Codes[Channel],8);
+         Print_Snmp_Iso(tpcb,Usr_Flash_Params.Snmp_Iso[Channel],Usr_Flash_Params.Snmp_Iso_Len);
          Save_Usr_Flash();
    }
    return 0;

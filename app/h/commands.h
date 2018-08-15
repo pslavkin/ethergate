@@ -1,10 +1,14 @@
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__
 
-extern int Cmd_Welcome(struct tcp_pcb* tpcb, int argc, char *argv[]);
-extern int Cmd_Login          ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-extern int Cmd_Help           ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
-extern int Cmd_Exit           ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Welcome ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Login   ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Help    ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
+extern int Cmd_Exit    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_T_Start ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_T_Stop  ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+
+
 extern int Cmd_Back2Login     ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Back2Main      ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 
@@ -19,7 +23,7 @@ extern int Cmd_Mask           ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Gateway        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Dhcp           ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Config_Port    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-extern int Cmd_Links_State    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Link_State     ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 
 extern int Cmd_T              ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_T_Prom         ( struct tcp_pcb* tpcb, int argc, char *argv[] );

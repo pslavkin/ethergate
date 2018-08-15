@@ -1,9 +1,12 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include "utils/lwiplib.h"
 #include "opt.h"
 #include "udp.h"
 #include "snmp_agent.h"
+#include "state_machine.h"
+#include "one_wire_network.h"
 #include "usr_flash.h"
 
 struct udp_pcb* usoc;

@@ -1,15 +1,6 @@
 #ifndef  BUTTONS
 #define  BUTTONS
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
 //-----------------------------------------------------------
 extern bool    Button1_Read      ( void      );
 extern void    Button1IntHandler ( void      );

@@ -23,6 +23,7 @@
 //*****************************************************************************
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "driverlib/debug.h"
 #include "utils/ustdlib.h"
 #include "utils/uartstdio.h"
@@ -125,16 +126,21 @@ ustrncpy(char * restrict s1, const char * restrict s2, size_t n)
 //
 char* ftostr  (float fVal,char* str,uint8_t size)
 {
-    int32_t dVal, dec;
-    uint8_t  len;
+    int32_t Entera, Dec;
+    uint8_t  Len;
+    char Sign[]="+";
 
-    dVal = fVal;
-    dec = (int32_t)(fVal * 1000);
-    dec %= 1000;
-    if(dec<0) dec=-dec;
-    len=usnprintf(str,size-6,"%d",dVal);
-    str[len] = '.';
-    usnprintf(str+len+1,100-len-6,"%03d",dec);
+    Entera = fVal;
+    Dec = (int32_t)(fVal * 1000);
+    Dec %= 1000;
+    if(fVal<0) {
+       Dec=-Dec;
+       Entera=-Entera;
+       Sign[0]='-';
+    }
+    Len=usnprintf(str,size-6,"%s%03d",Sign,Entera);
+    str[Len++] = '.';
+    usnprintf(str+Len,size-Len-6,"%03d",Dec);
     return str;
 }
 
@@ -481,7 +487,10 @@ again:
                     //
                     break;
                 }
-                case 'H': //agrego string en hexa
+                //
+                // Handle the %H command. Agregado por pslavkin
+                //
+                case 'H':
                 {
                     //
                     // Get the string pointer from the varargs.
@@ -527,10 +536,7 @@ again:
                 }
 
                 //
-                // Handle the %x and %X commands.  Note that they are treated
-                // identically; that is, %X will use lower case letters for a-f
-                // instead of the upper case letters is should use.  We also
-                // alias %p to %x.
+                // Handle the %f command. Agregado por pslavkin
                 //
                 case 'f':
                 {

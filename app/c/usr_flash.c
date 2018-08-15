@@ -1,9 +1,12 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include "utils/lwiplib.h"
 #include "utils/cmdline.h"
 #include "utils/flash_pb.h"
 #include "utils/uartstdio.h"
 #include "opt.h"
+#include "state_machine.h"
+#include "one_wire_network.h"
 #include "usr_flash.h"
 
 
@@ -17,14 +20,15 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Temp_Port      = 49153,
       .Snmp_Port      = 161,
       .Snmp_Community = "public",
-      .Snmp_Iso       = {{0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07,0},
-                        {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07,1}},
       .Snmp_Iso_Len   = 10,
-      .Sensor_Codes   = {{0},{0}},
+      .Snmp_Iso       = {{0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07,0},
+                         {0x2b,0x06,0x01,0x02,0x01,0x21,0x01,0x02,0x07,1}},
+      .Sensor_Codes   = {{0x43,0x00,0x00,0x07,0xF5,0x98,0xB3,0x28},
+                         {0xD0,0x00,0x00,0x07,0xF5,0x24,0x1B,0x28}},
       .Tmax           = 30,
       .Tmin           = 25,
       .Reload_T_TOut  = 2,
-      .Id             = "ehergate 12345678",
+      .Id             = "ehergate_12345678",
       .Pwd            = "1234",
 };
 struct Usr_Flash_Struct Usr_Flash_Params;

@@ -3,6 +3,8 @@
 #include "utils/cmdline.h"
 #include "opt.h"
 #include "telnet.h"
+#include "events.h"
+#include "one_wire_network.h"
 #include "usr_flash.h"
 #include "commands.h"
 #include "utils/uartstdio.h"
@@ -34,7 +36,7 @@ err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
    if(p!=NULL)  {
       pbuf_copy_partial(p, B->Buff+B->I,p->len,0);
       B->I+=p->len;
-      UART_ETHprintf(DEBUG_MSG,"msg:%H tot_len=%d\n",B->Buff,B->I,B->I);
+      UART_ETHprintf(DEBUG_MSG,"msg:%H tot_len=%d\r\n",B->Buff,B->I,B->I);
       if( B->Buff[B->I-1] =='\n' || B->Buff[B->I-1] == '\r')
       {
          B->Buff[B->I-1] ='\0';
@@ -68,10 +70,10 @@ err_t accept_fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    void* p =pvPortMalloc(sizeof(struct Args_Struct));
    ((struct Args_Struct*)p)->I=0;
-   tcp_recv(newpcb,Rcv_Fn);
-   tcp_arg(newpcb,p);
-   Cmd_Welcome(newpcb,0,NULL);
-   Cmd_Help(newpcb,0,NULL);
+   tcp_recv    ( newpcb ,Rcv_Fn  );
+   tcp_arg     ( newpcb ,p       );
+   Cmd_Welcome ( newpcb ,0 ,NULL );
+   Cmd_Help    ( newpcb ,0 ,NULL );
    return 0;
 }
 

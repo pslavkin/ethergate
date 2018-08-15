@@ -9,6 +9,9 @@
 #include "inc/hw_ints.h"
 #include "buttons.h"
 #include "leds.h"
+#include "state_machine.h"
+#include "events.h"
+#include "one_wire_network.h"
 #include "usr_flash.h"
 
 #include "FreeRTOS.h"
@@ -63,6 +66,8 @@ void Button1_Task(void* nil)
          } while (B.Hi_Lo==1 || xQueueReceive(Button1_Queue,&B,pdMS_TO_TICKS(10000))==pdTRUE);
          Usr_Flash2Defult_Values();
          Save_Usr_Flash();
+         vTaskDelay(pdMS_TO_TICKS(2000));
+         Soft_Reset();
          UART_ETHprintf(DEBUG_MSG,"reseting to defult values\n");
    }
 }

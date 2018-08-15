@@ -23,6 +23,7 @@
 #include "telnet.h"
 #include "udp.h"
 #include "one_wire_transport.h"
+#include "one_wire_network.h"
 #include "usr_flash.h"/*}}}*/
 
 int main(void)

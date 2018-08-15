@@ -72,10 +72,7 @@ uint8_t        One_Wire_Rx_As_Char  ( uint8_t Pos ) { return Rx_Buffer[Pos];}
 uint8_t*       One_Wire_Rx_As_PChar ( uint8_t Pos ) { return Rx_Buffer+Pos ;}
 unsigned int   One_Wire_Rx_As_Int   ( uint8_t Pos ) { return *(unsigned int*) (Rx_Buffer+Pos);}
 int16_t        One_Wire_Rx_As_SInt  (unsigned char Pos)  {
-    char Ans[2];
-    Ans[0]=Rx_Buffer[Pos+1];
-    Ans[1]=Rx_Buffer[Pos+0];
-    return *(int16_t*) Ans;
+      return Rx_Buffer[Pos+0]*256+Rx_Buffer[Pos+1];
 }
 //---------------------------------
 void Execute_Cmd(uint8_t Length,uint8_t* Cmd)
@@ -130,8 +127,9 @@ void Calculate_DS18B20_12Bit_T   (uint8_t Node)
 void Print_Temp_Nodes(struct tcp_pcb* tpcb)
 {
    uint8_t i;
+   UART_ETHprintf(tpcb,"\r\n");
    for(i=0;i<One_Wire_On_Line_Nodes();i++)
-      UART_ETHprintf(tpcb,"Code: %H Temp: %f Crc: %s \n",
+      UART_ETHprintf(tpcb,"Sensor: %H Temp: %f Crc: %s \r\n",
             Rom_Codes[i].Code,sizeof(Rom_Codes[0].Code),
             (float)Rom_Codes[i].T/100,
             Rom_Codes[i].Crc?"ok ":"err");
@@ -155,13 +153,13 @@ void Mark_All_Crc_Fail   ( void ) {
    }
 }
 //-------------------------------------------------
-void Bit_Colision     ( void ) { Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(DEBUG_MSG,"Colision\n")                     ;}
+void Bit_Colision     ( void ) { Send_Event(Actual_Bit<Last_Marker?Smaller_Discrepance_Event:(Actual_Bit==Last_Marker)?Equal_Discrepance_Event:Bigger_Discrepance_Event,One_Wire_Network());UART_ETHprintf(DEBUG_MSG,"Colision\r\n")                     ;}
 void Select_Bit_One   ( void ) { Write_Bit_One_And_Read()                                                                                                                                         ;Set_Bit_On_String(Rom_Codes[Actual_Code].Code,Actual_Bit)  ;}
 void Select_Bit_Zero  ( void ) { Write_Bit_Zero()                                                                                                                                                 ;Clear_Bit_On_String(Rom_Codes[Actual_Code].Code,Actual_Bit);}
 void Search_Next_Bit  ( void ) { Send_Event(Actual_Bit--?Read2Bits():Actual_Code_End_Event,One_Wire_Network())                                                                             ;}
 void Search_Next_Code ( void )
 {
- UART_ETHprintf(DEBUG_MSG,"Next Code\n");
+ UART_ETHprintf(DEBUG_MSG,"Next Code\r\n");
  Actual_Marker2Last  ( );
  Reset_Actual_Bit    ( );
  Reset_Actual_Marker ( );
@@ -176,12 +174,12 @@ void           Ans_Anybody2App        ( void ) { Send_Event(Anybody_On_Bus_Event
 void           Ans_Nobody2App         ( void ) { Send_Event(Nobody_On_Bus_Event,One_Wire_Transport())                                              ;}
 void           Ans_End_Of_Msg2App     ( void ) { Send_Event(End_Of_One_Wire_Msg_Event,One_Wire_Transport())                                        ;}
 //-------------------------------------------------
-void           Print_Detected         ( void ) { UART_ETHprintf(DEBUG_MSG,"Detected\n")                                                ;}
+void           Print_Detected         ( void ) { UART_ETHprintf(DEBUG_MSG,"Detected\r\n")                                                ;}
 void           Print_Not_Detected     ( void ) {
    GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
-   UART_ETHprintf(DEBUG_MSG,"Not Detected\n")                                           ;
+   UART_ETHprintf(DEBUG_MSG,"Not Detected\r\n")                                           ;
 }
-void           Print_Bit_Error        ( void ) { UART_ETHprintf(DEBUG_MSG,"Bit Error\n")                                              ;}
+void           Print_Bit_Error        ( void ) { UART_ETHprintf(DEBUG_MSG,"Bit Error\r\n")                                              ;}
 //-------------------------------------------------
 void     Init_One_Wire_Network   (void)
 {
