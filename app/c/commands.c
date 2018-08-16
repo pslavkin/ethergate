@@ -19,6 +19,7 @@
 #include "buttons.h"
 #include "telnet.h"
 #include "opt.h"
+#include "wdog.h"
 #include "one_wire_network.h"
 #include "one_wire_transport.h"
 #include "usr_flash.h"
@@ -91,7 +92,7 @@ tCmdLineEntry T_Cmd_Table[] =
 tCmdLineEntry Snmp_Cmd_Table[] =
 {
     { "com" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                                         ,
-    { "iso" ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso. i.e: iso 0 1122334455667788 43 6 1 2 1 33 1 2 7 1" } ,
+    { "iso" ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso. i.e: iso 0 43000007F598B328 43 6 1 2 1 33 1 2 7 1" } ,
     { "?"   ,Cmd_Help           ,": help" }                                                                         ,
     { "<"   ,Cmd_Back2Main      ,": back" }                                                                         ,
     { 0     ,0                  ,0 }
@@ -102,6 +103,8 @@ tCmdLineEntry System_Cmd_Table[] =
     { "pwd"    ,Cmd_Pwd       ,": show and/or save password" } ,
     { "reboot" ,Cmd_Reboot    ,": reboot" }                    ,
     { "task"   ,Cmd_TaskList  ,": rsv" }                       ,
+    { "uptime" ,Cmd_Uptime    ,": uptime [secs]" }             ,
+    { "wdog"   ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)" }          ,
     { "?"      ,Cmd_Help      ,": help" }                      ,
     { "<"      ,Cmd_Back2Main ,": back" }                      ,
     { 0        ,0             ,0 }
@@ -110,9 +113,8 @@ tCmdLineEntry System_Cmd_Table[] =
 int Cmd_Welcome(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Login_Cmd_Table;
-   //UART_ETHprintf(tpcb,"\033[2J\033[H+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
-   UART_ETHprintf(tpcb,"+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
-    return 0;
+   UART_ETHprintf(tpcb,"\033[2J\033[H+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
+   return 0;
 }
 int Cmd_Help(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
@@ -383,6 +385,27 @@ int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
       vTaskList( Buff );
       UART_ETHprintf(tpcb,Buff);
       vPortFree(Buff);
+   }
+   return 0;
+}
+int Cmd_Uptime(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"%d\r\n",Read_Uptime());
+   return 0;
+}
+int Cmd_Wdog_Tout(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"%d secs\r\n",Usr_Flash_Params.Wdog);
+   else {
+      uint16_t New_Time=atoi(argv[1]);
+      if(New_Time>=120 || New_Time==0) {
+         UART_ETHprintf(tpcb,"new wdog=%d secs\r\n",New_Time);
+         Usr_Flash_Params.Wdog=New_Time;
+         Save_Usr_Flash();
+      }
+      else
+         UART_ETHprintf(tpcb,"wdog too short (<120 secs) %d secs\r\n",New_Time);
    }
    return 0;
 }

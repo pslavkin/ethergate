@@ -38,11 +38,13 @@ extern int Cmd_Temp_Port      ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Snmp_Community ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Snmp_Iso       ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 
-extern int Cmd_TaskList       ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
-extern int Cmd_Reboot         ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-extern int Cmd_Pwd            ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-extern int Cmd_Id             ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-extern int Cmd_Show_Id        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_TaskList  ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
+extern int Cmd_Uptime    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Wdog_Tout ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Reboot    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Pwd       ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Id        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Show_Id   ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 
 
 void User_Commands_Task       ( void* nil                                    );

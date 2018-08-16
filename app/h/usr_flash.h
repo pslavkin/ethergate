@@ -22,6 +22,7 @@ struct Usr_Flash_Struct {
    uint16_t    Reload_T_TOut        ;
    char        Id[ 20 ]             ;
    char        Pwd[ 10 ]            ;
+   uint32_t    Wdog            ;
 };
 extern struct Usr_Flash_Struct Usr_Flash_Params;
 

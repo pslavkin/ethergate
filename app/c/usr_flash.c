@@ -30,6 +30,7 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Reload_T_TOut  = 2,
       .Id             = "ehergate_12345678",
       .Pwd            = "1234",
+      .Wdog           = 0,
 };
 struct Usr_Flash_Struct Usr_Flash_Params;
 

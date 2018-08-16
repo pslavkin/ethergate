@@ -61,6 +61,8 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
       pbuf_free(p);
       return;
    }
+   //TODO me faltan 2 bytes.. pero si los agrego anidadnod buf,.. vuela todo al rato.. asi que no encontre manera
+   //decidi pisar lo que aiga y a la m.. y anda!! resolverlo!!
 //   struct pbuf* q = pbuf_alloc(PBUF_RAW,2,PBUF_RAM);
 //   pbuf_chain(p,q);
    Snmp_Data=p; // me guardo en una local el puntero al mensaje
@@ -114,7 +116,7 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
    }
 }
 //-----------------------------------------------------------------------------
-void Send_Snmp_Ans(void* nil) {
+void Send_Snmp_Ans(void) {
    udp_connect    ( &Snmp_Pcb,&Snmp_Addr,Snmp_Port );
    udp_send       ( &Snmp_Pcb,Snmp_Data            );
    udp_disconnect ( &Snmp_Pcb                      );
@@ -146,8 +148,7 @@ void Response_Int(uint8_t Node,uint16_t Value)/*{{{*/
 
  Rx_Snmp_Header                                   ( )->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3;
  Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header ( )->Message_Length+2                                                                   ;
- Send_Snmp_Ans(0);
-// tcpip_callback ( Send_Snmp_Ans,0 );
+ Send_Snmp_Ans();
 }/*}}}*/
 void Response_Err(void)/*{{{*/
 {
@@ -167,8 +168,7 @@ void Response_Err(void)/*{{{*/
  Rx_Snmp_Header ( )->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3   ;
 
  Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header ( )->Message_Length+2                                                                   ;
- Send_Snmp_Ans(0);
- //tcpip_callback ( Send_Snmp_Ans,0 );
+ Send_Snmp_Ans();
 }/*}}}*/
 //-----------------------------------------------------------------------------
 bool Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code,uint16_t* T)
