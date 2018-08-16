@@ -126,13 +126,16 @@ void Calculate_DS18B20_12Bit_T   (uint8_t Node)
 }
 void Print_Temp_Nodes(struct tcp_pcb* tpcb)
 {
+   static uint32_t Id=0; //para mostrar que avanza la lectura..
    uint8_t i;
    UART_ETHprintf(tpcb,"\r\n");
    for(i=0;i<One_Wire_On_Line_Nodes();i++)
-      UART_ETHprintf(tpcb,"Sensor: %H Temp: %f Crc: %s \r\n",
+      UART_ETHprintf(tpcb,"#%d Sensor: %H Temp: %f Crc: %s \r\n",
+            Id,
             Rom_Codes[i].Code,sizeof(Rom_Codes[0].Code),
             (float)Rom_Codes[i].T/100,
             Rom_Codes[i].Crc?"ok ":"err");
+   Id++;
 }
 //-----------------SEARCH ROM FUNC-----------------------------------
 void Reset_Actual_Bit    ( void ) { Actual_Bit    = 64;}

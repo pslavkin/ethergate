@@ -23,6 +23,7 @@ struct Usr_Flash_Struct {
    char        Id[ 20 ]             ;
    char        Pwd[ 10 ]            ;
    uint32_t    Wdog            ;
+   uint16_t    Hang_Times            ;
 };
 extern struct Usr_Flash_Struct Usr_Flash_Params;
 

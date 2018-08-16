@@ -1144,6 +1144,7 @@ tivaif_interrupt(struct netif *psNetif, uint32_t ui32Status)
           EMACLPIEnter(EMAC0_BASE);
       }
 #endif
+
       tivaif_process_transmit(tivaif);
   }
 

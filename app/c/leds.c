@@ -38,21 +38,15 @@ void Led_Blue_Set    ( void ) { GPIOPinReset ( LED_BLUE_PORT,LED_BLUE_PIN)  ;}
 void Led_Blue_Reset  ( void ) { GPIOPinSet   ( LED_BLUE_PORT,LED_BLUE_PIN)  ;}
 
 
-void vApplicationIdleHook(void)
-{
-//   static uint16_t State=0;
-//   MAP_GPIOPinWrite(LED_GREEN_PORT,LED_GREEN_PIN,++State&0x4000?LED_GREEN_PIN:0);
-}
-
-
 SemaphoreHandle_t Led_Link_Semphr;
 //te prende cuando hay link y ademas destella uando hay datos
 void Init_Led_Link ( void)
 {
-   Led_Link_Semphr = xSemaphoreCreateCounting(2,0);
+   Led_Link_Semphr = xSemaphoreCreateCounting(20,0);
 }
 void Led_Link_Task ( void* nil )
 {
+   uint16_t Seems_Hang=0;
    MAP_SysCtlPeripheralEnable (LED_LINK_PERIPH);
    MAP_GPIOPinTypeGPIOOutput  (LED_LINK_PORT,LED_LINK_PIN);
    bool Link_State=false;
@@ -63,14 +57,20 @@ void Led_Link_Task ( void* nil )
             GPIOPinSet ( LED_LINK_PORT,LED_LINK_PIN ) ;
             vTaskDelay ( pdMS_TO_TICKS(10                   ));
             if( xSemaphoreTake ( Led_Link_Semphr, pdMS_TO_TICKS(1000))==pdFAIL) {
+               if(Seems_Hang++>100) {
+                  Usr_Flash_Params.Hang_Times++;
+                  Save_Usr_Flash();
+                  Soft_Reset();
+               }
                break;
             }
+            Seems_Hang=0; //uff...lucky
             GPIOPinReset ( LED_LINK_PORT,LED_LINK_PIN ) ;
-            vTaskDelay   ( pdMS_TO_TICKS(50                  ));
+            vTaskDelay   ( pdMS_TO_TICKS(50           ));
          }
       else {
          GPIOPinReset ( LED_LINK_PORT,LED_LINK_PIN ) ;
-         vTaskDelay   ( pdMS_TO_TICKS(1000                 ));
+         vTaskDelay   ( pdMS_TO_TICKS(1000         ));
       }
 
    }

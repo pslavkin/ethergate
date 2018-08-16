@@ -103,6 +103,7 @@ tCmdLineEntry System_Cmd_Table[] =
     { "pwd"    ,Cmd_Pwd       ,": show and/or save password" } ,
     { "reboot" ,Cmd_Reboot    ,": reboot" }                    ,
     { "task"   ,Cmd_TaskList  ,": rsv" }                       ,
+    { "hangs"  ,Cmd_Hangs     ,": hangs times" }                       ,
     { "uptime" ,Cmd_Uptime    ,": uptime [secs]" }             ,
     { "wdog"   ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)" }          ,
     { "?"      ,Cmd_Help      ,": help" }                      ,
@@ -139,6 +140,11 @@ int Cmd_Login(struct tcp_pcb* tpcb, int argc, char *argv[])
    }
    else
       UART_ETHprintf(tpcb,"no pwd\r\n");
+   return 0;
+}
+int Cmd_Hangs(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"Hang times=%d\r\n",Usr_Flash_Params.Hang_Times);
    return 0;
 }
 int Cmd_Exit(struct tcp_pcb* tpcb, int argc, char *argv[])

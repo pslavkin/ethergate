@@ -70,6 +70,7 @@ extern int  UARTgets          ( char *pcBuf, uint32_t ui32Len                  )
 extern unsigned char UARTgetc ( void                                           );
 extern void UARTprintf(const char *pcString, ...);
 extern void UART_ETHprintf    ( struct tcp_pcb* tpcb,const char *pcString, ... );
+extern void UARTprintf(const char *pcString, ...);
 extern int  UARTwrite         ( const char *pcBuf, uint32_t ui32Len            );
 #ifdef UART_BUFFERED
 extern int  UARTPeek          ( unsigned char ucChar                           );

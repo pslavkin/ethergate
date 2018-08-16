@@ -34,12 +34,12 @@
 #if defined(EMAC_PHY_IS_EXT_MII)
 #define EMAC_PHY_CONFIG  EMAC_PHY_TYPE_EXTERNAL_MII
 #define PHY_PHYS_ADDR      1
-//#define EEE_SUPPORT        1
+#define EEE_SUPPORT        0
 #endif
 #if defined(EMAC_PHY_IS_EXT_RMII)
 #define EMAC_PHY_CONFIG  EMAC_PHY_TYPE_EXTERNAL_RMII
 #define PHY_PHYS_ADDR      1
-//#define EEE_SUPPORT        1
+#define EEE_SUPPORT        0
 #endif
 #define NUM_TX_DESCRIPTORS 32
 #define NUM_RX_DESCRIPTORS 16
@@ -64,10 +64,10 @@
 //
 //*****************************************************************************
 //#define MEM_LIBC_MALLOC                 0
-#define MEM_ALIGNMENT                   4           // default is 1
-#define MEM_SIZE                        ( 16*1024)  // con 2k no anda
-//#define MEMP_OVERFLOW_CHECK             0
-//#define MEMP_SANITY_CHECK               0
+#define MEM_ALIGNMENT                   4          // default is 1
+#define MEM_SIZE                        (64*1024)  // con 2k no anda con 16, anda 2 horas
+#define MEMP_OVERFLOW_CHECK             0
+#define MEMP_SANITY_CHECK               0
 //#define MEM_USE_POOLS                   0
 //#define MEMP_USE_CUSTOM_POOLS           0
 
@@ -76,11 +76,11 @@
 // ---------- Internal Memory Pool Sizes ----------
 //
 //*****************************************************************************
-#define MEMP_NUM_PBUF                      2    // Default 16
+#define MEMP_NUM_PBUF                     64    // Default 16
 //#define MEMP_NUM_RAW_PCB                4
 #define MEMP_NUM_UDP_PCB                  4
-#define MEMP_NUM_TCP_PCB                  5    // Default 5
-#define MEMP_NUM_TCP_PCB_LISTEN           3
+#define MEMP_NUM_TCP_PCB                  3    // Default 5
+#define MEMP_NUM_TCP_PCB_LISTEN           1
 #define MEMP_NUM_TCP_SEG                  16  // Default 16
 //#define MEMP_NUM_REASSDATA              5
 //#define MEMP_NUM_ARP_QUEUE              30
@@ -222,8 +222,8 @@
                                                     // default is 256
 //#define TCP_SND_QUEUELEN                (4 * (TCP_SND_BUF/TCP_MSS))
 //#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
-//#define TCP_LISTEN_BACKLOG              3
-//#define TCP_DEFAULT_LISTEN_BACKLOG      3
+#define TCP_LISTEN_BACKLOG              0
+#define TCP_DEFAULT_LISTEN_BACKLOG      3
 
 //*****************************************************************************
 //
@@ -267,7 +267,7 @@
 //
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
-//dale 1024 o se ahoga....
+//ble 1024 o se ahoga....
 #define TCPIP_THREAD_STACKSIZE          (4*1024)
 #define TCPIP_THREAD_PRIO               1
 #define TCPIP_MBOX_SIZE                 64
@@ -387,7 +387,7 @@
 #define S32_F "d"
 #define X32_F "x"
 extern void UARTprintf(const char *pcString, ...);
-#define LWIP_PLATFORM_DIAG(msg) do {UARTprintf msg;} while(0)
+#define LWIP_PLATFORM_DIAG(msg) do {UARTprintf msg ;} while(0)
 #define LWIP_DEBUG
 #endif
 

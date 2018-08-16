@@ -884,6 +884,15 @@ UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
     va_end(vaArgP);
 }
 }
+void UARTprintf(const char *pcString, ...)
+{
+   va_list vaArgP;
+   int len;
+   va_start       ( vaArgP, pcString                                     );
+   len=uvsnprintf ( Buff,UART_TX_BUFFER_SIZE,pcString, vaArgP            );
+   UARTwrite      ( Buff,len<UART_TX_BUFFER_SIZE?len:UART_TX_BUFFER_SIZE );
+   va_end         ( vaArgP                                               );
+}
 
 //*****************************************************************************
 //

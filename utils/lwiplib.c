@@ -414,13 +414,12 @@ lwIPInterruptTask(void *pvArg)
        while(xQueueReceive(g_pInterrupt, &pvArg, portMAX_DELAY) != pdPASS)
         {
         }
-        xSemaphoreGive(Led_Link_Semphr);
 
+        xSemaphoreGive(Led_Link_Semphr);
         //
         // Processes any packets waiting to be sent or received.
         //
         tivaif_interrupt(&g_sNetIF, (uint32_t)pvArg);
-
         //
         // Re-enable the Ethernet interrupts.
         //
@@ -916,7 +915,7 @@ lwIPInit(uint32_t ui32SysClkHz, const uint8_t *pui8MAC, uint32_t ui32IPAddr,
 #if NO_SYS
     lwIPPrivateInit(0);
 #else
-    tcpip_init(lwIPPrivateInit, 0);
+   tcpip_init(lwIPPrivateInit, 0);
 #endif
 }
 
@@ -1014,7 +1013,6 @@ lwIPEthernetIntHandler(void)
     portBASE_TYPE xWake;
 #endif
 
-    //
     // Read and Clear the interrupt.
     //
     ui32Status = EMACIntStatus(EMAC0_BASE, true);
@@ -1090,8 +1088,7 @@ lwIPEthernetIntHandler(void)
     //
     // A RTOS is being used.  Signal the Ethernet interrupt task.
     //
-    xQueueSendFromISR(g_pInterrupt, (void *)&ui32Status, &xWake);
-
+    if(xQueueSendFromISR(g_pInterrupt, (void *)&ui32Status, &xWake)!=pdPASS)
     //
     // Disable the Ethernet interrupts.  Since the interrupts have not been
     // handled, they are not asserted.  Once they are handled by the Ethernet

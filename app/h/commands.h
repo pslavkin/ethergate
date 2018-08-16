@@ -42,6 +42,7 @@ extern int Cmd_TaskList  ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
 extern int Cmd_Uptime    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Wdog_Tout ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Reboot    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+extern int Cmd_Hangs     ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Pwd       ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Id        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Show_Id   ( struct tcp_pcb* tpcb, int argc, char *argv[] );
