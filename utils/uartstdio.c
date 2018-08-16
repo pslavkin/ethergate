@@ -862,6 +862,7 @@ UARTgetc(void)
 //! \return None.
 //
 //*****************************************************************************
+char Buff[UART_TX_BUFFER_SIZE];
 void
 UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 {
@@ -870,7 +871,6 @@ UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 #endif
 {
    va_list vaArgP;
-   char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
    int len;
     //
     // Start the varargs processing.
@@ -880,15 +880,30 @@ UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
      if(tpcb==UART_MSG || tpcb==DEBUG_MSG)
         UARTwrite(Buff,len);
      else
-        tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY|TCP_WRITE_FLAG_MORE);
-     vPortFree(Buff);
-
+        tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY);//|TCP_WRITE_FLAG_MORE);
      //
     // We're finished with the varargs now.
     //
     va_end(vaArgP);
 }
 }
+//void UARTprintf(const char *pcString, ...)
+//{
+//   va_list vaArgP;
+//   int len;
+//    //
+//    // Start the varargs processing.
+//    //
+//     va_start(vaArgP, pcString);
+//     len=uvsnprintf(Buff,UART_TX_BUFFER_SIZE,pcString, vaArgP);
+//        UARTwrite(Buff,len);
+//
+//     //
+//    // We're finished with the varargs now.
+//    //
+//    va_end(vaArgP);
+//   
+//}
 
 
 //*****************************************************************************

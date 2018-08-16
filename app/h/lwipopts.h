@@ -210,20 +210,20 @@
 // ---------- TCP options ----------
 //
 //*****************************************************************************
-//#define LWIP_TCP                        1
+#define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_WND                         512   // default is 2048
+#define TCP_WND                         (2*TCP_MSS)   // default is 2048
 //#define TCP_MAXRTX                      12
 //#define TCP_SYNMAXRTX                   6
 //#define TCP_QUEUE_OOSEQ                 1
-#define TCP_MSS                        512        // default is 535
+#define TCP_MSS                        536        // default is 535
 //#define TCP_CALCULATE_EFF_SEND_MSS      1
 #define TCP_SND_BUF                     (2 * TCP_MSS)
                                                     // default is 256
 //#define TCP_SND_QUEUELEN                (4 * (TCP_SND_BUF/TCP_MSS))
 //#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
-#define TCP_LISTEN_BACKLOG              1
-#define TCP_DEFAULT_LISTEN_BACKLOG      1
+#define TCP_LISTEN_BACKLOG              3
+#define TCP_DEFAULT_LISTEN_BACKLOG      3
 
 //*****************************************************************************
 //
@@ -251,7 +251,7 @@
 //#define LWIP_NETIF_HOSTNAME             0
 //#define LWIP_NETIF_API                  0
 //#define LWIP_NETIF_STATUS_CALLBACK      0
-#define LWIP_NETIF_LINK_CALLBACK        1
+#define LWIP_NETIF_LINK_CALLBACK        0
 //#define LWIP_NETIF_HWADDRHINT           0
 
 //*****************************************************************************
@@ -411,7 +411,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define ICMP_DEBUG                      LWIP_DBG_OFF
 #define IGMP_DEBUG                      LWIP_DBG_OFF
 #define INET_DEBUG                      LWIP_DBG_OFF
-#define IP_DEBUG                        LWIP_DBG_OFF    // default is OFF
+#define IP_DEBUG                        LWIP_DBG_OFF   // default is OFF
 #define IP_REASS_DEBUG                  LWIP_DBG_OFF
 #define RAW_DEBUG                       LWIP_DBG_OFF
 #define MEM_DEBUG                       LWIP_DBG_OFF

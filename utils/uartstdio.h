@@ -68,6 +68,7 @@ extern void UARTStdioConfig   ( uint32_t ui32Port, uint32_t ui32Baud,
                             uint32_t ui32SrcClock                              );
 extern int  UARTgets          ( char *pcBuf, uint32_t ui32Len                  );
 extern unsigned char UARTgetc ( void                                           );
+extern void UARTprintf(const char *pcString, ...);
 extern void UART_ETHprintf    ( struct tcp_pcb* tpcb,const char *pcString, ... );
 extern int  UARTwrite         ( const char *pcBuf, uint32_t ui32Len            );
 #ifdef UART_BUFFERED

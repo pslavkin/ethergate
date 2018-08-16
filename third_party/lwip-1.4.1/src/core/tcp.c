@@ -294,7 +294,7 @@ tcp_close(struct tcp_pcb *pcb)
     pcb->flags |= TF_RXCLOSED;
   }
   /* ... and close */
-  return tcp_close_shutdown(pcb, 1);
+  return tcp_close_shutdown(pcb, 0);
 }
 
 /**
