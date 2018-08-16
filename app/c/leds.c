@@ -13,6 +13,7 @@
 #include "utils/ustdlib.h"
 #include "one_wire_network.h"
 #include "usr_flash.h"
+#include "one_wire_transport.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -46,12 +47,15 @@ void vApplicationIdleHook(void)
 
 SemaphoreHandle_t Led_Link_Semphr;
 //te prende cuando hay link y ademas destella uando hay datos
+void Init_Led_Link ( void)
+{
+   Led_Link_Semphr = xSemaphoreCreateCounting(2,0);
+}
 void Led_Link_Task ( void* nil )
 {
    MAP_SysCtlPeripheralEnable (LED_LINK_PERIPH);
    MAP_GPIOPinTypeGPIOOutput  (LED_LINK_PORT,LED_LINK_PIN);
    bool Link_State=false;
-   Led_Link_Semphr = xSemaphoreCreateCounting(2,0);
    while(1) {
       Link_State=EMACPHYLinkUp();
       if(Link_State)
@@ -74,9 +78,6 @@ void Led_Link_Task ( void* nil )
 //--------------------------------------------------------------------------------
 void Led_Serial_Task(void* nil)
 {
-   SysCtlPeripheralEnable ( LED_SERIAL_PERIPH               );
-   GPIOPinTypeGPIOOutput  ( LED_SERIAL_PORT,LED_SERIAL_PIN  );
-   GPIOPinReset           ( LED_SERIAL_PORT, LED_SERIAL_PIN );
    while(1)
       vTaskDelay ( portMAX_DELAY);
 }

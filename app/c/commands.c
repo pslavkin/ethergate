@@ -110,7 +110,8 @@ tCmdLineEntry System_Cmd_Table[] =
 int Cmd_Welcome(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Login_Cmd_Table;
-   UART_ETHprintf(tpcb,"\033[2J\033[H+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
+   //UART_ETHprintf(tpcb,"\033[2J\033[H+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
+   UART_ETHprintf(tpcb,"+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
     return 0;
 }
 int Cmd_Help(struct tcp_pcb* tpcb, int argc, char *argv[])
@@ -436,8 +437,7 @@ int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
 int Cmd_Reboot(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    Telnet_Close(tpcb);
-   vTaskDelay(pdMS_TO_TICKS(2000));
-   Soft_Reset();
+   New_None_Periodic_Func_Schedule(20,Soft_Reset); //tengo que rebootear dede fuerea de Rcv_fn
    return 0;
 }
 int Cmd_Show_Id(struct tcp_pcb* tpcb, int argc, char *argv[])
@@ -469,7 +469,8 @@ int Cmd_Pwd(struct tcp_pcb* tpcb, int argc, char *argv[])
 }
 
 //--------------------------------------------------------------------------------
-void User_Commands_Task(void* nil)
+char Buff[APP_INPUT_BUF_SIZE];
+void Init_Uart(void)
 {
    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
    ROM_GPIOPinConfigure(GPIO_PA0_U0RX);
@@ -478,13 +479,16 @@ void User_Commands_Task(void* nil)
 
    UARTStdioConfig ( 0, 115200, configCPU_CLOCK_HZ);
    g_psCmdTable=Login_Cmd_Table;
+}
+
+void User_Commands_Task(void* nil)
+{
    Cmd_Welcome(UART_MSG,0,NULL);
    Cmd_Help(UART_MSG,0,NULL);
-   char* Buff =(char*)pvPortMalloc(APP_INPUT_BUF_SIZE);
    while(1) {
       while(xSemaphoreTake(Uart_Studio_Semphr,portMAX_DELAY)!=pdTRUE)
          ;
-      UARTgets       ( Buff, APP_INPUT_BUF_SIZE );
+      UARTgets       ( Buff,APP_INPUT_BUF_SIZE );
       CmdLineProcess ( Buff,UART_MSG            );
    }
 }

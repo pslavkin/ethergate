@@ -65,7 +65,7 @@
 //*****************************************************************************
 //#define MEM_LIBC_MALLOC                 0
 #define MEM_ALIGNMENT                   4           // default is 1
-#define MEM_SIZE                        (64 * 1024)  // default is 1600
+#define MEM_SIZE                        ( 4*1024)  // con 2k no anda
 //#define MEMP_OVERFLOW_CHECK             0
 //#define MEMP_SANITY_CHECK               0
 //#define MEM_USE_POOLS                   0
@@ -79,8 +79,8 @@
 #define MEMP_NUM_PBUF                     48    // Default 16
 //#define MEMP_NUM_RAW_PCB                4
 //#define MEMP_NUM_UDP_PCB                4
-#define MEMP_NUM_TCP_PCB                  16    // Default 5
-//#define MEMP_NUM_TCP_PCB_LISTEN         8
+#define MEMP_NUM_TCP_PCB                  3    // Default 5
+#define MEMP_NUM_TCP_PCB_LISTEN           2
 #define MEMP_NUM_TCP_SEG                  32  // Default 16
 //#define MEMP_NUM_REASSDATA              5
 //#define MEMP_NUM_ARP_QUEUE              30
@@ -90,7 +90,7 @@
 //#define MEMP_NUM_NETCONN                4
 //#define MEMP_NUM_TCPIP_MSG_API          8
 //#define MEMP_NUM_TCPIP_MSG_INPKT        8
-#define PBUF_POOL_SIZE                    48    // Default 16
+#define PBUF_POOL_SIZE                    16    // Default 16
 
 //*****************************************************************************
 //
@@ -239,8 +239,7 @@
 //
 //*****************************************************************************
 #define PBUF_LINK_HLEN                  16          // default is 14
-#define PBUF_POOL_BUFSIZE               512
-                   // default is LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN)
+#define PBUF_POOL_BUFSIZE          (LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN))
 #define ETH_PAD_SIZE                    0           // default is 0
 
 //*****************************************************************************
@@ -271,7 +270,7 @@
 //dale 1024 o se ahoga....
 #define TCPIP_THREAD_STACKSIZE          2600 
 #define TCPIP_THREAD_PRIO               3
-#define TCPIP_MBOX_SIZE                 32
+#define TCPIP_MBOX_SIZE                 64
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
 //#define SLIPIF_THREAD_STACKSIZE         0
 //#define SLIPIF_THREAD_PRIO              1

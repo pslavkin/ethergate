@@ -29,15 +29,21 @@
 int main(void)
 {
    Init_Clk();
+   //debug
+             SysCtlPeripheralEnable ( LED_SERIAL_PERIPH               );
+             GPIOPinTypeGPIOOutput  ( LED_SERIAL_PORT,LED_SERIAL_PIN  );
+             GPIOPinSet             ( LED_SERIAL_PORT, LED_SERIAL_PIN );
    Init_Usr_Flash          ( );
+   Init_Led_Link ( );
    lwIPInit(configCPU_CLOCK_HZ,
             Usr_Flash_Params.Mac_Addr,
             Usr_Flash_Params.Ip_Addr,
             Usr_Flash_Params.Mask_Addr,
             Usr_Flash_Params.Gateway_Addr,
             IPADDR_USE_STATIC);
-   Init_Wdog    ( );
-   Init_Events  ( );
+   Init_Wdog   ( );
+   Init_Uart   ( );
+   Init_Events ( );
    Init_Schedule();
    xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Schedule           ,"schedule"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
@@ -50,6 +56,7 @@ int main(void)
    Init_Telnet             ( );
    Init_Udp                ( );
    vTaskStartScheduler     ( );
+
    while(1)
        ;
 }

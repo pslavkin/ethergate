@@ -93,7 +93,6 @@ task.h is included from an application file. */
 /* Allocate the memory for the heap. */
 static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
 static size_t xNextFreeByte = ( size_t ) 0;
-
 /*-----------------------------------------------------------*/
 
 void *pvPortMalloc( size_t xWantedSize )

@@ -32,9 +32,11 @@ struct Args_Struct
 //socket y no a otro, con lo cual tengo resuelte los estaodos de cada uno asi si mas
 err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
+   struct pbuf* Local_p=p;
    if(p!=NULL)  {
       ((char*)p->payload)[p->len-1]='\0';
-      tcp_recved(tpcb, p->len);        //aviso que el windows crecio
+      for(Local_p=p;Local_p->len != 0;Local_p=Local_p->next)
+           tcp_recved(tpcb, Local_p->len);
       CmdLineProcess(p->payload,tpcb);
       pbuf_free(p);                    //libreo bufer
       return ERR_OK;
@@ -74,9 +76,7 @@ err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 void Telnet_Close ( struct tcp_pcb *tpcb)
 {
    if(tpcb!=DEBUG_MSG && tpcb!=UART_MSG) {
-//      vPortFree(tpcb->callback_arg);
-//      tcp_accepted(soc);               //libreo 1 lugar para el blog
-      UART_ETHprintf(UART_MSG,"close %d\r\n",tcp_close(tpcb));                 //cierro
+      tcp_close(tpcb);                 //cierro
    }
 }
 

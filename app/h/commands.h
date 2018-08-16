@@ -1,6 +1,8 @@
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__
 
+
+extern void Init_Uart(void);
 extern int Cmd_Welcome ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Login   ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 extern int Cmd_Help    ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );

@@ -61,8 +61,8 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
       pbuf_free(p);
       return;
    }
-   struct pbuf* q = pbuf_alloc(PBUF_RAW,2,PBUF_RAM);
-   pbuf_chain(p,q);
+//   struct pbuf* q = pbuf_alloc(PBUF_RAW,2,PBUF_RAM);
+//   pbuf_chain(p,q);
    Snmp_Data=p; // me guardo en una local el puntero al mensaje
                 // no funciona realloc para estirar pbuf aun.. tengo que hacerme una copia lamentablemente0
                 // pbuf_realloc(Snmp_Data,Snmp_Data->tot_len+2); // estiro 2 bytes... porque necesito 2 mas para mandar un entero
@@ -146,7 +146,8 @@ void Response_Int(uint8_t Node,uint16_t Value)/*{{{*/
 
  Rx_Snmp_Header                                   ( )->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3;
  Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header ( )->Message_Length+2                                                                   ;
- tcpip_callback ( Send_Snmp_Ans,0 );
+ Send_Snmp_Ans(0);
+// tcpip_callback ( Send_Snmp_Ans,0 );
 }/*}}}*/
 void Response_Err(void)/*{{{*/
 {
@@ -166,7 +167,8 @@ void Response_Err(void)/*{{{*/
  Rx_Snmp_Header ( )->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3   ;
 
  Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header ( )->Message_Length+2                                                                   ;
- tcpip_callback ( Send_Snmp_Ans,0 );
+ Send_Snmp_Ans(0);
+ //tcpip_callback ( Send_Snmp_Ans,0 );
 }/*}}}*/
 //-----------------------------------------------------------------------------
 bool Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code,uint16_t* T)

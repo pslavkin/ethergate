@@ -32,7 +32,7 @@ void           Soft_Reset   ( void ) {
 //-----------------------------------------------------------------------
 void State_Machine(void* nil)               //esta funcion ejecuta la maquina de estados donde el evento viene en la variable Event... que se decidio que no sea por parametro para permitir la recursividad infinita...  
 {
-   vTaskDelay( pdMS_TO_TICKS(100) ); // Envia la tarea al estado bloqueado durante 500ms
+//   vTaskDelay( pdMS_TO_TICKS(100) ); 
    while(1) {
       while(xQueueReceive(Events_Queue,&Event,portMAX_DELAY) == pdFALSE)
          ;
