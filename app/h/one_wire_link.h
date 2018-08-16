@@ -5,12 +5,17 @@
 #define SKIP_ROM_STRING    "\xCC"
 #define SEARCH_ROM_STRING  "\xF0"
 
+//con un solo pin
+//#define ONE_WIRE_PIN        GPIO_PIN_7
+//#define ONE_WIRE_PORT       GPIO_PORTA_BASE
+//#define ONE_WIRE_PERIPH     SYSCTL_PERIPH_GPIOA
 
-#define ONE_WIRE_PIN        GPIO_PIN_7
-#define ONE_WIRE_PORT       GPIO_PORTA_BASE
-#define ONE_WIRE_PERIPH     SYSCTL_PERIPH_GPIOA
+//usando los 5 pines como one-wire para darle duro cuando tiene que medit T. sino con un solo pin apenitas si baja de los 3v.. quien sabe cada tanto me estaba danto una lectura de 85.. peor no se si es por eso...
+#define ONE_WIRE_PIN     (GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4)
+#define ONE_WIRE_PORT    GPIO_PORTF_BASE
+#define ONE_WIRE_PERIPH  SYSCTL_PERIPH_GPIOF
 
-enum One_Wire_Link_Commands 
+enum One_Wire_Link_Commands
 {
  READ_ROM   = 0x33,
  SKIP_ROM   = 0xCC,

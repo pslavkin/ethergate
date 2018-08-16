@@ -382,7 +382,7 @@ int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc==2 && ustrcmp("tareas",argv[1])==0) {
       char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
-      vTaskList( Buff );
+//      vTaskList( Buff );
       UART_ETHprintf(tpcb,Buff);
       vPortFree(Buff);
    }

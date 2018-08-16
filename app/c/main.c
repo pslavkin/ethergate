@@ -49,7 +49,7 @@ int main(void)
    xTaskCreate ( Schedule           ,"schedule"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Led_Link_Task      ,"led link"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( Led_Rgb_Task       ,"leds RGB"      ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
-   xTaskCreate ( Led_Serial_Task    ,"led serial"    ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+//   xTaskCreate ( Led_Serial_Task    ,"led serial"    ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE*2 ,NULL ,1 ,NULL );
    xTaskCreate ( Button1_Task       ,"Button1"       ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
    Init_One_Wire_Transport ( );

@@ -22,8 +22,8 @@ void     Bus_Hi   ( void ) {
  MAP_GPIOPinWrite ( ONE_WIRE_PORT,ONE_WIRE_PIN , ONE_WIRE_PIN);
 }
 void     Bus_Lo   ( void ) {
- MAP_GPIOPinTypeGPIOOutput ( ONE_WIRE_PORT,ONE_WIRE_PIN );
- MAP_GPIOPinWrite ( ONE_WIRE_PORT,ONE_WIRE_PIN , 0);
+ MAP_GPIOPinTypeGPIOOutput ( ONE_WIRE_PORT,ONE_WIRE_PIN     );
+ MAP_GPIOPinWrite          ( ONE_WIRE_PORT,ONE_WIRE_PIN , 0 );
 }
 void     Bus_Hz   ( void ) {
  MAP_GPIOPinTypeGPIOInput ( ONE_WIRE_PORT,ONE_WIRE_PIN );
@@ -53,17 +53,18 @@ bool Presence(void) {
       Bus_Lo ( );          // hasta dentro de 1 segundo que vuelve por aca, queda el bus en cero, que equivale a apagar los sensores...
       return 1  ;          // liberen el barco!! porque asi no laburo... todo '0' es un CRC valido, asi que si esta en corto, cuenta como nodo valido!!!!
    }
+CPUcpsid     (     );
    Bus_Lo       (     ); // baja
    Delay_Useg   ( 510 ); // 480<T<960 espera el tiempo de reset
    Pullup       (     ); // sube el bus con fuerza, espera y luego lo libera...
-CPUcpsid     (     );
    Delay_Useg   ( 70  ); // minimo 75, maximo 300
 //   GPIOPinSet   ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Ans=Bus_Read (     ); // lobo esta?
 //   GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
 CPUcpsie     (     );
    Delay_Useg   ( 430 ); // 480-70 minimo, completa el tiempo de slot...
-   Pullup       (     ); // despues de un presense, solo lo deja en pullup, porque si no hay nadie ara que tenerlo en alta que podria haber un corto...
+   Bus_Hi     (    ); // arriba
+//   Pullup       (     ); // despues de un presense, solo lo deja en pullup, porque si no hay nadie ara que tenerlo en alta que podria haber un corto...
    return Ans;
 }
 //------------------------------------------------------------------
@@ -91,8 +92,8 @@ CPUcpsid   (    );
 //  GPIOPinSet   ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Ans=Bus_Read (    ); // samplea a los 14useg (Texas obliga a 15 como maximo)
 //   GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
-   Delay_Useg   ( 55 ); // 45 como minimo.. despues de los 15 de lectura...+ 1us de recupero
 CPUcpsie     (    );
+   Delay_Useg   ( 55 ); // 45 como minimo.. despues de los 15 de lectura...+ 1us de recupero
 //   Pullup       (    ); // sube el bus con fuerza, espera y luego lo libera...
    Bus_Hi       (    ); // arriba
    return Ans;

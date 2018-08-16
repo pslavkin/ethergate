@@ -1,7 +1,7 @@
 #ifndef ONE_WIRE_NETWORK
 #define ONE_WIRE_NETWORK
 
-#define ONE_WIRE_RX_BUFFER 25 // es tambien el tamaño maximo de algun comando...generalmente no pasa de 20, que es un match ROM + read Page
+#define ONE_WIRE_RX_BUFFER 35 // es tambien el tamaño maximo de algun comando...generalmente no pasa de 20, que es un match ROM + read Page
 #define MAX_ROM_CODES       2  // cantidad de nodos permitidos en la red..
 #define MAX_FAIL_CODES     20 // cantidad de veces que falla intentando leer el numero de codigo en la busqueda de codigos... usualmente falla cuando el cableado es malo y lee cualquier cosa. entonces con esto se puede reportar el problema...
 
