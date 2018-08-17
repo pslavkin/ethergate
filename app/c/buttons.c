@@ -13,6 +13,7 @@
 #include "events.h"
 #include "one_wire_network.h"
 #include "usr_flash.h"
+#include "leds.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -57,18 +58,28 @@ bool Button1_Read (void)
 void Button1_Task(void* nil)
 {
    struct Button1_Data_Struct B;
+   uint8_t i;
    Button1_Queue = xQueueCreate(10,sizeof (struct Button1_Data_Struct));
    Init_Button1();
    while(1) {
       do {
           while(xQueueReceive(Button1_Queue,&B,portMAX_DELAY)==pdFALSE)
             ;
-         } while (B.Hi_Lo==1 || xQueueReceive(Button1_Queue,&B,pdMS_TO_TICKS(10000))==pdTRUE);
-         Usr_Flash2Defult_Values();
-         Save_Usr_Flash();
-         vTaskDelay(pdMS_TO_TICKS(2000));
-         Soft_Reset();
-         UART_ETHprintf(DEBUG_MSG,"reseting to defult values\n");
+          Led_Rgb_Only_White();
+         } while (B.Hi_Lo==1);
+
+         for(i=0;i<10;i++) {
+             Led_Rgb_Only_White();
+             if(xQueueReceive(Button1_Queue,&B,pdMS_TO_TICKS(1000))==pdTRUE)
+                break;
+         }
+         if(i==10) {
+            Usr_Flash2Defult_Values();
+            Save_Usr_Flash();
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            Soft_Reset();
+            UART_ETHprintf(DEBUG_MSG,"reseting to defult values\n");
+         }
    }
 }
 //------------------------------------------------------------------

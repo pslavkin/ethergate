@@ -23,6 +23,7 @@ extern void                Led_Red_Reset   ( void      );
 extern void                Led_Blue_Set    ( void      );
 extern void                Led_Blue_Reset  ( void      );
 extern float               Get_T_Prom      ( void      );
+extern void Led_Rgb_Only_White(void);
 //----------------------------------------------------
 //red
 #define LED_RED_PIN        GPIO_PIN_1

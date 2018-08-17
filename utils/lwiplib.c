@@ -1088,7 +1088,8 @@ lwIPEthernetIntHandler(void)
     //
     // A RTOS is being used.  Signal the Ethernet interrupt task.
     //
-    if(xQueueSendFromISR(g_pInterrupt, (void *)&ui32Status, &xWake)!=pdPASS)
+    xQueueSendFromISR(g_pInterrupt, (void *)&ui32Status, &xWake);
+
     //
     // Disable the Ethernet interrupts.  Since the interrupts have not been
     // handled, they are not asserted.  Once they are handled by the Ethernet

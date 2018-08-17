@@ -388,7 +388,7 @@ int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc==2 && ustrcmp("tareas",argv[1])==0) {
       char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
-//      vTaskList( Buff );
+      vTaskList( Buff );
       UART_ETHprintf(tpcb,Buff);
       vPortFree(Buff);
    }
@@ -498,7 +498,7 @@ int Cmd_Pwd(struct tcp_pcb* tpcb, int argc, char *argv[])
 }
 
 //--------------------------------------------------------------------------------
-char Buff[APP_INPUT_BUF_SIZE];
+char Buff_Cmd[APP_INPUT_BUF_SIZE];
 void Init_Uart(void)
 {
    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -517,7 +517,7 @@ void User_Commands_Task(void* nil)
    while(1) {
       while(xSemaphoreTake(Uart_Studio_Semphr,portMAX_DELAY)!=pdTRUE)
          ;
-      UARTgets       ( Buff,APP_INPUT_BUF_SIZE );
-      CmdLineProcess ( Buff,UART_MSG            );
+      UARTgets       ( Buff_Cmd,APP_INPUT_BUF_SIZE );
+      CmdLineProcess ( Buff_Cmd,UART_MSG            );
    }
 }
