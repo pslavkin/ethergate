@@ -1,96 +1,3 @@
-//#include <stdint.h>
-//#include "utils/lwiplib.h"
-//#include "utils/cmdline.h"
-//#include "opt.h"
-//#include "telnet.h"
-//#include "events.h"
-//#include "one_wire_network.h"
-//#include "usr_flash.h"
-//#include "commands.h"
-//#include "utils/uartstdio.h"
-//
-//struct tcp_pcb* soc;
-//
-//void Create_Socket(void* nil);
-////-------------------------------------------------------------------------------------
-//void Init_Telnet(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
-//{
-//   tcpip_callback(Create_Socket,0);
-//}
-//
-////defino una estructura para pasarle al Rfv_Fn para que vaya armando la linea de comandos
-////en linux no es necesario porque la arma bash, pero en win o con linux pero en modo raw
-////es necesario almacenar localmente.. no encontre otra manera de usar  los pbufs encadenados
-////sin luberar el windows como para no gastar RAM. estuve cerca pero no me anduvo
-//struct Args_Struct
-//{
-//   char Buff[APP_INPUT_BUF_SIZE];
-//   uint16_t I;
-//};
-//
-////magia, como me llega el tpcb segun quien corresponda, estare responidendo a ese
-////socket y no a otro, con lo cual tengo resuelte los estaodos de cada uno asi si mas
-//err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
-//{
-//   struct Args_Struct* B=arg;
-//   if(p!=NULL)  {
-//      int len=p->len<(sizeof(B->Buff)-B->I)?p->len:(sizeof(B->Buff)-B->I);    //ojo de no escribir mas alla de los limites
-//      pbuf_copy_partial(p, B->Buff+B->I,len,0);
-//      B->I+=len;
-//      tcp_recved(tpcb,p->len);
-//      if( B->Buff[B->I-1] =='\n' || B->Buff[B->I-1] == '\r' || B->I==sizeof(B->Buff))  //si llego enter O se lleno el buffer
-//      {
-//         B->Buff[B->I-1] ='\0';
-//         if( B->Buff[B->I-2] =='\n' || B->Buff[B->I-2] == '\r')
-//            B->Buff[B->I-2] ='\0';
-//         B->I=0;
-//         CmdLineProcess(B->Buff,tpcb);
-//      }
-//      pbuf_free(p);                    //libero bufer
-//      return ERR_OK;
-//   }
-//   else {
-//      vPortFree(arg);                  //libero el buffer de recepcion
-//      tcp_accepted(soc);               //libreo 1 lugar para el blog
-//      tcp_close(tpcb);                 //cierro
-//      return ERR_OK;
-//   }
-//}
-//
-//void Telnet_Close ( struct tcp_pcb *tpcb)
-//{
-//   if(tpcb!=DEBUG_MSG && tpcb!=UART_MSG) {
-//      tcp_close(tpcb);                 //cierro
-//   }
-//}
-//
-//err_t accept_fn (void *arg, struct tcp_pcb *newpcb, err_t err)
-//{
-//   void* p =pvPortMalloc(sizeof(struct Args_Struct));
-//   ((struct Args_Struct*)p)->I=0;
-//   tcp_recv    ( newpcb ,Rcv_Fn  );
-//   tcp_arg     ( newpcb ,p       );
-//   Cmd_Welcome ( newpcb ,0 ,NULL );
-//   Cmd_Help    ( newpcb ,0 ,NULL );
-//   return 0;
-//}
-//
-//void Create_Socket(void* nil)
-//{
-//   soc=tcp_new                 (                        );
-//   tcp_bind                    ( soc ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
-//   soc=tcp_listen_with_backlog ( soc ,3                 );
-//   tcp_accept                  ( soc,accept_fn          );
-//}
-
-
-
-
-
-
-
-
-
 #include <stdint.h>
 #include <string.h>
 #include "utils/lwiplib.h"
@@ -104,56 +11,49 @@
 #include "parser.h"
 #include "telnet.h"
 
-struct tcp_pcb* soc;
-
-struct Telnet_Args
-{
-//   tRingBufObject RB;
-   uint8_t Buff[APP_INPUT_BUF_SIZE];
-   uint32_t Index;
-   uint32_t Id;
-};
-void Create_Socket(void* nil);
+struct tcp_pcb *Soc_Cmd;
+struct tcp_pcb *Soc_Rs232;
+struct tcp_pcb* Rs232_List[3];
+//-------------------------------------------------------------------------------------
+void Create_Cmd_Socket   ( void* nil );
+void Create_Rs232_Socket ( void* nil );
 //-------------------------------------------------------------------------------------
 void Init_Telnet(void)         //inicializa los puertos que se usan en esta maquina de estados de propositos multiples...
 {
-   tcpip_callback(Create_Socket,0);
+   tcpip_callback ( Create_Cmd_Socket   ,0 );
+   Init_Rs232_Conn();
+   tcpip_callback ( Create_Rs232_Socket ,0 );
 }
 
-
-err_t Rcv_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    uint8_t Data;
-   uint32_t i;
-   struct Telnet_Args* B=arg;
+   uint16_t i;
+   struct Parser_Queue_Struct* B=arg;
    if(p!=NULL)  {
       for(i=0;i<p->len;i++) {
          Data=((uint8_t*)p->payload)[i];
-         if(Data!='\r' && Data!='\n') {
+         if(Data=='\n' || Data=='\r') {
+            if((Data=='\n' && ((uint8_t*)p->payload)[i+1]=='\r') ||
+               (Data=='\r' && ((uint8_t*)p->payload)[i+1]=='\n'))
+                  i++;
+            B->Buff[B->Index] = '\0'    ;
+            xQueueSend(Parser_Queue,B,portMAX_DELAY);
+            B->Id++;
+            B->Index = 0;
+         }
+         else
             if(B->Index<APP_INPUT_BUF_SIZE)
                B->Buff[B->Index++]=Data;
-         }
-         else {
-            struct Parser_Queue_Struct D;
-            memcpy(D.Buff,B->Buff,B->Index);
-            D.Buff[B->Index+1] = '\0';
-            D.tpcb      = tpcb;
-            D.Id        = B->Id;
-            B->Id++;
-            while(xQueueSend(Parser_Queue,&D,portMAX_DELAY)!=pdTRUE)
-               ;
-            B->Index=0;
-            //Print_Slide(&D);
-         }
       }
       tcp_recved(tpcb,p->len);
       pbuf_free(p);                    //libero bufer
       return ERR_OK;
    }
    else {
-      vPortFree(arg);                  //libero el buffer de recepcion
-      tcp_accepted(soc);               //libreo 1 lugar para el blog
-      tcp_close(tpcb);                 //cierro
+      vPortFree    ( arg     ); // libero el buffer de recepcion
+      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
+      tcp_close    ( tpcb    ); // cierro
       return ERR_OK;
    }
 }
@@ -165,32 +65,95 @@ void Telnet_Close ( struct tcp_pcb *tpcb)
    }
 }
 
-err_t accept_fn (void *arg, struct tcp_pcb *newpcb, err_t err)
+err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
-   struct Telnet_Args* R= ( struct Telnet_Args* )pvPortMalloc(sizeof(struct Telnet_Args));
-//   RingBufInit ( &R->RB,R->Buff,APP_INPUT_BUF_SIZE );
+   struct Parser_Queue_Struct* R= ( struct Parser_Queue_Struct* )pvPortMalloc(sizeof(struct Parser_Queue_Struct));
    R->Id    = 0;
    R->Index = 0;
-   tcp_recv    ( newpcb ,Rcv_Fn                    );
-   tcp_arg     ( newpcb ,R                         );
+   R->tpcb  = newpcb;
+   tcp_recv ( newpcb ,Rcv_Cmd_Fn );
+   tcp_arg  ( newpcb ,R          );
    return 0;
 }
 
-void Create_Socket(void* nil)
+void Create_Cmd_Socket(void* nil)
 {
-   soc=tcp_new                 (                                                );
-   tcp_bind                    ( soc ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
-   soc=tcp_listen_with_backlog ( soc ,3                                         );
-   tcp_accept                  ( soc,accept_fn                                  );
+   Soc_Cmd=tcp_new                 (                                                    );
+   tcp_bind                        ( Soc_Cmd ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
+   Soc_Cmd=tcp_listen_with_backlog ( Soc_Cmd ,3                                         );
+   tcp_accept                      ( Soc_Cmd ,Accept_Cmd_Fn                             );
+}
+
+//---------------------------------------------------------------------------------------
+bool Free_Rs232_Conn(struct tcp_pcb* New)
+{
+   uint8_t i;
+   for(i=0;i<3;i++) {
+      if(Rs232_List[i]==New) {
+         Rs232_List[i]=NULL;
+         return true;
+      }
+   }
+   return false;
+}
+bool Register_Rs232_Conn(struct tcp_pcb* New)
+{
+   uint8_t i;
+   for(i=0;i<3;i++) {
+      if(Rs232_List[i]==NULL) {
+         Rs232_List[i]=New;
+         return true;
+      }
+   }
+   return false;
+}
+void Init_Rs232_Conn(void)
+{
+   uint8_t i;
+   for(i=0;i<3;i++)
+      Rs232_List[i]=NULL;
+}
+err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+{
+   if(p!=NULL)  {
+      UARTwrite(p->payload,p->len);
+      tcp_recved(tpcb,p->len);
+      pbuf_free(p);                    //libero bufer
+      return ERR_OK;
+   }
+   else {
+      tcp_accepted    ( Soc_Cmd ); // libreo 1 lugar para el blog
+      Free_Rs232_Conn ( tpcb    );
+      tcp_close       ( tpcb    ); // cierro
+      return ERR_OK;
+   }
+}
+
+void Send_To_All_Tcp(uint8_t* Data, uint16_t Len)
+{
+   uint8_t i;
+   for(i=0;i<3;i++) {
+      if(Rs232_List[i]!=NULL) {
+        tcp_write(Rs232_List[i],Data,Len,TCP_WRITE_FLAG_COPY);//|TCP_WRITE_FLAG_MORE);
+      }
+   }
 }
 
 
-void Create_Eth_232_Socket(void* nil)
+
+err_t Accept_Rs232_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
-   soc=tcp_new                 (                                                );
-   tcp_bind                    ( soc ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
-   soc=tcp_listen_with_backlog ( soc ,3                                         );
-   tcp_accept                  ( soc,accept_fn                                  );
+   tcp_recv            ( newpcb ,Rcv_Rs232_Fn );
+   tcp_arg             ( newpcb ,NULL         );
+   Register_Rs232_Conn ( newpcb               );
+   return 0;
+}
+void Create_Rs232_Socket(void* nil)
+{
+   Soc_Rs232=tcp_new                 (                                                     );
+   tcp_bind                          ( Soc_Rs232 ,IP_ADDR_ANY ,Usr_Flash_Params.Rs232_Port );
+   Soc_Rs232=tcp_listen_with_backlog ( Soc_Rs232 ,3                                        );
+   tcp_accept                        ( Soc_Rs232 ,Accept_Rs232_Fn                           );
 }
 
 

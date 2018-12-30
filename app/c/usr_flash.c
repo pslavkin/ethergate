@@ -16,6 +16,7 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Mask_Addr      = 0xFFFFFF00,
       .Gateway_Addr   = 0xC0A80201,
       .Dhcp_Enable    = false,
+      .Rs232_Port     = 49154,
       .Config_Port    = 49152,
       .Temp_Port      = 49153,
       .Snmp_Port      = 161,
@@ -31,7 +32,7 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Id             = "ehergate_12345678",
       .Pwd            = "1234",
       .Wdog           = 0,
-      .Hang_Times    = 0, //solo para debug del cuelgue por MAC sorda
+      .Hang_Times     = 0, //solo para debug del cuelgue por MAC sorda
 };
 struct Usr_Flash_Struct Usr_Flash_Params;
 

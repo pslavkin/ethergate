@@ -11,6 +11,7 @@ struct Usr_Flash_Struct {
    uint32_t    Gateway_Addr         ;
    uint8_t     Dhcp_Enable          ;
    uint16_t    Config_Port          ;
+   uint16_t    Rs232_Port           ;
    uint16_t    Temp_Port            ;
    uint16_t    Snmp_Port            ;
    char        Snmp_Community[ 20 ] ;

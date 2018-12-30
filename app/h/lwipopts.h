@@ -79,8 +79,8 @@
 #define MEMP_NUM_PBUF                     64    // Default 16
 //#define MEMP_NUM_RAW_PCB                4
 #define MEMP_NUM_UDP_PCB                  4
-#define MEMP_NUM_TCP_PCB                  3    // Default 5
-#define MEMP_NUM_TCP_PCB_LISTEN           1
+#define MEMP_NUM_TCP_PCB                  6    // Default 5 //3 backlogs por cada listen
+#define MEMP_NUM_TCP_PCB_LISTEN           2     //uno para cmd y otro para RS232 
 #define MEMP_NUM_TCP_SEG                  16  // Default 16
 //#define MEMP_NUM_REASSDATA              5
 //#define MEMP_NUM_ARP_QUEUE              30

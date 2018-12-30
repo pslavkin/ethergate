@@ -518,13 +518,14 @@ void User_Commands_Task(void* nil)
    Cmd_Help(UART_MSG,0,NULL);
 
    while(1) {
-      uint8_t Index=0;
-      while ( UARTgets ( D.Buff ,APP_INPUT_BUF_SIZE-1,&Index )==false) {
+      D.Index=0;
+      while ( UARTgets ( D.Buff ,APP_INPUT_BUF_SIZE-1,(uint8_t*)&D.Index )==false) {
          vTaskDelay(pdMS_TO_TICKS(30));
       }
-      D.tpcb = UART_MSG;
-      D.Id   = Uart_Id;
+      D.tpcb  = UART_MSG;
+      D.Id    = Uart_Id;
       Uart_Id++;
       xQueueSend(Parser_Queue,&D,portMAX_DELAY);
+      Send_To_All_Tcp(D.Buff,D.Index);
    }
 }

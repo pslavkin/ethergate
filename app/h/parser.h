@@ -6,6 +6,7 @@ struct Parser_Queue_Struct
    uint8_t Buff[APP_INPUT_BUF_SIZE];
    struct tcp_pcb* tpcb;
    uint32_t Id;
+   uint32_t Index;
 };
 void Parser_Task(void* nil);
 extern QueueHandle_t                Parser_Queue;
