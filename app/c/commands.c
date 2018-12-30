@@ -24,6 +24,7 @@
 #include "one_wire_transport.h"
 #include "usr_flash.h"
 #include "schedule.h"
+#include "parser.h"
 #include "third_party/lwip-1.4.1/src/include/ipv4/lwip/ip_addr.h"
 
 #include "FreeRTOS.h"
@@ -498,7 +499,6 @@ int Cmd_Pwd(struct tcp_pcb* tpcb, int argc, char *argv[])
 }
 
 //--------------------------------------------------------------------------------
-char Buff_Cmd[APP_INPUT_BUF_SIZE];
 void Init_Uart(void)
 {
    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -510,14 +510,21 @@ void Init_Uart(void)
    g_psCmdTable=Login_Cmd_Table;
 }
 
+struct Parser_Queue_Struct D;
 void User_Commands_Task(void* nil)
 {
+   uint32_t Uart_Id=0;
    Cmd_Welcome(UART_MSG,0,NULL);
    Cmd_Help(UART_MSG,0,NULL);
+
    while(1) {
-      while(xSemaphoreTake(Uart_Studio_Semphr,portMAX_DELAY)!=pdTRUE)
-         ;
-      UARTgets       ( Buff_Cmd,APP_INPUT_BUF_SIZE );
-      CmdLineProcess ( Buff_Cmd,UART_MSG            );
+      uint8_t Index=0;
+      while ( UARTgets ( D.Buff ,APP_INPUT_BUF_SIZE-1,&Index )==false) {
+         vTaskDelay(pdMS_TO_TICKS(30));
+      }
+      D.tpcb = UART_MSG;
+      D.Id   = Uart_Id;
+      Uart_Id++;
+      xQueueSend(Parser_Queue,&D,portMAX_DELAY);
    }
 }

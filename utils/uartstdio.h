@@ -27,6 +27,7 @@
 
 #include "utils/lwiplib.h"
 #include <stdarg.h>
+#include <stdbool.h>
 #include "app/h/opt.h"
 
 #define DEBUG_MSG ((struct tcp_pcb*)(NULL))
@@ -66,7 +67,7 @@ extern SemaphoreHandle_t Uart_Studio_Semphr;
 
 extern void UARTStdioConfig   ( uint32_t ui32Port, uint32_t ui32Baud,
                             uint32_t ui32SrcClock                              );
-extern int  UARTgets          ( char *pcBuf, uint32_t ui32Len                  );
+bool        UARTgets(uint8_t *pcBuf, uint8_t Max_Length, uint8_t* Index);
 extern unsigned char UARTgetc ( void                                           );
 extern void UARTprintf(const char *pcString, ...);
 extern void UART_ETHprintf    ( struct tcp_pcb* tpcb,const char *pcString, ... );
