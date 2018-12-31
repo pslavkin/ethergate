@@ -2,6 +2,7 @@
 #include <string.h>
 #include "utils/lwiplib.h"
 #include "utils/cmdline.h"
+#include "utils/cmdline.h"
 #include "opt.h"
 #include "events.h"
 #include "usr_flash.h"
@@ -10,6 +11,8 @@
 #include "utils/ringbuf.h"
 #include "parser.h"
 #include "telnet.h"
+#include "leds.h"
+#include "utils/uartstdio.h"
 
 struct tcp_pcb *Soc_Cmd;
 struct tcp_pcb *Soc_Rs232;
@@ -25,6 +28,7 @@ void Init_Telnet(void)         //inicializa los puertos que se usan en esta maqu
    tcpip_callback ( Create_Rs232_Socket ,0 );
 }
 
+
 err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    uint8_t Data;
@@ -34,10 +38,12 @@ err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
       for(i=0;i<p->len;i++) {
          Data=((uint8_t*)p->payload)[i];
          if(Data=='\n' || Data=='\r') {
-            if((Data=='\n' && ((uint8_t*)p->payload)[i+1]=='\r') ||
-               (Data=='\r' && ((uint8_t*)p->payload)[i+1]=='\n'))
-                  i++;
-            B->Buff[B->Index] = '\0'    ;
+            if( (i+1)<p->len                                      &&
+               ((Data=='\n' && ((uint8_t*)p->payload)[i+1]=='\r') ||
+                (Data=='\r' && ((uint8_t*)p->payload)[i+1]=='\n'))
+              )
+               i++;
+            B->Buff[B->Index] = '\0';
             xQueueSend(Parser_Queue,B,portMAX_DELAY);
             B->Id++;
             B->Index = 0;
@@ -116,10 +122,15 @@ void Init_Rs232_Conn(void)
 err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    if(p!=NULL)  {
-      UARTwrite(p->payload,p->len);
-      tcp_recved(tpcb,p->len);
-      pbuf_free(p);                    //libero bufer
-      return ERR_OK;
+      if(UARTTxBytesFree()>=p->len) {
+         UARTwrite  ( p->payload ,p->len );
+         tcp_recved ( tpcb       ,p->len );
+         pbuf_free  ( p                  ); // libero bufer
+         Led_Rgb_Only_Blue(); //debug
+         return ERR_OK;
+      }
+      else
+         return ERR_INPROGRESS; //parece que anda, pero no lo revise.. o sea no puedo mandar.. volve mas tarde
    }
    else {
       tcp_accepted    ( Soc_Cmd ); // libreo 1 lugar para el blog
@@ -129,14 +140,25 @@ err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
    }
 }
 
-void Send_To_All_Tcp(uint8_t* Data, uint16_t Len)
+bool Is_Any_Connection_Registered(void)
 {
    uint8_t i;
+   for(i=0;i<3 && Rs232_List[i]==NULL;i++)
+      ;
+   return i<3;
+}
+
+bool Send_To_All_Tcp(uint8_t* Data, uint16_t Len)
+{
+   uint8_t i;
+   bool Ans=false;
    for(i=0;i<3;i++) {
       if(Rs232_List[i]!=NULL) {
         tcp_write(Rs232_List[i],Data,Len,TCP_WRITE_FLAG_COPY);//|TCP_WRITE_FLAG_MORE);
+        Ans=true;
       }
    }
+   return Ans;
 }
 
 

@@ -13,6 +13,9 @@
 //-----------------------------------------------------------
 extern SemaphoreHandle_t   Led_Link_Semphr                   ;
 extern void                Init_Led_Link   ( void      );
+void Led_Rgb_Only_Green(void);
+void Led_Rgb_Only_Blue(void);
+void Led_Rgb_Only_Red(void);
 extern void                Led_Link_Task   ( void* nil );
 extern void                Led_Serial_Task ( void* nil );
 extern void                Led_Rgb_Task    ( void* nil );

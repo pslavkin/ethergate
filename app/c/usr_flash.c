@@ -32,7 +32,12 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Id             = "ehergate_12345678",
       .Pwd            = "1234",
       .Wdog           = 0,
-      .Hang_Times     = 0, //solo para debug del cuelgue por MAC sorda
+      .Hang_Times     = 0,      // solo para debug del cuelgue por MAC sorda
+      .Rs232_Len      = APP_INPUT_BUF_SIZE,   // longitud en donde corta la trama 232 (tiene que ser menor que el largo del buffer limitar al recibir
+      .Rs232_Tout     =  5,     // en slots de 100msegs (10=1seg)
+      .Rs232_Term     = 0xFFFF, // '\r', // caracter que corta la trama 232 (es un entero 16 para poder invalidarlo poniendo un numero mayor a 255
+      .Rs232_Baud     = 115200, //baud rate para puerto 232
+      .Rs232_Menu_Enable = true, //permite entrar al menu de configuracion por rs232 siempre qu eno este ninguna conexion abierta
 };
 struct Usr_Flash_Struct Usr_Flash_Params;
 

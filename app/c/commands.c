@@ -57,6 +57,7 @@ tCmdLineEntry Main_Cmd_Table[] =
     { "net"    ,Cmd_Main2Ip     ,": network options" }     ,
     { "temp"   ,Cmd_Main2T      ,": temperature options" } ,
     { "snmp"   ,Cmd_Main2Snmp   ,": snmp options" }        ,
+    { "rs232"  ,Cmd_Main2Rs232  ,": Rs232 options" }        ,
     { "system" ,Cmd_Main2System ,": system options" }      ,
     { "?"      ,Cmd_Help        ,": help" }                ,
     { "<"      ,Cmd_Back2Login  ,": back" }                ,
@@ -97,6 +98,15 @@ tCmdLineEntry Snmp_Cmd_Table[] =
     { "?"   ,Cmd_Help           ,": help" }                                                                         ,
     { "<"   ,Cmd_Back2Main      ,": back" }                                                                         ,
     { 0     ,0                  ,0 }
+};
+tCmdLineEntry Rs232_Cmd_Table[] =
+{
+    { "baud" ,Cmd_Rs232_Baud        ,": show and/or save Rs232 baud rate" }                        ,
+    { "len"  ,Cmd_Rs232_Len         ,": show and/or save Rs232 packet len" }                       ,
+    { "menu" ,Cmd_Rs232_Menu_Enable ,": show and/or save rs232 command menu. 1=enable 0=disable" } ,
+    { "?"    ,Cmd_Help              ,": help" }                                                    ,
+    { "<"    ,Cmd_Back2Main         ,": back" }                                                    ,
+    { 0      ,0                     ,0 }
 };
 tCmdLineEntry System_Cmd_Table[] =
 {
@@ -168,6 +178,13 @@ int Cmd_Main2T(struct tcp_pcb* tpcb, int argc, char *argv[])
 int Cmd_Main2Snmp(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Snmp_Cmd_Table;
+//   Cmd_Help(tpcb, argc, argv);
+   return 0;
+}
+
+int Cmd_Main2Rs232(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   g_psCmdTable=Rs232_Cmd_Table;
 //   Cmd_Help(tpcb, argc, argv);
    return 0;
 }
@@ -440,7 +457,6 @@ void Print_Snmp_Iso(struct tcp_pcb* tpcb,uint8_t* Iso,uint8_t Len)
       UART_ETHprintf(tpcb," %02d",Iso[i]);
    UART_ETHprintf(tpcb,"\r\n");
 }
-
 int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    uint8_t i;
@@ -461,6 +477,37 @@ int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
          Print_Snmp_Iso(tpcb,Usr_Flash_Params.Snmp_Iso[Channel],Usr_Flash_Params.Snmp_Iso_Len);
          Save_Usr_Flash();
    }
+   return 0;
+}
+int Cmd_Rs232_Baud(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"Baud: %d bps\r\n", Usr_Flash_Params.Rs232_Baud);
+   else {
+      Usr_Flash_Params.Rs232_Baud=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New baud: %d bps\r\n", Usr_Flash_Params.Rs232_Baud);
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Rs232_Len(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"Len: %d\r\n", Usr_Flash_Params.Rs232_Len);
+   else {
+      Usr_Flash_Params.Rs232_Len=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Len: %d\r\n", Usr_Flash_Params.Rs232_Len);
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Rs232_Menu_Enable(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc>1) {
+      Usr_Flash_Params.Rs232_Menu_Enable=atoi(argv[1])>=1?true:false;
+      Save_Usr_Flash();
+   }
+   UART_ETHprintf(tpcb,"Menu %s\r\n", Usr_Flash_Params.Rs232_Menu_Enable?"enable":"disable");
    return 0;
 }
 
@@ -501,12 +548,12 @@ int Cmd_Pwd(struct tcp_pcb* tpcb, int argc, char *argv[])
 //--------------------------------------------------------------------------------
 void Init_Uart(void)
 {
-   ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-   ROM_GPIOPinConfigure(GPIO_PA0_U0RX);
-   ROM_GPIOPinConfigure(GPIO_PA1_U0TX);
-   ROM_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+   ROM_SysCtlPeripheralEnable ( SYSCTL_PERIPH_GPIOA                      );
+   ROM_GPIOPinConfigure       ( GPIO_PA0_U0RX                            );
+   ROM_GPIOPinConfigure       ( GPIO_PA1_U0TX                            );
+   ROM_GPIOPinTypeUART        ( GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1 );
 
-   UARTStdioConfig ( 0, 115200, configCPU_CLOCK_HZ);
+   UARTStdioConfig ( 0, Usr_Flash_Params.Rs232_Baud, configCPU_CLOCK_HZ);
    g_psCmdTable=Login_Cmd_Table;
 }
 
@@ -514,18 +561,33 @@ struct Parser_Queue_Struct D;
 void User_Commands_Task(void* nil)
 {
    uint32_t Uart_Id=0;
-   Cmd_Welcome(UART_MSG,0,NULL);
-   Cmd_Help(UART_MSG,0,NULL);
+   Cmd_Welcome(UART_MSG ,0 ,NULL);
+   Cmd_Help(UART_MSG    ,0 ,NULL);
 
    while(1) {
-      D.Index=0;
-      while ( UARTgets ( D.Buff ,APP_INPUT_BUF_SIZE-1,(uint8_t*)&D.Index )==false) {
-         vTaskDelay(pdMS_TO_TICKS(30));
+      if(Is_Any_Connection_Registered()) {
+         D.Index=UARTget_Til_Tout_Or_Len_Or_Term(
+                 D.Buff,
+                 Usr_Flash_Params.Rs232_Len,
+                 Usr_Flash_Params.Rs232_Tout,
+                 Usr_Flash_Params.Rs232_Term);
+         Led_Rgb_Only_Green(); //debug
+         Send_To_All_Tcp(D.Buff,D.Index);
       }
-      D.tpcb  = UART_MSG;
-      D.Id    = Uart_Id;
-      Uart_Id++;
-      xQueueSend(Parser_Queue,&D,portMAX_DELAY);
-      Send_To_All_Tcp(D.Buff,D.Index);
+      else
+         if(Usr_Flash_Params.Rs232_Menu_Enable==true) {
+            D.Index=UARTget_Til_Tout_Or_Len_Or_Term(
+                  D.Buff,
+                  APP_INPUT_BUF_SIZE-1,
+                  600*5, //sale a los 5minutos si no apretan tecla
+                  0xFFFF);
+            D.Buff[D.Index] = '\0';
+            D.Id            = Uart_Id;
+            D.tpcb          = UART_MSG;
+            Uart_Id++;
+            xQueueSend(Parser_Queue,&D,portMAX_DELAY);
+         }
+         else
+            vTaskDelay(pdMS_TO_TICKS(100));  //si no se parsea el puerto, espero un rato
    }
 }
