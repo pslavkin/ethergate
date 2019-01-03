@@ -19,7 +19,6 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
-//-------------------------------------------------------------------
 void Init_Led_RGB(void)
 {
  MAP_SysCtlPeripheralEnable (LED_RED_PERIPH);
@@ -46,7 +45,6 @@ void Init_Led_Link ( void)
 }
 void Led_Link_Task ( void* nil )
 {
-   uint16_t Seems_Hang=0;
    MAP_SysCtlPeripheralEnable (LED_LINK_PERIPH);
    MAP_GPIOPinTypeGPIOOutput  (LED_LINK_PORT,LED_LINK_PIN);
    bool Link_State=false;
@@ -54,25 +52,16 @@ void Led_Link_Task ( void* nil )
       Link_State=EMACPHYLinkUp();
       if(Link_State)
          while(1) {
-            GPIOPinSet ( LED_LINK_PORT,LED_LINK_PIN ) ;
-            vTaskDelay ( pdMS_TO_TICKS(10                   ));
-            if( xSemaphoreTake ( Led_Link_Semphr, pdMS_TO_TICKS(1000))==pdFAIL) {
-               if(Seems_Hang++>100) {
-                  Usr_Flash_Params.Hang_Times++;
-                  Save_Usr_Flash();
-                  Soft_Reset();
-               }
-               break;
-            }
-            Seems_Hang=0; //uff...lucky
-            GPIOPinReset ( LED_LINK_PORT,LED_LINK_PIN ) ;
-            vTaskDelay   ( pdMS_TO_TICKS(50           ));
+            GPIOPinSet     ( LED_LINK_PORT,LED_LINK_PIN     ) ;
+            vTaskDelay     ( pdMS_TO_TICKS( 50              ));
+            xSemaphoreTake ( Led_Link_Semphr ,portMAX_DELAY ) ;
+            GPIOPinReset   ( LED_LINK_PORT   ,LED_LINK_PIN  ) ;
+            vTaskDelay     ( pdMS_TO_TICKS(20               ));
          }
       else {
          GPIOPinReset ( LED_LINK_PORT,LED_LINK_PIN ) ;
-         vTaskDelay   ( pdMS_TO_TICKS(1000         ));
+         vTaskDelay   ( pdMS_TO_TICKS( 500         ));
       }
-
    }
 }
 //--------------------------------------------------------------------------------

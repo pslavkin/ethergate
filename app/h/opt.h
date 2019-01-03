@@ -3,10 +3,10 @@
 
 //#define DEBUG_UART
 
-#define APP_INPUT_BUF_SIZE      128
+#define APP_INPUT_BUF_SIZE      256
 #define UART_BUFFERED
 #define UART_RX_BUFFER_SIZE     1024
-#define UART_TX_BUFFER_SIZE     (3*TCP_MSS+1)   //igual al buffer (mas uno porque es circular) de lwip para que un paquete de tcp pueda caber justo dentro de la cola de transmision
+#define UART_TX_BUFFER_SIZE     1024 //(3*TCP_MSS+1)   //igual al buffer (mas uno porque es circular) de lwip para que un paquete de tcp pueda caber justo dentro de la cola de transmision
 #define PARSER_QUEUE_SIZE       10
 
 #define USR_FLASH_START 0x00020000                          //donde te plazca que no pise codigo. y que este alineado a 4

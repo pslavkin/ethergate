@@ -7,7 +7,6 @@
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/pin_map.h"
-#include "commands.h"
 #include "clk.h"
 #include "state_machine.h"
 #include "events.h"
@@ -47,14 +46,14 @@ int main(void)
    Init_Uart   ( );
    Init_Events ( );
    Init_Schedule();
-   xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE*2   ,NULL ,tskIDLE_PRIORITY+2 ,NULL );
    xTaskCreate ( Schedule           ,"schedule"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
    xTaskCreate ( Led_Link_Task      ,"led link"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
    xTaskCreate ( Led_Rgb_Task       ,"leds RGB"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
 // xTaskCreate ( Led_Serial_Task    ,"led serial"    ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE*2 ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
    xTaskCreate ( Button1_Task       ,"Button1"       ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( Parser_Task        ,"Parser"        ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   xTaskCreate ( Parser_Task        ,"Parser"        ,configMINIMAL_STACK_SIZE*3 ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
    Init_One_Wire_Transport ( );
    Init_Telnet             ( );
    Init_Udp                ( );

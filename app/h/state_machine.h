@@ -9,11 +9,11 @@
 
 //------------------------------------------------------------------
 typedef struct Efn      //Event-Function-Next
- {
-   uint16_t          Event;
-   void              (*Func) (void);
-   const struct Efn *Next_State;
- } State;
+{
+   uint16_t                Event;
+   void                    (*Func) (void);
+   const struct Efn* const Next_State;
+} State;
 //------------------------------------------------------------------
 #define Atomic(Function)   {MAP_IntMasterDisable();Function;MAP_IntMasterEnable();}
 //------------------------------------------------------------------

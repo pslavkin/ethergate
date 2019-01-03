@@ -39,7 +39,8 @@ void Schedule(void* nil)
                if(Schedule_List[i].Event!=Invalid_Event) Send_Event(Schedule_List[i].Event,Schedule_List[i].Sm_Func.Machine);     //ei el evento es valido manda un mensaje a la maquina de estados que lo solicito...
                else Schedule_List[i].Sm_Func.Func();                                    //si el evento es invalido, entonces es un schedule de funcion y se la ejecuta asi sin mas...
             Schedule_List[i].Time_Out=Schedule_List[i].Fixed_Time_Out;                   //se transfiere el fixed en time_out renovando el conteo. En caso de que sea cero se libera la entrada en la proxima linea y es equivalente a un evento unico...
-            if(!Schedule_List[i].Time_Out) Schedule_List[i].Sm_Func.Machine=Empty_State_Machine;           //si el time_out es cero entonces se libera la entrada....
+            if(!Schedule_List[i].Time_Out)
+               Schedule_List[i].Sm_Func.Machine=Empty_State_Machine;           //si el time_out es cero entonces se libera la entrada....
          }
          else
           --Schedule_List[i].Time_Out;                   //si no es cero entonces decrementa (para evutar que si entra con cero pase a 0xFFFF!).
@@ -99,9 +100,14 @@ void Resume_Or_New_Periodic_Schedule(uint32_t Time_Out,uint16_t Event,const Stat
 {
  if(!(Resume_Schedule(Event,Machine)<MAX_SCHEDULE_INDEX)) New_Periodic_Schedule(Time_Out,Event,Machine);
 }
+void Update_Or_New_Periodic_Schedule(uint32_t Time_Out,uint16_t Event,const State** Machine)
+{
+ if(!(Update_Schedule(Time_Out,Event,Machine)<MAX_SCHEDULE_INDEX)) New_Periodic_Schedule(Time_Out,Event,Machine);
+}
 void Update_Or_New_None_Periodic_Schedule(uint32_t Time_Out,uint16_t Event,const State** Machine)
 {
- if(!(Update_Schedule(Time_Out,Event,Machine)<MAX_SCHEDULE_INDEX)) New_None_Periodic_Schedule(Time_Out,Event,Machine);
+ if(Update_Schedule(Time_Out,Event,Machine)>=MAX_SCHEDULE_INDEX)
+    New_None_Periodic_Schedule(Time_Out,Event,Machine);
 }
 void New_Periodic_Schedule(uint32_t Time_Out,uint16_t Event,const State** Machine)
 {
@@ -111,7 +117,7 @@ void New_Periodic_Schedule(uint32_t Time_Out,uint16_t Event,const State** Machin
 }
 void New_None_Periodic_Schedule(uint32_t Time_Out,uint16_t Event,const State** Machine)    //enlista una nueva entrada de tiempo ...
 {
- uint8_t i; 
+ uint8_t i;
  if((i=Search_Schedule_Index())<MAX_SCHEDULE_INDEX)
    Add_Schedule(i,0,Time_Out,Event,Machine,Rien,0);
 }

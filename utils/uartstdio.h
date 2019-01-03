@@ -78,6 +78,10 @@ extern void             UART_ETHprintf                  ( struct tcp_pcb* tpcb,c
 extern void             UARTprintf                      ( const char *pcString, ...                                   );
 extern int              UARTwrite                       ( const char *pcBuf, uint32_t ui32Len                         );
 #ifdef UART_BUFFERED
+bool Rx_Buffer_Empty(void);
+uint8_t Read_Next_Char(void);
+uint8_t Peek_Next_Char(void);
+uint32_t Get_Buff_Count(void);
 extern int              UARTPeek                        ( unsigned char ucChar                                        );
 extern void             UARTFlushTx                     ( bool bDiscard                                               );
 extern void             UARTFlushRx                     ( void                                                        );

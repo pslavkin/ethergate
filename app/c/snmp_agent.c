@@ -17,13 +17,12 @@
 #include "utils/ustdlib.h"
 #include "utils/cmdline.h"
 #include "drivers/pinout.h"
-#include "commands.h"
 #include "opt.h"
-#include "commands.h"
 #include "udp.h"
 #include "snmp_agent.h"
 #include "state_machine.h"
 #include "events.h"
+#include "commands.h"
 #include "one_wire_network.h"
 #include "usr_flash.h"/*}}}*/
 

@@ -4,6 +4,7 @@
 #include "utils/cmdline.h"
 #include "utils/cmdline.h"
 #include "opt.h"
+#include "state_machine.h"
 #include "events.h"
 #include "usr_flash.h"
 #include "commands.h"
@@ -16,7 +17,7 @@
 
 struct tcp_pcb *Soc_Cmd;
 struct tcp_pcb *Soc_Rs232;
-struct tcp_pcb* Rs232_List[3];
+struct tcp_pcb* Rs232_List[TCP_REGISTERED_LIST];
 //-------------------------------------------------------------------------------------
 void Create_Cmd_Socket   ( void* nil );
 void Create_Rs232_Socket ( void* nil );
@@ -93,21 +94,25 @@ void Create_Cmd_Socket(void* nil)
 //---------------------------------------------------------------------------------------
 bool Free_Rs232_Conn(struct tcp_pcb* New)
 {
-   uint8_t i;
-   for(i=0;i<3;i++) {
+   uint8_t i,Empty=0;
+   for(i=0;i<TCP_REGISTERED_LIST;i++) {
       if(Rs232_List[i]==New) {
          Rs232_List[i]=NULL;
-         return true;
       }
+      if(Rs232_List[i]==NULL)
+          Empty++;
    }
+   if(Empty==TCP_REGISTERED_LIST)
+      Send_Event(Conn_Free_Event,Commands());
    return false;
 }
 bool Register_Rs232_Conn(struct tcp_pcb* New)
 {
    uint8_t i;
-   for(i=0;i<3;i++) {
+   for(i=0;i<TCP_REGISTERED_LIST;i++) {
       if(Rs232_List[i]==NULL) {
          Rs232_List[i]=New;
+         Send_Event(Conn_Regi_Event,Commands());
          return true;
       }
    }
@@ -116,7 +121,7 @@ bool Register_Rs232_Conn(struct tcp_pcb* New)
 void Init_Rs232_Conn(void)
 {
    uint8_t i;
-   for(i=0;i<3;i++)
+   for(i=0;i<TCP_REGISTERED_LIST;i++)
       Rs232_List[i]=NULL;
 }
 err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
@@ -139,20 +144,18 @@ err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
       return ERR_OK;
    }
 }
-
 bool Is_Any_Connection_Registered(void)
 {
    uint8_t i;
-   for(i=0;i<3 && Rs232_List[i]==NULL;i++)
+   for(i=0;i<TCP_REGISTERED_LIST && Rs232_List[i]==NULL;i++)
       ;
-   return i<3;
+   return i<TCP_REGISTERED_LIST;
 }
-
 bool Send_To_All_Tcp(uint8_t* Data, uint16_t Len)
 {
    uint8_t i;
    bool Ans=false;
-   for(i=0;i<3;i++) {
+   for(i=0;i<TCP_REGISTERED_LIST;i++) {
       if(Rs232_List[i]!=NULL) {
         tcp_write(Rs232_List[i],Data,Len,TCP_WRITE_FLAG_COPY);//|TCP_WRITE_FLAG_MORE);
         Ans=true;
@@ -160,9 +163,6 @@ bool Send_To_All_Tcp(uint8_t* Data, uint16_t Len)
    }
    return Ans;
 }
-
-
-
 err_t Accept_Rs232_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    tcp_recv            ( newpcb ,Rcv_Rs232_Fn );

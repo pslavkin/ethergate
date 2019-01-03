@@ -12,6 +12,11 @@ void Init_Events(void)
    Events_Queue=xQueueCreate ( MAX_EVENTS,sizeof(Events ));
 }
 //-----------------------------------------------------------------
+void Send_Event4Isr(uint16_t Event,const State** Machine, BaseType_t * const pxHigherPriorityTaskWoken )
+{
+   Events E={Event,Machine};
+   xQueueSendFromISR(Events_Queue,&E,pxHigherPriorityTaskWoken);
+}
 void Send_Event(uint16_t Event,const State** Machine)   //escribe un nuevo dato a la cola...
 {
    Events E={Event,Machine};

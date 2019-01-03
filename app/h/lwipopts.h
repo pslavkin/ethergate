@@ -76,12 +76,12 @@
 // ---------- Internal Memory Pool Sizes ----------
 //
 //*****************************************************************************
-#define MEMP_NUM_PBUF                     64    // Default 16
+#define MEMP_NUM_PBUF                     32    // Default 16
 //#define MEMP_NUM_RAW_PCB                4
 #define MEMP_NUM_UDP_PCB                  4
 #define MEMP_NUM_TCP_PCB                  6    // Default 5 //3 backlogs por cada listen
 #define MEMP_NUM_TCP_PCB_LISTEN           2     //uno para cmd y otro para RS232 
-#define MEMP_NUM_TCP_SEG                  16  // Default 16
+#define MEMP_NUM_TCP_SEG                  32  // Default 16
 //#define MEMP_NUM_REASSDATA              5
 //#define MEMP_NUM_ARP_QUEUE              30
 //#define MEMP_NUM_IGMP_GROUP             8
@@ -212,15 +212,15 @@
 //*****************************************************************************
 #define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_MSS                         536            // default is 536
+#define TCP_MSS                         1500           // default is 536
 #define TCP_WND                         (2*TCP_MSS+16) // default is 2048
-#define TCP_SND_BUF                     (2 * TCP_MSS+16)
+#define TCP_SND_BUF                     (4*TCP_MSS+16)
 //#define TCP_MAXRTX                      12
 //#define TCP_SYNMAXRTX                   6
 //#define TCP_QUEUE_OOSEQ                 1
 //#define TCP_CALCULATE_EFF_SEND_MSS      1
                                                     // default is 256
-//#define TCP_SND_QUEUELEN                (4 * (TCP_SND_BUF/TCP_MSS))
+#define TCP_SND_QUEUELEN                32 //(32* (TCP_SND_BUF/TCP_MSS))
 //#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
 #define TCP_LISTEN_BACKLOG              0
 #define TCP_DEFAULT_LISTEN_BACKLOG      3

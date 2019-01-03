@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h>/*{{{*/
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -14,7 +14,10 @@
 #include "utils/ustdlib.h"
 #include "utils/lwiplib.h"
 #include "state_machine.h"
+#include "usr_flash.h"
 #include "commands.h"
+#include "events.h"
+#include "state_machine.h"
 #include "leds.h"
 #include "buttons.h"
 #include "telnet.h"
@@ -30,18 +33,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-#include "semphr.h"
+#include "semphr.h"/*}}}*/
 
-
-//*****************************************************************************
-//
-// This is the table that holds the command names, implementing functions, and
-// brief description.
-//
-//*****************************************************************************
 tCmdLineEntry* g_psCmdTable;
-
-tCmdLineEntry Login_Cmd_Table[] =
+tCmdLineEntry Login_Cmd_Table[] =/*{{{*/
 {
     { "login"  ,Cmd_Login   ,": login" }                                ,
     { "id"     ,Cmd_Show_Id ,": show id name" }                         ,
@@ -51,77 +46,80 @@ tCmdLineEntry Login_Cmd_Table[] =
     { "exit"   ,Cmd_Exit    ,": exit and close connection" }            ,
     { "?"      ,Cmd_Help    ,": help" }                                 ,
     { 0        ,0           ,0 }
-};
-tCmdLineEntry Main_Cmd_Table[] =
+};/*}}}*/
+tCmdLineEntry Main_Cmd_Table[] =/*{{{*/
 {
     { "net"    ,Cmd_Main2Ip     ,": network options" }     ,
     { "temp"   ,Cmd_Main2T      ,": temperature options" } ,
     { "snmp"   ,Cmd_Main2Snmp   ,": snmp options" }        ,
-    { "rs232"  ,Cmd_Main2Rs232  ,": Rs232 options" }        ,
+    { "rs232"  ,Cmd_Main2Rs232  ,": Rs232 options" }       ,
     { "system" ,Cmd_Main2System ,": system options" }      ,
     { "?"      ,Cmd_Help        ,": help" }                ,
     { "<"      ,Cmd_Back2Login  ,": back" }                ,
     { 0        ,0               ,0 }
-};
-tCmdLineEntry Ip_Cmd_Table[] =
+};/*}}}*/
+tCmdLineEntry Ip_Cmd_Table[] =/*{{{*/
 {
-    { "mac"  ,Cmd_Mac         ,": show MAC address" }                                 ,
-    { "ip"   ,Cmd_Ip          ,": show and/or save ip" }                              ,
-    { "mask" ,Cmd_Mask        ,": show and/or save mask" }                            ,
-    { "gw"   ,Cmd_Gateway     ,": show and/or save gateway" }                         ,
-    { "dhcp" ,Cmd_Dhcp        ,": show and/or save dhcp (0=disable 1=enable)" }       ,
-    { "cp"   ,Cmd_Config_Port ,": show and/or save config tcp port [default 49152]" } ,
-    { "link" ,Cmd_Link_State  ,": show link state" } ,
-    { "?"    ,Cmd_Help        ,": help" }                                             ,
-    { "<"    ,Cmd_Back2Main   ,": back" }                                             ,
+    { "mac"  ,Cmd_Mac         ,": show MAC address" }                          ,
+    { "ip"   ,Cmd_Ip          ,": show/save ip" }                              ,
+    { "mask" ,Cmd_Mask        ,": show/save mask" }                            ,
+    { "gw"   ,Cmd_Gateway     ,": show/save gateway" }                         ,
+    { "dhcp" ,Cmd_Dhcp        ,": show/save dhcp (0=disable 1=enable)" }       ,
+    { "cp"   ,Cmd_Config_Port ,": show/save config tcp port [default 49152]" } ,
+    { "link" ,Cmd_Link_State  ,": show link state" }                           ,
+    { "?"    ,Cmd_Help        ,": help" }                                      ,
+    { "<"    ,Cmd_Back2Main   ,": back" }                                      ,
     { 0      ,0               ,0 }
-};
-tCmdLineEntry T_Cmd_Table[] =
+};/*}}}*/
+tCmdLineEntry T_Cmd_Table[] =/*{{{*/
 {
-    { "t"         ,Cmd_T             ,": show temperatures" }                         ,
-    { "tstart"    ,Cmd_T_Start       ,": start show temperatures periodically" }      ,
-    { "tstop"     ,Cmd_T_Stop        ,": stop show temperatures periodically" }       ,
-    { "tprom"     ,Cmd_T_Prom        ,": show mean temperature" }                     ,
-    { "tmax"      ,Cmd_Tmax          ,": show and/or save tmax" }                     ,
-    { "tmin"      ,Cmd_Tmin          ,": show and/or save tmin" }                     ,
-    { "scan"      ,Cmd_Reload_T      ,": scan sensor list" }                          ,
-    { "scan_tout" ,Cmd_Reload_T_TOut ,": show and/or save scan sensor list tout" }    ,
-    { "tport"     ,Cmd_Temp_Port     ,": show and/or save tcp port [default 49153]" } ,
-    { "?"         ,Cmd_Help          ,": help" }                                      ,
-    { "<"         ,Cmd_Back2Main     ,": back" }                                      ,
-    { 0           ,0                 ,0 }
-};
-tCmdLineEntry Snmp_Cmd_Table[] =
+   { "t"         ,Cmd_T             ,": show temperatures" }                    ,
+   { "tstart"    ,Cmd_T_Start       ,": start show temperatures periodically" } ,
+   { "tstop"     ,Cmd_T_Stop        ,": stop show temperatures periodically" }  ,
+   { "tprom"     ,Cmd_T_Prom        ,": show mean temperature" }                ,
+   { "tmax"      ,Cmd_Tmax          ,": show/save tmax" }                       ,
+   { "tmin"      ,Cmd_Tmin          ,": show/save tmin" }                       ,
+   { "scan"      ,Cmd_Reload_T      ,": scan sensor list" }                     ,
+   { "scan_tout" ,Cmd_Reload_T_TOut ,": show/save scan sensor list tout" }      ,
+   { "tport"     ,Cmd_Temp_Port     ,": show/save tcp port [default 49153]" }   ,
+   { "?"         ,Cmd_Help          ,": help" }                                 ,
+   { "<"         ,Cmd_Back2Main     ,": back" }                                 ,
+   { 0           ,0                 ,0 }
+};/*}}}*/
+tCmdLineEntry Snmp_Cmd_Table[] =/*{{{*/
 {
-    { "com" ,Cmd_Snmp_Community ,": show and/or save snmp community name" }                                         ,
-    { "iso" ,Cmd_Snmp_Iso       ,": show and/or save snmp Iso. i.e: iso 0 43000007F598B328 43 6 1 2 1 33 1 2 7 1" } ,
-    { "?"   ,Cmd_Help           ,": help" }                                                                         ,
-    { "<"   ,Cmd_Back2Main      ,": back" }                                                                         ,
-    { 0     ,0                  ,0 }
-};
-tCmdLineEntry Rs232_Cmd_Table[] =
+   { "com" ,Cmd_Snmp_Community ,": show/save snmp community name" }                                         ,
+   { "iso" ,Cmd_Snmp_Iso       ,": show/save snmp Iso. i.e: iso 0 43000007F598B328 43 6 1 2 1 33 1 2 7 1" } ,
+   { "?"   ,Cmd_Help           ,": help" }                                                                  ,
+   { "<"   ,Cmd_Back2Main      ,": back" }                                                                  ,
+   { 0     ,0                  ,0 }
+};/*}}}*/
+tCmdLineEntry Rs232_Cmd_Table[] =/*{{{*/
 {
-    { "baud" ,Cmd_Rs232_Baud        ,": show and/or save Rs232 baud rate" }                        ,
-    { "len"  ,Cmd_Rs232_Len         ,": show and/or save Rs232 packet len" }                       ,
-    { "menu" ,Cmd_Rs232_Menu_Enable ,": show and/or save rs232 command menu. 1=enable 0=disable" } ,
-    { "?"    ,Cmd_Help              ,": help" }                                                    ,
-    { "<"    ,Cmd_Back2Main         ,": back" }                                                    ,
-    { 0      ,0                     ,0 }
-};
-tCmdLineEntry System_Cmd_Table[] =
+   { "baud" ,Cmd_Rs232_Baud        ,": show/save RS232 baud rate" }                       ,
+   { "len"  ,Cmd_Rs232_Len         ,": show/save RS232 packet len" }                      ,
+   { "term" ,Cmd_Rs232_Term        ,": show/save RS232 packet terminator" }               ,
+   { "tout" ,Cmd_Rs232_Tout        ,": show/save RS232 packet time out" }               ,
+   { "menu" ,Cmd_Rs232_Menu_Enable ,": show/save RS232 command menu. 1=enable 0=disable"} ,
+   { "?"    ,Cmd_Help              ,": help" }                                            ,
+   { "<"    ,Cmd_Back2Main         ,": back" }                                            ,
+   { 0      ,0                     ,0 }
+};/*}}}*/
+tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 {
-    { "id"     ,Cmd_Id        ,": show and/or save id" }       ,
-    { "pwd"    ,Cmd_Pwd       ,": show and/or save password" } ,
-    { "reboot" ,Cmd_Reboot    ,": reboot" }                    ,
-    { "task"   ,Cmd_TaskList  ,": rsv" }                       ,
-    { "hangs"  ,Cmd_Hangs     ,": hangs times" }                       ,
-    { "uptime" ,Cmd_Uptime    ,": uptime [secs]" }             ,
-    { "wdog"   ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)" }          ,
-    { "?"      ,Cmd_Help      ,": help" }                      ,
-    { "<"      ,Cmd_Back2Main ,": back" }                      ,
-    { 0        ,0             ,0 }
-};
+   { "id"     ,Cmd_Id        ,": show and/or save id" }          ,
+   { "pwd"    ,Cmd_Pwd       ,": show and/or save password" }    ,
+   { "reboot" ,Cmd_Reboot    ,": reboot" }                       ,
+   { "task"   ,Cmd_TaskList  ,": rsv" }                          ,
+   { "hangs"  ,Cmd_Hangs     ,": hangs times" }                  ,
+   { "uptime" ,Cmd_Uptime    ,": uptime [secs]" }                ,
+   { "wdog"   ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)" } ,
+   { "?"      ,Cmd_Help      ,": help" }                         ,
+   { "<"      ,Cmd_Back2Main ,": back" }                         ,
+   { 0        ,0             ,0 }
+};/*}}}*/
 //--------------------------------------------------------------------------------
+//WELCOME-HELP{{{
 int Cmd_Welcome(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    g_psCmdTable=Login_Cmd_Table;
@@ -136,8 +134,8 @@ int Cmd_Help(struct tcp_pcb* tpcb, int argc, char *argv[])
     for(;pEntry->pcCmd;pEntry++)
         UART_ETHprintf(tpcb,"%15s%s\r\n", pEntry->pcCmd, pEntry->pcHelp);
     return 0;
-}
-//--------------------------------------------------------------------------------
+}/*}}}*/
+//LOGIN{{{
 int Cmd_Login(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc>1) {
@@ -205,8 +203,101 @@ int Cmd_Back2Login(struct tcp_pcb* tpcb, int argc, char *argv[])
    g_psCmdTable=Login_Cmd_Table;
 //   Cmd_Help(tpcb, argc, argv);
    return 0;
+}/*}}}*/
+//TEMP{{{
+int Cmd_Temp_Port(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"%d\r\n",Usr_Flash_Params.Temp_Port);
+   else {
+      uint16_t New_Port=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"new port=%d\r\n",New_Port);
+      Usr_Flash_Params.Temp_Port=New_Port;
+      Save_Usr_Flash();
+   }
+   return 0;
 }
-//----------------------------------------------------------------------------------------------------
+int Cmd_T(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   Print_Temp_Nodes(tpcb);
+   return 0;
+}
+struct tcp_pcb* tpcb4per;
+void Print_Temp_Nodes_Per(void)
+{
+   if(tpcb4per->state!=ESTABLISHED) {
+      Free_Func_Schedule(Print_Temp_Nodes_Per);
+      tpcb4per=NULL;
+   }
+   else
+      tcpip_callback((tcpip_callback_fn)Print_Temp_Nodes,(void*)tpcb4per);
+}
+int Cmd_T_Stop(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+      Free_Func_Schedule(Print_Temp_Nodes_Per);
+      tpcb4per=NULL;
+      return 0;
+}
+int Cmd_T_Start(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   tpcb4per=tpcb;
+   Free_Func_Schedule(Print_Temp_Nodes_Per);
+   Print_Temp_Nodes(tpcb);
+   New_Periodic_Func_Schedule(20,Print_Temp_Nodes_Per);
+   return 0;
+}
+int Cmd_T_Prom(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"%f\r\n",Get_T_Prom());
+   return 0;
+}
+int Cmd_Tmax       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"%f\r\n",Usr_Flash_Params.Tmax);
+   else {
+      float fVal= ustrtof(argv[1],NULL);
+      UART_ETHprintf(tpcb,"new tmax=%f\r\n",fVal);
+      Usr_Flash_Params.Tmax=fVal;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Tmin       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"%f\r\n",Usr_Flash_Params.Tmin);
+   else {
+      float fVal= ustrtof(argv[1],NULL);
+      UART_ETHprintf(tpcb,"new tmin=%f\r\n",fVal);
+      Usr_Flash_Params.Tmin=fVal;
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Reload_T_TOut    ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"%d mins\r\nnext scan in %f mins\r\n",
+            Usr_Flash_Params.Reload_T_TOut,
+            (float)One_Wire_Next_Reload_Time()/600
+            );
+   else {
+      uint8_t TOut= atoi(argv[1]);
+      UART_ETHprintf(tpcb,"new reload T Tout=%d mins\r\n",TOut);
+      Usr_Flash_Params.Reload_T_TOut=TOut;
+      Refresh_One_Wire_Reload_TOut(TOut);
+      Save_Usr_Flash();
+   }
+   return 0;
+}
+int Cmd_Reload_T       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
+{
+   UART_ETHprintf(tpcb,"scanning...\r\n");
+   Reload_One_Wire_Codes( );
+   return 0;
+}/*}}}*/
+//IP{{{
 int Cmd_Mac(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    uint8_t Actual_Mac[6];
@@ -302,143 +393,17 @@ int Cmd_Config_Port(struct tcp_pcb* tpcb, int argc, char *argv[])
    }
    return 0;
 }
-int Cmd_Temp_Port(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   if(argc==1)
-      UART_ETHprintf(tpcb,"%d\r\n",Usr_Flash_Params.Temp_Port);
-   else {
-      uint16_t New_Port=atoi(argv[1]);
-      UART_ETHprintf(tpcb,"new port=%d\r\n",New_Port);
-      Usr_Flash_Params.Temp_Port=New_Port;
-      Save_Usr_Flash();
-   }
-   return 0;
-}
-
-
 void DisplayIPAddress(struct tcp_pcb* tpcb,uint32_t ui32Addr)
 {
     UART_ETHprintf(tpcb, "%d.%d.%d.%d\r\n", ui32Addr & 0xff, (ui32Addr >> 8) & 0xff,
             (ui32Addr >> 16) & 0xff, (ui32Addr >> 24) & 0xff);
 }
-
-int Cmd_T(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   Print_Temp_Nodes(tpcb);
-   return 0;
-}
-struct tcp_pcb* tpcb4per;
-void Print_Temp_Nodes_Per(void)
-{
-   if(tpcb4per->state!=ESTABLISHED) {
-      Free_Func_Schedule(Print_Temp_Nodes_Per);
-      tpcb4per=NULL;
-   }
-   else
-      tcpip_callback((tcpip_callback_fn)Print_Temp_Nodes,(void*)tpcb4per);
-}
-int Cmd_T_Stop(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-      Free_Func_Schedule(Print_Temp_Nodes_Per);
-      tpcb4per=NULL;
-      return 0;
-}
-int Cmd_T_Start(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   tpcb4per=tpcb;
-   Free_Func_Schedule(Print_Temp_Nodes_Per);
-   Print_Temp_Nodes(tpcb);
-   New_Periodic_Func_Schedule(20,Print_Temp_Nodes_Per);
-   return 0;
-}
-int Cmd_T_Prom(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   UART_ETHprintf(tpcb,"%f\r\n",Get_T_Prom());
-   return 0;
-}
-int Cmd_Tmax       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
-{
-   if(argc==1)
-      UART_ETHprintf(tpcb,"%f\r\n",Usr_Flash_Params.Tmax);
-   else {
-      float fVal= ustrtof(argv[1],NULL);
-      UART_ETHprintf(tpcb,"new tmax=%f\r\n",fVal);
-      Usr_Flash_Params.Tmax=fVal;
-      Save_Usr_Flash();
-   }
-   return 0;
-}
-int Cmd_Tmin       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
-{
-   if(argc==1)
-      UART_ETHprintf(tpcb,"%f\r\n",Usr_Flash_Params.Tmin);
-   else {
-      float fVal= ustrtof(argv[1],NULL);
-      UART_ETHprintf(tpcb,"new tmin=%f\r\n",fVal);
-      Usr_Flash_Params.Tmin=fVal;
-      Save_Usr_Flash();
-   }
-   return 0;
-}
-int Cmd_Reload_T_TOut    ( struct tcp_pcb* tpcb, int argc, char *argv[] )
-{
-   if(argc==1)
-      UART_ETHprintf(tpcb,"%d mins\r\nnext scan in %f mins\r\n",
-            Usr_Flash_Params.Reload_T_TOut,
-            (float)One_Wire_Next_Reload_Time()/600
-            );
-   else {
-      uint8_t TOut= atoi(argv[1]);
-      UART_ETHprintf(tpcb,"new reload T Tout=%d mins\r\n",TOut);
-      Usr_Flash_Params.Reload_T_TOut=TOut;
-      Refresh_One_Wire_Reload_TOut(TOut);
-      Save_Usr_Flash();
-   }
-   return 0;
-}
-int Cmd_Reload_T       ( struct tcp_pcb* tpcb, int argc, char *argv[] )
-{
-   UART_ETHprintf(tpcb,"scanning...\r\n");
-   Reload_One_Wire_Codes( );
-   return 0;
-}
-int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   if(argc==2 && ustrcmp("tareas",argv[1])==0) {
-      char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
-      vTaskList( Buff );
-      UART_ETHprintf(tpcb,Buff);
-      vPortFree(Buff);
-   }
-   return 0;
-}
-int Cmd_Uptime(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   UART_ETHprintf(tpcb,"%d\r\n",Read_Uptime());
-   return 0;
-}
-int Cmd_Wdog_Tout(struct tcp_pcb* tpcb, int argc, char *argv[])
-{
-   if(argc==1)
-      UART_ETHprintf(tpcb,"%d secs\r\n",Usr_Flash_Params.Wdog);
-   else {
-      uint16_t New_Time=atoi(argv[1]);
-      if(New_Time>=120 || New_Time==0) {
-         UART_ETHprintf(tpcb,"new wdog=%d secs\r\n",New_Time);
-         Usr_Flash_Params.Wdog=New_Time;
-         Save_Usr_Flash();
-      }
-      else
-         UART_ETHprintf(tpcb,"wdog too short (<120 secs) %d secs\r\n",New_Time);
-   }
-   return 0;
-}
-
 int Cmd_Link_State(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    UART_ETHprintf(tpcb,"link %s\r\n",EMACPHYLinkUp()?"up":"down");
    return 0;
-}
+}/*}}}*/
+//SNMP /*{{{*/
 int Cmd_Snmp_Community(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc==1)
@@ -478,7 +443,8 @@ int Cmd_Snmp_Iso(struct tcp_pcb* tpcb, int argc, char *argv[])
          Save_Usr_Flash();
    }
    return 0;
-}
+}/*}}}*/
+//RS232{{{
 int Cmd_Rs232_Baud(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc==1)
@@ -501,6 +467,26 @@ int Cmd_Rs232_Len(struct tcp_pcb* tpcb, int argc, char *argv[])
    }
    return 0;
 }
+int Cmd_Rs232_Term(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc>1) {
+      Usr_Flash_Params.Rs232_Term= atoi(argv[1]);
+      Save_Usr_Flash();
+   }
+   UART_ETHprintf(tpcb,"Terminator: %d\r\n", Usr_Flash_Params.Rs232_Term);
+   return 0;
+}
+int Cmd_Rs232_Tout(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"Tout: %d secs/10\r\n", Usr_Flash_Params.Rs232_Tout);
+   else {
+      Usr_Flash_Params.Rs232_Tout=atoi(argv[1]);
+      UART_ETHprintf(tpcb,"New Tout: %d secs/10\r\n", Usr_Flash_Params.Rs232_Tout);
+      Save_Usr_Flash();
+   }
+   return 0;
+}
 int Cmd_Rs232_Menu_Enable(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc>1) {
@@ -509,8 +495,40 @@ int Cmd_Rs232_Menu_Enable(struct tcp_pcb* tpcb, int argc, char *argv[])
    }
    UART_ETHprintf(tpcb,"Menu %s\r\n", Usr_Flash_Params.Rs232_Menu_Enable?"enable":"disable");
    return 0;
+}/*}}}*/
+//SYSTEM{{{
+int Cmd_Uptime(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   UART_ETHprintf(tpcb,"%d secs\r\n",Read_Uptime());
+   return 0;
 }
-
+int Cmd_Wdog_Tout(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc==1)
+      UART_ETHprintf(tpcb,"%d secs\r\n",Usr_Flash_Params.Wdog);
+   else {
+      uint16_t New_Time=atoi(argv[1]);
+      if(New_Time>=120 || New_Time==0) {
+         UART_ETHprintf(tpcb,"new wdog=%d secs\r\n",New_Time);
+         Usr_Flash_Params.Wdog=New_Time;
+         Save_Usr_Flash();
+      }
+      else
+         UART_ETHprintf(tpcb,"wdog too short (<120 secs) %d secs\r\n",New_Time);
+   }
+   return 0;
+}
+int Cmd_TaskList(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc==2 && ustrcmp("tareas",argv[1])==0) {
+      char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
+      vTaskList( Buff );
+      UART_ETHprintf(tpcb,Buff);
+      UART_ETHprintf(tpcb,"Total Heap=%d Min=%d\r\n", xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
+      vPortFree(Buff);
+   }
+   return 0;
+}
 int Cmd_Reboot(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    Telnet_Close(tpcb);
@@ -543,9 +561,16 @@ int Cmd_Pwd(struct tcp_pcb* tpcb, int argc, char *argv[])
       Save_Usr_Flash();
    }
    return 0;
-}
-
+}/*}}}*/
 //--------------------------------------------------------------------------------
+const State
+   Idle2  [ ],
+   Console[ ],
+   Bridge [ ];
+
+const State*   Commands_Sm;
+struct Parser_Queue_Struct P;
+//------------------------------------------------------------------
 void Init_Uart(void)
 {
    ROM_SysCtlPeripheralEnable ( SYSCTL_PERIPH_GPIOA                      );
@@ -556,38 +581,128 @@ void Init_Uart(void)
    UARTStdioConfig ( 0, Usr_Flash_Params.Rs232_Baud, configCPU_CLOCK_HZ);
    g_psCmdTable=Login_Cmd_Table;
 }
-
-struct Parser_Queue_Struct D;
+//-------------------------------------------------------
 void User_Commands_Task(void* nil)
 {
-   uint32_t Uart_Id=0;
-   Cmd_Welcome(UART_MSG ,0 ,NULL);
-   Cmd_Help(UART_MSG    ,0 ,NULL);
-
+   Commands_Sm = Idle2;
+   Cmd_Welcome  ( UART_MSG ,0 ,NULL ); //debug
    while(1) {
-      if(Is_Any_Connection_Registered()) {
-         D.Index=UARTget_Til_Tout_Or_Len_Or_Term(
-                 D.Buff,
-                 Usr_Flash_Params.Rs232_Len,
-                 Usr_Flash_Params.Rs232_Tout,
-                 Usr_Flash_Params.Rs232_Term);
-         Led_Rgb_Only_Green(); //debug
-         Send_To_All_Tcp(D.Buff,D.Index);
-      }
-      else
-         if(Usr_Flash_Params.Rs232_Menu_Enable==true) {
-            D.Index=UARTget_Til_Tout_Or_Len_Or_Term(
-                  D.Buff,
-                  APP_INPUT_BUF_SIZE-1,
-                  600*5, //sale a los 5minutos si no apretan tecla
-                  0xFFFF);
-            D.Buff[D.Index] = '\0';
-            D.Id            = Uart_Id;
-            D.tpcb          = UART_MSG;
-            Uart_Id++;
-            xQueueSend(Parser_Queue,&D,portMAX_DELAY);
-         }
-         else
-            vTaskDelay(pdMS_TO_TICKS(100));  //si no se parsea el puerto, espero un rato
+      vTaskDelay(pdMS_TO_TICKS(25));
+      Send_Event(Rti_Event,Commands());
    }
 }
+//-------------------------------------------------------
+const State** Commands    ( void ) { return &Commands_Sm;}
+
+void Clear_Index   ( void ) {
+   P.Index=0;
+}
+void Is_Console_Enabled(void)
+{
+   Send_Event(Usr_Flash_Params.Rs232_Menu_Enable==true?
+         Console_Enable_Event:Console_Disable_Event,
+         Commands());
+}
+
+bool Manage_Enter(uint16_t Term,uint8_t Char)
+{
+   if(Term==0xFFFF && (Char=='\n' || Char=='\r')) {
+      if(!Rx_Buffer_Empty()) {
+         uint8_t Next_Char = Peek_Next_Char();
+         if( (Char=='\n' && Next_Char=='\r') ||
+               (Char=='\r' && Next_Char=='\n'))
+            Read_Next_Char();
+      }
+      return true;
+   }
+   return false;
+}
+bool Manage_Backspace(uint16_t Term, uint8_t Char)
+{
+   if(Term==0xFFFF && Char==0x7F) {
+      if(P.Index>0)
+         P.Index--;
+      return true;
+   }
+   else
+      return false;
+}
+
+void Line_Process(uint16_t Term)
+{
+   uint8_t Char;
+   static uint8_t Tout;
+
+   while(!Rx_Buffer_Empty()) {
+      Tout=0;
+      if(P.Index<Usr_Flash_Params.Rs232_Len) {
+         Char = Read_Next_Char();
+         if(Manage_Enter(Term,Char)==true) {
+            Insert_Event(Enter_Found_Event,Commands());
+            return;
+         }
+         if(Manage_Backspace(Term,Char)==false)
+            P.Buff[P.Index++]=Char;
+         if(Char==Term) {
+            Insert_Event(Term_Found_Event,Commands());
+            return;
+         }
+      }
+      else {
+         Insert_Event(Max_Length_Event,Commands());
+         return;
+      }
+   }
+   if(P.Index>0 && (Tout++/4)>=Usr_Flash_Params.Rs232_Tout) {
+         Insert_Event(TOut_Event,Commands());
+         Tout=0;
+   }
+}
+void Console_Data_Process(void)
+{
+   Line_Process(0xFFFF);
+}
+void Send_Data2Parser(void)
+{
+   P.Buff[P.Index] = '\0';
+   P.tpcb          = UART_MSG;
+   P.Id++;
+   xQueueSend(Parser_Queue,&P,portMAX_DELAY);
+   P.Index=0;
+}
+
+void Bridge_Data_Process(void)
+{
+   Line_Process(Usr_Flash_Params.Rs232_Term);
+}
+void Send_Data2Tcp(void)
+{
+   Send_To_All_Tcp(P.Buff,P.Index);
+   P.Index=0;
+}
+//-------------------------------------------------------------------------------------
+const State const Idle2  [ ] =
+{
+   { Rti_Event            ,Is_Console_Enabled ,Idle2   } ,
+   { Console_Enable_Event ,Clear_Index        ,Console } ,
+   { Conn_Regi_Event      ,Clear_Index        ,Bridge  } ,
+   { ANY_Event            ,Rien               ,Idle2   } ,
+};
+const State Bridge[ ] =
+{
+   { Rti_Event          ,Bridge_Data_Process ,Bridge } ,
+   { Term_Found_Event   ,Send_Data2Tcp       ,Bridge } ,
+   { Max_Length_Event   ,Send_Data2Tcp       ,Bridge } ,
+   { TOut_Event         ,Send_Data2Tcp       ,Bridge } ,
+   { Conn_Free_Event    ,Rien                ,Idle2  } ,
+   { ANY_Event          ,Rien                ,Bridge } ,
+};
+const State Console  [ ] =
+{
+   { Rti_Event         ,Console_Data_Process ,Console } ,
+   { Enter_Found_Event ,Send_Data2Parser     ,Console } ,
+   { TOut_Event        ,Send_Data2Parser     ,Console } ,
+   { Max_Length_Event  ,Send_Data2Parser     ,Console } ,
+   { Conn_Regi_Event   ,Clear_Index          ,Bridge  } ,
+   { ANY_Event         ,Rien                 ,Console } ,
+};
