@@ -96,27 +96,29 @@ tCmdLineEntry Snmp_Cmd_Table[] =/*{{{*/
 };/*}}}*/
 tCmdLineEntry Rs232_Cmd_Table[] =/*{{{*/
 {
-   { "baud" ,Cmd_Rs232_Baud        ,": show/save RS232 baud rate" }                       ,
-   { "len"  ,Cmd_Rs232_Len         ,": show/save RS232 packet len" }                      ,
-   { "term" ,Cmd_Rs232_Term        ,": show/save RS232 packet terminator" }               ,
-   { "tout" ,Cmd_Rs232_Tout        ,": show/save RS232 packet time out" }               ,
-   { "menu" ,Cmd_Rs232_Menu_Enable ,": show/save RS232 command menu. 1=enable 0=disable"} ,
-   { "?"    ,Cmd_Help              ,": help" }                                            ,
-   { "<"    ,Cmd_Back2Main         ,": back" }                                            ,
-   { 0      ,0                     ,0 }
+{ "baud"  ,Cmd_Rs232_Baud        ,": show/save RS232 baud rate"                        },
+{ "len"   ,Cmd_Rs232_Len         ,": show/save RS232 packet len"                       },
+{ "aterm" ,Cmd_Rs232_Ascii_Term  ,": show/save RS232 ascii packet terminator"          },
+{ "cterm" ,Cmd_Rs232_Code_Term   ,": show/save RS232 code packet terminator"           },
+{ "tout"  ,Cmd_Rs232_Tout        ,": show/save RS232 packet time out"                  },
+{ "menu"  ,Cmd_Rs232_Menu_Enable ,": show/save RS232 command menu. 1=enable 0=disable" },
+{ "?"     ,Cmd_Help              ,": help"                                             },
+{ "<"     ,Cmd_Back2Main         ,": back"                                             },
+{ 0       ,0                     ,0                                                    }
 };/*}}}*/
 tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 {
-   { "id"     ,Cmd_Id        ,": show and/or save id" }          ,
-   { "pwd"    ,Cmd_Pwd       ,": show and/or save password" }    ,
-   { "reboot" ,Cmd_Reboot    ,": reboot" }                       ,
-   { "task"   ,Cmd_TaskList  ,": rsv" }                          ,
-   { "hangs"  ,Cmd_Hangs     ,": hangs times" }                  ,
-   { "uptime" ,Cmd_Uptime    ,": uptime [secs]" }                ,
-   { "wdog"   ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)" } ,
-   { "?"      ,Cmd_Help      ,": help" }                         ,
-   { "<"      ,Cmd_Back2Main ,": back" }                         ,
-   { 0        ,0             ,0 }
+{ "id"      ,Cmd_Id        ,": show and/or save id"                },
+{ "pwd"     ,Cmd_Pwd       ,": show and/or save password"          },
+{ "reboot"  ,Cmd_Reboot    ,": reboot"                             },
+{ "task"    ,Cmd_TaskList  ,": rsv"                                },
+{ "hangs"   ,Cmd_Hangs     ,": hangs times"                        },
+{ "uptime"  ,Cmd_Uptime    ,": uptime [secs]"                      },
+{ "restore" ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)"       },
+{ "wdog"    ,Cmd_Restore   ,": restore defaults values and reboot" },
+{ "?"       ,Cmd_Help      ,": help"                               },
+{ "<"       ,Cmd_Back2Main ,": back"                               },
+{ 0         ,0             ,0                                      }
 };/*}}}*/
 //--------------------------------------------------------------------------------
 //WELCOME-HELP{{{
@@ -461,19 +463,31 @@ int Cmd_Rs232_Len(struct tcp_pcb* tpcb, int argc, char *argv[])
    if(argc==1)
       UART_ETHprintf(tpcb,"Len: %d\r\n", Usr_Flash_Params.Rs232_Len);
    else {
-      Usr_Flash_Params.Rs232_Len=atoi(argv[1]);
+      uint16_t Len=atoi(argv[1]);
+      Usr_Flash_Params.Rs232_Len=Len<=sizeof(((struct Line_Process_Struct*)0)->Buff)?
+                                Len:
+                                sizeof(((struct Line_Process_Struct*)0)->Buff);
       UART_ETHprintf(tpcb,"New Len: %d\r\n", Usr_Flash_Params.Rs232_Len);
       Save_Usr_Flash();
    }
    return 0;
 }
-int Cmd_Rs232_Term(struct tcp_pcb* tpcb, int argc, char *argv[])
+int Cmd_Rs232_Ascii_Term(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   if(argc>1) {
+      Usr_Flash_Params.Rs232_Term= argv[1][0];
+      Save_Usr_Flash();
+   }
+   UART_ETHprintf(tpcb,"Packet terminator: %c\r\n", Usr_Flash_Params.Rs232_Term);
+   return 0;
+}
+int Cmd_Rs232_Code_Term(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc>1) {
       Usr_Flash_Params.Rs232_Term= atoi(argv[1]);
       Save_Usr_Flash();
    }
-   UART_ETHprintf(tpcb,"Terminator: %d\r\n", Usr_Flash_Params.Rs232_Term);
+   UART_ETHprintf(tpcb,"Packet terminator: %d\r\n", Usr_Flash_Params.Rs232_Term);
    return 0;
 }
 int Cmd_Rs232_Tout(struct tcp_pcb* tpcb, int argc, char *argv[])
@@ -551,6 +565,14 @@ int Cmd_Id(struct tcp_pcb* tpcb, int argc, char *argv[])
    }
    return 0;
 }
+int Cmd_Restore(struct tcp_pcb* tpcb, int argc, char *argv[])
+{
+   Usr_Flash2Defult_Values (                    ) ;
+   Save_Usr_Flash          (                    ) ;
+   vTaskDelay              ( pdMS_TO_TICKS(2000 ));
+   Soft_Reset              (                    ) ;
+   return 0;
+}
 int Cmd_Pwd(struct tcp_pcb* tpcb, int argc, char *argv[])
 {
    if(argc==1)
@@ -570,6 +592,7 @@ const State
 
 const State*   Commands_Sm;
 struct Parser_Queue_Struct P;
+struct Line_Process_Struct L;
 //------------------------------------------------------------------
 void Init_Uart(void)
 {
@@ -594,9 +617,6 @@ void User_Commands_Task(void* nil)
 //-------------------------------------------------------
 const State** Commands    ( void ) { return &Commands_Sm;}
 
-void Clear_Index   ( void ) {
-   P.Index=0;
-}
 void Is_Console_Enabled(void)
 {
    Send_Event(Usr_Flash_Params.Rs232_Menu_Enable==true?
@@ -604,9 +624,12 @@ void Is_Console_Enabled(void)
          Commands());
 }
 
-bool Manage_Enter(uint16_t Term,uint8_t Char)
+void Clear_Parser_Index   ( void ) {
+   P.Index=0;
+}
+bool Manage_Enter(uint8_t Char)
 {
-   if(Term==0xFFFF && (Char=='\n' || Char=='\r')) {
+   if(Char=='\n' || Char=='\r') {
       if(!Rx_Buffer_Empty()) {
          uint8_t Next_Char = Peek_Next_Char();
          if( (Char=='\n' && Next_Char=='\r') ||
@@ -617,9 +640,9 @@ bool Manage_Enter(uint16_t Term,uint8_t Char)
    }
    return false;
 }
-bool Manage_Backspace(uint16_t Term, uint8_t Char)
+bool Manage_Backspace(uint8_t Char)
 {
-   if(Term==0xFFFF && Char==0x7F) {
+   if(Char==0x7F) {
       if(P.Index>0)
          P.Index--;
       return true;
@@ -628,39 +651,24 @@ bool Manage_Backspace(uint16_t Term, uint8_t Char)
       return false;
 }
 
-void Line_Process(uint16_t Term)
+void Parser_Process(void)
 {
    uint8_t Char;
-   static uint8_t Tout;
-
    while(!Rx_Buffer_Empty()) {
-      Tout=0;
-      if(P.Index<Usr_Flash_Params.Rs232_Len) {
+      if(P.Index<sizeof(P.Buff)) {
          Char = Read_Next_Char();
-         if(Manage_Enter(Term,Char)==true) {
+         if(Manage_Enter(Char)==true) {
             Insert_Event(Enter_Found_Event,Commands());
             return;
          }
-         if(Manage_Backspace(Term,Char)==false)
+         if(Manage_Backspace(Char)==false)
             P.Buff[P.Index++]=Char;
-         if(Char==Term) {
-            Insert_Event(Term_Found_Event,Commands());
-            return;
-         }
       }
       else {
          Insert_Event(Max_Length_Event,Commands());
          return;
       }
    }
-   if(P.Index>0 && (Tout++/4)>=Usr_Flash_Params.Rs232_Tout) {
-         Insert_Event(TOut_Event,Commands());
-         Tout=0;
-   }
-}
-void Console_Data_Process(void)
-{
-   Line_Process(0xFFFF);
 }
 void Send_Data2Parser(void)
 {
@@ -670,39 +678,62 @@ void Send_Data2Parser(void)
    xQueueSend(Parser_Queue,&P,portMAX_DELAY);
    P.Index=0;
 }
-
-void Bridge_Data_Process(void)
+//------------------------------------------------------------------------------------
+void Clear_Line_Index   ( void ) {
+   L.Index=0;
+}
+void Line_Process(void)
 {
-   Line_Process(Usr_Flash_Params.Rs232_Term);
+   uint8_t Char;
+
+   while(!Rx_Buffer_Empty()) {
+      L.Tout=0;
+      if(L.Index<Usr_Flash_Params.Rs232_Len) {
+         Char = Read_Next_Char();
+         L.Buff[L.Index++]=Char;
+         if(Char==Usr_Flash_Params.Rs232_Term) {
+            Insert_Event(Term_Found_Event,Commands());
+            return;
+         }
+      }
+      else {
+         Insert_Event(Max_Length_Event,Commands());
+         return;
+      }
+   }
+   if(L.Index>0 && (L.Tout++/4)>=Usr_Flash_Params.Rs232_Tout) {
+         Insert_Event(TOut_Event,Commands());
+         L.Tout=0;
+   }
 }
 void Send_Data2Tcp(void)
 {
-   Send_To_All_Tcp(P.Buff,P.Index);
-   P.Index=0;
+   Send_To_All_Tcp(L.Buff,L.Index);
+   L.Index=0;
 }
 //-------------------------------------------------------------------------------------
 const State const Idle2  [ ] =
 {
    { Rti_Event            ,Is_Console_Enabled ,Idle2   } ,
-   { Console_Enable_Event ,Clear_Index        ,Console } ,
-   { Conn_Regi_Event      ,Clear_Index        ,Bridge  } ,
+   { Console_Enable_Event ,Clear_Parser_Index ,Console } ,
+   { Conn_Regi_Event      ,Clear_Line_Index   ,Bridge  } ,
    { ANY_Event            ,Rien               ,Idle2   } ,
 };
 const State Bridge[ ] =
 {
-   { Rti_Event          ,Bridge_Data_Process ,Bridge } ,
-   { Term_Found_Event   ,Send_Data2Tcp       ,Bridge } ,
-   { Max_Length_Event   ,Send_Data2Tcp       ,Bridge } ,
-   { TOut_Event         ,Send_Data2Tcp       ,Bridge } ,
-   { Conn_Free_Event    ,Rien                ,Idle2  } ,
-   { ANY_Event          ,Rien                ,Bridge } ,
+   { Rti_Event        ,Line_Process  ,Bridge } ,
+   { Term_Found_Event ,Send_Data2Tcp ,Bridge } ,
+   { Max_Length_Event ,Send_Data2Tcp ,Bridge } ,
+   { TOut_Event       ,Send_Data2Tcp ,Bridge } ,
+   { Conn_Free_Event  ,Rien          ,Idle2  } ,
+   { ANY_Event        ,Rien          ,Bridge } ,
 };
 const State Console  [ ] =
 {
-   { Rti_Event         ,Console_Data_Process ,Console } ,
-   { Enter_Found_Event ,Send_Data2Parser     ,Console } ,
-   { TOut_Event        ,Send_Data2Parser     ,Console } ,
-   { Max_Length_Event  ,Send_Data2Parser     ,Console } ,
-   { Conn_Regi_Event   ,Clear_Index          ,Bridge  } ,
-   { ANY_Event         ,Rien                 ,Console } ,
+   { Rti_Event         ,Parser_Process   ,Console } ,
+   { Enter_Found_Event ,Send_Data2Parser ,Console } ,
+   { TOut_Event        ,Send_Data2Parser ,Console } ,
+   { Max_Length_Event  ,Send_Data2Parser ,Console } ,
+   { Conn_Regi_Event   ,Clear_Line_Index ,Bridge  } ,
+   { ANY_Event         ,Rien             ,Console } ,
 };

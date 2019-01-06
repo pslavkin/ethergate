@@ -13,6 +13,14 @@ enum Commands_Events {
     Enter_Found_Event      = 8,
 };
 
+struct Line_Process_Struct
+{
+   uint8_t Buff[TCP_MSS];
+   struct tcp_pcb* tpcb;
+   uint32_t Id;
+   uint32_t Index;
+   uint32_t Tout;
+};
 void              Init_Commands         ( void );
 const State**     Commands              ( void );
 
@@ -54,15 +62,17 @@ int Cmd_Snmp_Iso       ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 
 int Cmd_Rs232_Baud        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 int Cmd_Rs232_Len         ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-int Cmd_Rs232_Tout(struct tcp_pcb* tpcb, int argc, char *argv[]);
+int Cmd_Rs232_Tout        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 int Cmd_Main2Rs232        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 int Cmd_Rs232_Menu_Enable ( struct tcp_pcb* tpcb, int argc, char *argv[] );
-int Cmd_Rs232_Term        ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+int Cmd_Rs232_Ascii_Term  ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+int Cmd_Rs232_Code_Term   ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 
 
 int Cmd_TaskList  ( struct tcp_pcb* tpcb ,int argc ,char *argv[] );
 int Cmd_Uptime    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 int Cmd_Wdog_Tout ( struct tcp_pcb* tpcb, int argc, char *argv[] );
+int Cmd_Restore   ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 int Cmd_Reboot    ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 int Cmd_Hangs     ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 int Cmd_Pwd       ( struct tcp_pcb* tpcb, int argc, char *argv[] );
@@ -73,6 +83,8 @@ int Cmd_Show_Id   ( struct tcp_pcb* tpcb, int argc, char *argv[] );
 void User_Commands_Task       ( void* nil                                    );
 extern void DisplayIPAddress  ( struct tcp_pcb* tpcb,uint32_t ui32Addr       );
 
+void Line_Process(void);
+void Parser_Process(void);
 
 void Send_Data2Tcp        ( void );
 void Bridge_Data_Process  ( void );

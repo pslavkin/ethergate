@@ -9,16 +9,16 @@
 #include "one_wire_network.h"
 #include "usr_flash.h"
 
-
 struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Mac_Addr       = {0x00,0x15,0xA5,0x5D,0x03,0xE8},
       .Ip_Addr        = 0xC0A8020A,
       .Mask_Addr      = 0xFFFFFF00,
       .Gateway_Addr   = 0xC0A80201,
       .Dhcp_Enable    = false,
+      .Sniffer_Port   = 49155,
       .Rs232_Port     = 49154,
-      .Config_Port    = 49152,
       .Temp_Port      = 49153,
+      .Config_Port    = 49152,
       .Snmp_Port      = 161,
       .Snmp_Community = "public",
       .Snmp_Iso_Len   = 10,
@@ -32,12 +32,12 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Id             = "ehergate_12345678",
       .Pwd            = "1234",
       .Wdog           = 0,
-      .Hang_Times     = 0,                  // solo para debug del cuelgue por MAC sorda
-      .Rs232_Len      = APP_INPUT_BUF_SIZE-1, // longitud en donde corta la trama 232 (tiene que ser menor que el largo del buffer limitar al recibir
-      .Rs232_Tout     =  20,                // en slots de 100msegs (10=1seg)
-      .Rs232_Term     = 0xF0FF,               // '\r', // caracter que corta la trama 232 (es un entero 16 para poder invalidarlo poniendo un numero mayor a 255
-      .Rs232_Baud     = 115200,             // baud rate para puerto 232
-      .Rs232_Menu_Enable = true,            // permite entrar al menu de configuracion por rs232 siempre qu eno este ninguna conexion abierta
+      .Hang_Times     = 0,       // solo para debug del cuelgue por MAC sorda
+      .Rs232_Len      = TCP_MSS, // longitud en donde corta la trama 232 (tiene que ser menor que el largo del buffer limitar al recibir
+      .Rs232_Tout     =  20,     // en slots de 100msegs (10=1seg)
+      .Rs232_Term     = 0xF0FF,  // '\r', // caracter que corta la trama 232 (es un entero 16 para poder invalidarlo poniendo un numero mayor a 255
+      .Rs232_Baud     = 115200,  // baud rate para puerto 232
+      .Rs232_Menu_Enable = true, // permite entrar al menu de configuracion por rs232 siempre qu eno este ninguna conexion abierta
 };
 struct Usr_Flash_Struct Usr_Flash_Params;
 
@@ -68,6 +68,4 @@ void Get_Usr_Flash(void)
    else
       UART_ETHprintf(DEBUG_MSG,"flash no leida=%d\n",Usr_Flash_Params.N);
 }
-
 //-------------------------------------------------------------------------------------
-//

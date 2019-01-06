@@ -77,20 +77,19 @@
 //
 //*****************************************************************************
 #define MEMP_NUM_PBUF                     32    // Default 16
-//#define MEMP_NUM_RAW_PCB                4
+#define MEMP_NUM_RAW_PCB                  0
 #define MEMP_NUM_UDP_PCB                  4
 #define MEMP_NUM_TCP_PCB                  6    // Default 5 //3 backlogs por cada listen
-#define MEMP_NUM_TCP_PCB_LISTEN           2     //uno para cmd y otro para RS232 
-#define MEMP_NUM_TCP_SEG                  32  // Default 16
+#define MEMP_NUM_TCP_PCB_LISTEN           3     //uno para cmd y otro para RS232 
+#define MEMP_NUM_TCP_SEG                  64  // Default 16
 //#define MEMP_NUM_REASSDATA              5
 //#define MEMP_NUM_ARP_QUEUE              30
 //#define MEMP_NUM_IGMP_GROUP             8
-#define MEMP_NUM_SYS_TIMEOUT              16
+#define MEMP_NUM_SYS_TIMEOUT              10
 #define MEMP_NUM_NETBUF                   0
 #define MEMP_NUM_NETCONN                  0
-#define MEMP_NUM_TCPIP_MSG_API            20
-#define MEMP_NUM_TCPIP_MSG_INPKT          20
-#define PBUF_POOL_SIZE                    32    // Default 16
+#define MEMP_NUM_TCPIP_MSG_API            32
+#define MEMP_NUM_TCPIP_MSG_INPKT          32
 
 //*****************************************************************************
 //
@@ -130,8 +129,8 @@
 // ---------- RAW options ----------
 //
 //*****************************************************************************
-//#define LWIP_RAW                        1
-//#define RAW_TTL                        (IP_DEFAULT_TTL)
+#define LWIP_RAW                        0
+#define RAW_TTL                        (IP_DEFAULT_TTL)
 
 //*****************************************************************************
 //
@@ -212,16 +211,17 @@
 //*****************************************************************************
 #define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_MSS                         1500           // default is 536
-#define TCP_WND                         (2*TCP_MSS+16) // default is 2048
-#define TCP_SND_BUF                     (4*TCP_MSS+16)
+#define TCP_MSS                          1460         // default is 536
+#define TCP_WND                         (1*TCP_MSS) // default is 2048
+#define TCP_SND_BUF                     (2*TCP_MSS)
 //#define TCP_MAXRTX                      12
 //#define TCP_SYNMAXRTX                   6
-//#define TCP_QUEUE_OOSEQ                 1
-//#define TCP_CALCULATE_EFF_SEND_MSS      1
+#define TCP_QUEUE_OOSEQ                 0
+#define TCP_CALCULATE_EFF_SEND_MSS      0
                                                     // default is 256
-#define TCP_SND_QUEUELEN                32 //(32* (TCP_SND_BUF/TCP_MSS))
-//#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
+#define TCP_SND_QUEUELEN                64 //(32* (TCP_SND_BUF/TCP_MSS))
+#define TCP_SNDQUEUELOWAT               32
+#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
 #define TCP_LISTEN_BACKLOG              0
 #define TCP_DEFAULT_LISTEN_BACKLOG      3
 
@@ -238,8 +238,9 @@
 // ---------- Pbuf options ----------
 //
 //*****************************************************************************
-#define PBUF_LINK_HLEN                  16
-#define ETH_PAD_SIZE                    0
+#define PBUF_LINK_HLEN             16
+#define ETH_PAD_SIZE               0
+#define PBUF_POOL_SIZE             32   // Default 16
 #define PBUF_POOL_BUFSIZE          (LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN)+16)
 
 //*****************************************************************************

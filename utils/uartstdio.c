@@ -540,40 +540,29 @@ UARTgetc(void)
 //! \return None.
 //
 //*****************************************************************************
-char Buff[UART_TX_BUFFER_SIZE];
-void
-UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
+char Buff[APP_OUT_BUF_SIZE];
+void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 {
+   if(tpcb==DEBUG_MSG)
 #ifndef DEBUG_UART
-   if(tpcb==DEBUG_MSG) return;
+      return;
+#else
+   tcp=UART_MSG;
 #endif
-{
    xSemaphoreTake(Print_Mutex,portMAX_DELAY);
    va_list vaArgP;
    int len;
-    // Start the varargs processing.
-     va_start(vaArgP, pcString);
-     len=uvsnprintf(Buff,UART_TX_BUFFER_SIZE,pcString, vaArgP);
-     if(tpcb==UART_MSG || tpcb==DEBUG_MSG)
-        UARTwrite(Buff,len<UART_TX_BUFFER_SIZE?len:UART_TX_BUFFER_SIZE);
-     else
-        tcp_write(tpcb,Buff,len<UART_TX_BUFFER_SIZE?len:UART_TX_BUFFER_SIZE,
-                   TCP_WRITE_FLAG_COPY);//|TCP_WRITE_FLAG_MORE);
-//    // We're finished with the varargs now.
-    va_end(vaArgP);
-    xSemaphoreGive(Print_Mutex);
+   va_start(vaArgP, pcString);
+   len=uvsnprintf(Buff,sizeof(Buff),pcString, vaArgP);
+   if(tpcb==UART_MSG)
+      UARTwrite(Buff,len);
+   else {
+      tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY);
+      tcp_output(tpcb);
+   }
+   va_end(vaArgP);
+   xSemaphoreGive(Print_Mutex);
 }
-}
-void UARTprintf(const char *pcString, ...)
-{
-   va_list vaArgP;
-   int len;
-   va_start       ( vaArgP, pcString                                     );
-   len=uvsnprintf ( Buff,UART_TX_BUFFER_SIZE,pcString, vaArgP            );
-   UARTwrite      ( Buff,len<UART_TX_BUFFER_SIZE?len:UART_TX_BUFFER_SIZE );
-   va_end         ( vaArgP                                               );
-}
-
 //*****************************************************************************
 //
 //! Returns the number of bytes available in the receive buffer.

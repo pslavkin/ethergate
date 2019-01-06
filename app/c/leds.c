@@ -50,14 +50,15 @@ void Led_Link_Task ( void* nil )
    bool Link_State=false;
    while(1) {
       Link_State=EMACPHYLinkUp();
-      if(Link_State)
-         while(1) {
+      if(Link_State) {
             GPIOPinSet     ( LED_LINK_PORT,LED_LINK_PIN     ) ;
-            vTaskDelay     ( pdMS_TO_TICKS( 50              ));
-            xSemaphoreTake ( Led_Link_Semphr ,portMAX_DELAY ) ;
+         while(xSemaphoreTake ( Led_Link_Semphr ,pdMS_TO_TICKS(500))==pdTRUE) {
             GPIOPinReset   ( LED_LINK_PORT   ,LED_LINK_PIN  ) ;
             vTaskDelay     ( pdMS_TO_TICKS(20               ));
+            GPIOPinSet     ( LED_LINK_PORT,LED_LINK_PIN     ) ;
+            vTaskDelay     ( pdMS_TO_TICKS(20               ));
          }
+      }
       else {
          GPIOPinReset ( LED_LINK_PORT,LED_LINK_PIN ) ;
          vTaskDelay   ( pdMS_TO_TICKS( 500         ));
