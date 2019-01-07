@@ -10,6 +10,7 @@ struct Usr_Flash_Struct {
    uint32_t    Mask_Addr                       ;
    uint32_t    Gateway_Addr                    ;
    uint8_t     Dhcp_Enable                     ;
+   uint16_t    Virtual_Port                    ;
    uint16_t    Config_Port                     ;
    uint16_t    Rs232_Port                      ;
    uint16_t    Sniffer_Port                    ;

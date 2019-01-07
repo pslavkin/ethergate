@@ -4,6 +4,7 @@
 #include "inc/hw_memmap.h"
 #include "driverlib/flash.h"
 #include "utils/uartstdio.h"
+#include "utils/cmdline.h"
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/pin_map.h"

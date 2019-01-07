@@ -65,29 +65,30 @@ extern "C"
 //*****************************************************************************
 extern SemaphoreHandle_t Uart_Studio_Semphr;
 
-extern void             UARTStdioConfig                 ( uint32_t ui32Port, uint32_t ui32Baud, uint32_t ui32SrcClock );
-uint16_t                UARTget_Til_Tout_Or_Len_Or_Term ( uint8_t *Buf, uint16_t Length, uint16_t Tout,uint16_t Term  );
-uint16_t UARTgets_Til_Tout_Or_Len_Or_Term(uint8_t *Buf,
+extern void             UARTStdioConfig                  ( uint32_t ui32Port, uint32_t ui32Baud, uint32_t ui32SrcClock );
+uint16_t                UARTget_Til_Tout_Or_Len_Or_Term  ( uint8_t *Buf, uint16_t Length, uint16_t Tout,uint16_t Term  );
+uint16_t                UARTgets_Til_Tout_Or_Len_Or_Term ( uint8_t *Buf,
                                          uint16_t Length,
                                          uint16_t Tout,
-                                         uint16_t Term);
-bool                    UARTgets                        ( uint8_t *pcBuf, uint8_t Max_Length, uint8_t* Index          );
-extern unsigned char    UARTgetc                        ( void                                                        );
-extern void             UARTprintf                      ( const char *pcString, ...                                   );
-extern void             UART_ETHprintf                  ( struct tcp_pcb* tpcb,const char *pcString, ...              );
-extern void             UARTprintf                      ( const char *pcString, ...                                   );
-extern int              UARTwrite                       ( const char *pcBuf, uint32_t ui32Len                         );
+                                         uint16_t Term                                                                 );
+void                    Emulate_Uart_Rx_Data             ( uint8_t* Data, uint16_t Len                                 );
+bool                    UARTgets                         ( uint8_t *pcBuf, uint8_t Max_Length, uint8_t* Index          );
+extern unsigned char    UARTgetc                         ( void                                                        );
+extern void             UARTprintf                       ( const char *pcString, ...                                   );
+extern void             UART_ETHprintf                   ( struct tcp_pcb* tpcb,const char *pcString, ...              );
+extern void             UARTprintf                       ( const char *pcString, ...                                   );
+extern int              UARTwrite                        ( const char *pcBuf, uint32_t ui32Len                         );
 #ifdef UART_BUFFERED
-bool Rx_Buffer_Empty(void);
-uint8_t Read_Next_Char(void);
-uint8_t Peek_Next_Char(void);
-uint32_t Get_Buff_Count(void);
-extern int              UARTPeek                        ( unsigned char ucChar                                        );
-extern void             UARTFlushTx                     ( bool bDiscard                                               );
-extern void             UARTFlushRx                     ( void                                                        );
-extern int              UARTRxBytesAvail                ( void                                                        );
-extern int              UARTTxBytesFree                 ( void                                                        );
-extern void             UARTEchoSet                     ( bool bEnable                                                );
+bool                    Rx_Buffer_Empty                  ( void                                                        );
+uint8_t                 Read_Next_Char                   ( void                                                        );
+uint8_t                 Peek_Next_Char                   ( void                                                        );
+uint32_t                Get_Buff_Count                   ( void                                                        );
+extern int              UARTPeek                         ( unsigned char ucChar                                        );
+extern void             UARTFlushTx                      ( bool bDiscard                                               );
+extern void             UARTFlushRx                      ( void                                                        );
+extern int              UARTRxBytesAvail                 ( void                                                        );
+extern int              UARTTxBytesFree                  ( void                                                        );
+extern void             UARTEchoSet                      ( bool bEnable                                                );
 #endif
 
 //*****************************************************************************

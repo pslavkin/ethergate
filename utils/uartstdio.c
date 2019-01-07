@@ -14,10 +14,13 @@
 #include "utils/lwiplib.h"
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
+#include "utils/cmdline.h"
 #include "opt.h"
 #include "leds.h"
 #include "events.h"
+#include "parser.h"
 #include "commands.h"
+#include "telnet.h"
 
 #include "string.h"
 #include "stdio.h"
@@ -388,6 +391,7 @@ int UARTwrite(const char *pcBuf, uint32_t ui32Len)
 {
    uint16_t uIdx;
    bool Data2Send=false;
+   Send_To_Virtual_Tcp((uint8_t*)pcBuf,ui32Len);
    for(uIdx = 0; uIdx < ui32Len; uIdx++)
       if(!TX_BUFFER_FULL) {
          g_pcUARTTxBuffer[g_ui32UARTTxWriteIndex] = pcBuf[uIdx];
@@ -802,8 +806,13 @@ UARTEchoSet(bool bEnable)
 //! \return None.
 //
 //*****************************************************************************
+bool Uart_Mutex_Flag=false;
+
 void UARTStdioIntHandler(void)
 {
+   if(Uart_Mutex_Flag==true) return;
+
+    Uart_Mutex_Flag=true;
     uint32_t ui32Ints;
     int8_t   cChar;
     // Get and clear the current interrupt source(s)
@@ -835,8 +844,25 @@ void UARTStdioIntHandler(void)
             }
         }
     }
+    Uart_Mutex_Flag=false;
 }
-
+void Emulate_Uart_Rx_Data(uint8_t* Data, uint16_t Len)
+{
+   if(Uart_Mutex_Flag==true) return;
+   Uart_Mutex_Flag=true;
+   uint8_t i;
+   for(i=0;i<Len;i++) {
+      if(!RX_BUFFER_FULL) {
+         g_pcUARTRxBuffer[g_ui32UARTRxWriteIndex] = Data[i];
+         ADVANCE_RX_BUFFER_INDEX(g_ui32UARTRxWriteIndex);
+      }
+      else {
+         Led_Rgb_Only_Blue(); //debug
+         break;
+      }
+   }
+   Uart_Mutex_Flag=false;
+}
 //*****************************************************************************
 //
 // Close the Doxygen group.

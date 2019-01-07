@@ -18,10 +18,12 @@
 struct tcp_pcb *Soc_Cmd;
 struct tcp_pcb *Soc_Rs232;
 struct tcp_pcb *Soc_Sniffer;
+struct tcp_pcb *Soc_Virtual;
+
 struct Conn_List_Struct
 {
-   struct tcp_pcb* tpcb;
-   bool Sniff;
+   struct tcp_pcb*   Tpcb;
+   Tpcb_Type_T       Type;
 } Conn[TCP_REGISTERED_LIST];
 
 //-------------------------------------------------------------------------------------
@@ -34,8 +36,8 @@ void Init_Telnet(void)         //inicializa los puertos que se usan en esta maqu
    tcpip_callback ( Create_Cmd_Socket     ,0 );
    tcpip_callback ( Create_Rs232_Socket   ,0 );
    tcpip_callback ( Create_Sniffer_Socket ,0 );
+   tcpip_callback ( Create_Virtual_Socket ,0 );
 }
-
 //-----------ETH Console---------------------------------------------------------------
 err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
@@ -82,9 +84,11 @@ void Telnet_Close ( struct tcp_pcb *tpcb)
 err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    struct Parser_Queue_Struct* R= ( struct Parser_Queue_Struct* )pvPortMalloc(sizeof(struct Parser_Queue_Struct));
-   R->Id    = 0;
-   R->Index = 0;
-   R->tpcb  = newpcb;
+   R->Id       = 0;
+   R->Index    = 0;
+   R->tpcb     = newpcb;
+   R->CmdTable = Login_Cmd_Table;
+   R->Ref      = R;
    tcp_recv ( newpcb ,Rcv_Cmd_Fn );
    tcp_arg  ( newpcb ,R          );
    return 0;
@@ -102,24 +106,24 @@ bool Free_Conn(struct tcp_pcb* New)
 {
    uint8_t i,Empty=0;
    for(i=0;i<TCP_REGISTERED_LIST;i++) {
-      if(Conn[i].tpcb==New) {
-         Conn[i].tpcb=NULL;
+      if(Conn[i].Tpcb==New) {
+         Conn[i].Tpcb=NULL;
       }
-      if(Conn[i].tpcb==NULL)
+      if(Conn[i].Tpcb==NULL || Conn[i].Type!=NORMAL )
           Empty++;
    }
    if(Empty==TCP_REGISTERED_LIST)
       Send_Event(Conn_Free_Event,Commands());
    return false;
 }
-bool Add_Conn(struct tcp_pcb* New, bool Sniff)
+bool Add_Conn(struct tcp_pcb* New, Tpcb_Type_T Type)
 {
    uint8_t i;
    for(i=0;i<TCP_REGISTERED_LIST;i++) {
-      if(Conn[i].tpcb==NULL) {
-         Conn[i].tpcb=New;
-         Conn[i].Sniff=Sniff;
-         Send_Event(Conn_Regi_Event,Commands());
+      if(Conn[i].Tpcb==NULL) {
+         Conn[i].Tpcb=New;
+         Conn[i].Type=Type;
+         if(Type==NORMAL) Send_Event(Conn_Regi_Event,Commands());
          return true;
       }
    }
@@ -128,36 +132,39 @@ bool Add_Conn(struct tcp_pcb* New, bool Sniff)
 bool Is_Any_Conn(void)
 {
    uint8_t i;
-   for(i=0;i<TCP_REGISTERED_LIST && Conn[i].tpcb==NULL;i++)
+   for(i=0;i<TCP_REGISTERED_LIST && Conn[i].Tpcb==NULL;i++)
       ;
    return i<TCP_REGISTERED_LIST;
 }
-bool Send_To_Conn_Tcp(uint8_t* Data, uint16_t Len,bool Sniff)
+bool Send_To_Conn_Tcp(uint8_t* Data, uint16_t Len,Tpcb_Type_T Type)
 {
    uint8_t i;
    bool Ans=false;
    for(i=0;i<TCP_REGISTERED_LIST;i++)
-      if(Conn[i].tpcb!=NULL &&
-        (Sniff==false || (Sniff==true && Conn[i].Sniff==true))) {
-            tcp_write(Conn[i].tpcb,Data,Len,TCP_WRITE_FLAG_COPY);
-            tcp_output(Conn[i].tpcb);
+      if(Conn[i].Tpcb!=NULL && Conn[i].Type&Type) {
+            tcp_write  ( Conn[i].Tpcb,Data,Len,TCP_WRITE_FLAG_COPY );
+            tcp_output ( Conn[i].Tpcb                              );
             Ans=true;
       }
    return Ans;
 }
-bool Send_To_All_Tcp(uint8_t* Data, uint16_t Len)
+bool Send_To_Normal_Tcp(uint8_t* Data, uint16_t Len)
 {
-   return Send_To_Conn_Tcp(Data,Len,false);
+   return Send_To_Conn_Tcp(Data,Len,NORMAL);
 }
 bool Send_To_Sniffer_Tcp(uint8_t* Data, uint16_t Len)
 {
-   return Send_To_Conn_Tcp(Data,Len,true);
+   return Send_To_Conn_Tcp(Data,Len,SNIFF);
+}
+bool Send_To_Virtual_Tcp(uint8_t* Data, uint16_t Len)
+{
+   return Send_To_Conn_Tcp(Data,Len,VIRTUAL);
 }
 void Init_Conn(void)
 {
    uint8_t i;
    for(i=0;i<TCP_REGISTERED_LIST;i++)
-      Conn[i].tpcb=NULL;
+      Conn[i].Tpcb=NULL;
 }
 //-------RS232<>ETH RAW----------------------------------------------------------------
 err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
@@ -174,9 +181,9 @@ err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
          return ERR_INPROGRESS; //parece que anda, pero no lo revise.. o sea no puedo mandar.. volve mas tarde
    }
    else {
-      tcp_accepted    ( Soc_Cmd ); // libreo 1 lugar para el blog
-      Free_Conn ( tpcb    );
-      tcp_close       ( tpcb    ); // cierro
+      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
+      Free_Conn    ( tpcb    );
+      tcp_close    ( tpcb    ); // cierro
       return ERR_OK;
    }
 }
@@ -184,7 +191,7 @@ err_t Accept_Rs232_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    tcp_recv ( newpcb ,Rcv_Rs232_Fn );
    tcp_arg  ( newpcb ,NULL         );
-   Add_Conn ( newpcb,false         );
+   Add_Conn ( newpcb ,NORMAL       );
    return 0;
 }
 void Create_Rs232_Socket(void* nil)
@@ -194,7 +201,7 @@ void Create_Rs232_Socket(void* nil)
    Soc_Rs232=tcp_listen_with_backlog ( Soc_Rs232 ,3                                        );
    tcp_accept                        ( Soc_Rs232 ,Accept_Rs232_Fn                           );
 }
-//---ETH&RS232 to ETH--------------------------------------------------------------
+//---SNIFFER ETH&RS232 to ETH--------------------------------------------------------------
 err_t Rcv_Sniffer_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    if(p!=NULL)  {
@@ -213,7 +220,7 @@ err_t Accept_Sniffer_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    tcp_recv ( newpcb ,Rcv_Sniffer_Fn );
    tcp_arg  ( newpcb ,NULL           );
-   Add_Conn ( newpcb ,true           );
+   Add_Conn ( newpcb ,NORMAL|SNIFF);
    return 0;
 }
 void Create_Sniffer_Socket(void* nil)
@@ -223,7 +230,34 @@ void Create_Sniffer_Socket(void* nil)
    Soc_Sniffer=tcp_listen_with_backlog ( Soc_Sniffer ,3                                          );
    tcp_accept                          ( Soc_Sniffer ,Accept_Sniffer_Fn                          );
 }
-
-
-
+//---VIRTUAL RS232--------------------------------------------------------------
+err_t Rcv_Virtual_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+{
+   if(p!=NULL)  {
+      Emulate_Uart_Rx_Data(p->payload,p->len);
+      tcp_recved ( tpcb ,p->len );
+      pbuf_free  ( p            ); // libero bufer
+      return ERR_OK;
+   }
+   else {
+      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
+      Free_Conn    ( tpcb    );
+      tcp_close    ( tpcb    ); // cierro
+      return ERR_OK;
+   }
+}
+err_t Accept_Virtual_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
+{
+   tcp_recv ( newpcb ,Rcv_Virtual_Fn );
+   tcp_arg  ( newpcb ,NULL           );
+   Add_Conn ( newpcb ,VIRTUAL        );
+   return 0;
+}
+void Create_Virtual_Socket(void* nil)
+{
+   Soc_Virtual=tcp_new                 (                                                     );
+   tcp_bind                            ( Soc_Virtual ,IP_ADDR_ANY ,Usr_Flash_Params.Virtual_Port );
+   Soc_Virtual=tcp_listen_with_backlog ( Soc_Virtual ,3                                          );
+   tcp_accept                          ( Soc_Virtual ,Accept_Virtual_Fn                          );
+}
 

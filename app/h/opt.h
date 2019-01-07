@@ -9,6 +9,7 @@
 #define UART_RX_BUFFER_SIZE     (2*TCP_MSS+1)
 #define UART_TX_BUFFER_SIZE     (2*TCP_MSS+1)   //igual al buffer (mas uno porque es circular) de lwip para que un paquete de tcp pueda caber justo dentro de la cola de transmision
 #define PARSER_QUEUE_SIZE       10
+#define CMDLINE_MAX_ARGS        20              //creo que snmo usa varios..verificar
 
 #define USR_FLASH_START 0x00020000                          //donde te plazca que no pise codigo. y que este alineado a 4
 #define USR_FLASH_END   0x00028000                          // 2 bloques de 16 minimo para garantizar lectura
@@ -18,6 +19,6 @@
 #define MAX_ROM_CODES       2  // cantidad de nodos permitidos en la red..
 #define MAX_FAIL_CODES     20 // cantidad de veces que falla intentando leer el numero de codigo en la busqueda de codigos... usualmente falla cuando el cableado es malo y lee cualquier cosa. entonces con esto se puede reportar el problema...
 
-#define TCP_REGISTERED_LIST 3 //cuandtas conexiones se permiten registrar para eth<>232 para que se reenvien a todas
+#define TCP_REGISTERED_LIST 6 //cuandtas conexiones se permiten registrar para eth<>232 para que se reenvien a todas
 
 #endif // __COMMANDS_H__

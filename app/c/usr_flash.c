@@ -15,6 +15,7 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Mask_Addr      = 0xFFFFFF00,
       .Gateway_Addr   = 0xC0A80201,
       .Dhcp_Enable    = false,
+      .Virtual_Port   = 49156,
       .Sniffer_Port   = 49155,
       .Rs232_Port     = 49154,
       .Temp_Port      = 49153,
