@@ -49,7 +49,8 @@ void Led_Link_Task ( void* nil )
    MAP_GPIOPinTypeGPIOOutput  (LED_LINK_PORT,LED_LINK_PIN);
    bool Link_State=false;
    while(1) {
-      Link_State=EMACPHYLinkUp();
+//      Link_State=EMACPHYLinkUp();
+      Link_State=g_bLinkActive;
       if(Link_State) {
             GPIOPinSet     ( LED_LINK_PORT,LED_LINK_PIN     ) ;
          while(xSemaphoreTake ( Led_Link_Semphr ,pdMS_TO_TICKS(500))==pdTRUE) {

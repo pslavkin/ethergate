@@ -96,10 +96,10 @@
 // ---------- ARP options ----------
 //
 //*****************************************************************************
-//#define LWIP_ARP                        1
-//#define ARP_TABLE_SIZE                  10
-//#define ARP_QUEUEING                    1
-//#define ETHARP_TRUST_IP_MAC             1
+#define LWIP_ARP                        1
+#define ARP_TABLE_SIZE                  10
+#define ARP_QUEUEING                    0
+#define ETHARP_TRUST_IP_MAC             0
 
 //*****************************************************************************
 //
@@ -137,8 +137,8 @@
 // ---------- DHCP options ----------
 //
 //*****************************************************************************
-#define LWIP_DHCP                       0           // default is 0
-//#define DHCP_DOES_ARP_CHECK             ((LWIP_DHCP) && (LWIP_ARP))
+#define LWIP_DHCP                       1           // default is 0
+#define DHCP_DOES_ARP_CHECK             ((LWIP_DHCP) && (LWIP_ARP))
 
 //*****************************************************************************
 //

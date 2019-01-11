@@ -44,16 +44,17 @@ int Cmd_Main2T         ( struct Parser_Queue_Struct* P, int argc, char *argv[] )
 int Cmd_Main2Snmp      ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
 int Cmd_Main2System    ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
 
-int Cmd_Mac          ( struct Parser_Queue_Struct* P ,int argc ,char *argv[] );
-int Cmd_Ip           ( struct Parser_Queue_Struct* P ,int argc ,char *argv[] );
-int Cmd_Mask         ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
-int Cmd_Gateway      ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
-int Cmd_Dhcp         ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
-int Cmd_Config_Port  ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
-int Cmd_Sniffer_Port ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
-int Cmd_Rs232_Port   ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
-int Cmd_Virtual_Port ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
-int Cmd_Link_State   ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Mac            ( struct Parser_Queue_Struct* P ,int argc ,char *argv[] );
+int Cmd_Actual_Address ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Static_Ip      ( struct Parser_Queue_Struct* P ,int argc ,char *argv[] );
+int Cmd_Static_Mask    ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Static_Gateway ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Dhcp           ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Config_Port    ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Sniffer_Port   ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Rs232_Port     ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Virtual_Port   ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
+int Cmd_Link_State     ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
 
 int Cmd_T              ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
 int Cmd_T_Prom         ( struct Parser_Queue_Struct* P, int argc, char *argv[] );

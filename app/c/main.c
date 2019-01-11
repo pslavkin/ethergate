@@ -43,6 +43,9 @@ int main(void)
             Usr_Flash_Params.Mask_Addr,
             Usr_Flash_Params.Gateway_Addr,
             IPADDR_USE_STATIC);
+//            Usr_Flash_Params.Dhcp_Enable?
+//                  IPADDR_USE_DHCP:
+//                  IPADDR_USE_STATIC);
    Init_Wdog   ( );
    Init_Uart   ( );
    Init_Events ( );

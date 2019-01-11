@@ -60,20 +60,21 @@ tCmdLineEntry Main_Cmd_Table[] =/*{{{*/
 };/*}}}*/
 tCmdLineEntry Ip_Cmd_Table[] =/*{{{*/
 {
-    { "mac"  ,Cmd_Mac          ,": show MAC address" }                                 ,
-    { "ip"   ,Cmd_Ip           ,": show/save ip" }                                     ,
-    { "mask" ,Cmd_Mask         ,": show/save mask" }                                   ,
-    { "gw"   ,Cmd_Gateway      ,": show/save gateway" }                                ,
-    { "dhcp" ,Cmd_Dhcp         ,": show/save dhcp (0=disable 1=enable)" }              ,
-    { "cp"   ,Cmd_Config_Port  ,": show/save config tcp port [default 49152]" }        ,
-    { "tp"   ,Cmd_Temp_Port    ,": show/save temperature port [default 49153]" }       ,
-    { "bp"   ,Cmd_Rs232_Port  ,": show/save rs232<>tcp bridge port [default 49154]" } ,
-    { "vp"   ,Cmd_Virtual_Port ,": show/save virtual rs232 port [default 49155]" }     ,
-    { "sp"   ,Cmd_Sniffer_Port ,": show/save sniffer port [default 49156]" }           ,
-    { "link" ,Cmd_Link_State   ,": show link state" }                                  ,
-    { "?"    ,Cmd_Help         ,": help" }                                             ,
-    { "<"    ,Cmd_Back2Main    ,": back" }                                             ,
-    { 0      ,0                ,0 }
+    { "mac"  ,Cmd_Mac            ,": show MAC address" }                                 ,
+    { "add"  ,Cmd_Actual_Address ,": show/save actual address" }                         ,
+    { "ip"   ,Cmd_Static_Ip      ,": show/save static ip" }                              ,
+    { "mask" ,Cmd_Static_Mask    ,": show/save static mask" }                            ,
+    { "gw"   ,Cmd_Static_Gateway ,": show/save static gateway" }                         ,
+    { "dhcp" ,Cmd_Dhcp           ,": show/save dhcp (0=disable 1=enable)" }              ,
+    { "cp"   ,Cmd_Config_Port    ,": show/save config tcp port [default 49152]" }        ,
+    { "tp"   ,Cmd_Temp_Port      ,": show/save temperature port [default 49153]" }       ,
+    { "bp"   ,Cmd_Rs232_Port     ,": show/save rs232<>tcp bridge port [default 49154]" } ,
+    { "vp"   ,Cmd_Virtual_Port   ,": show/save virtual rs232 port [default 49155]" }     ,
+    { "sp"   ,Cmd_Sniffer_Port   ,": show/save sniffer port [default 49156]" }           ,
+    { "link" ,Cmd_Link_State     ,": show link state" }                                  ,
+    { "?"    ,Cmd_Help           ,": help" }                                             ,
+    { "<"    ,Cmd_Back2Main      ,": back" }                                             ,
+    { 0      ,0                  ,0 }
 };/*}}}*/
 tCmdLineEntry T_Cmd_Table[] =/*{{{*/
 {
@@ -324,10 +325,21 @@ int Cmd_Mac(struct Parser_Queue_Struct* P, int argc, char *argv[])
                         Mac[0], Mac[1], Mac[2], Mac[3], Mac[4], Mac[5]);
    return 0;
 }
-int Cmd_Ip(struct Parser_Queue_Struct* P, int argc, char *argv[])
+
+int Cmd_Actual_Address(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+      UART_ETHprintf(P->tpcb,"Actual address:\r\nip     :");
+      DisplayIPAddress ( P ,lwIPLocalIPAddrGet  ( ));
+      UART_ETHprintf(P->tpcb,"mask   :");
+      DisplayIPAddress ( P ,lwIPLocalNetMaskGet ( ));
+      UART_ETHprintf(P->tpcb,"gateway:");
+      DisplayIPAddress ( P ,lwIPLocalGWAddrGet  ( ));
+      return 0;
+}
+int Cmd_Static_Ip(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    if(argc==1)
-      DisplayIPAddress(P,lwIPLocalIPAddrGet());
+      DisplayIPAddress(P,ntohl(Usr_Flash_Params.Ip_Addr));
    else {
       ip_addr_t New_Ip;
       UART_ETHprintf(P->tpcb,"new ip:");
@@ -341,10 +353,10 @@ int Cmd_Ip(struct Parser_Queue_Struct* P, int argc, char *argv[])
    }
    return 0;
 }
-int Cmd_Mask(struct Parser_Queue_Struct* P, int argc, char *argv[])
+int Cmd_Static_Mask(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    if(argc==1)
-      DisplayIPAddress(P,lwIPLocalNetMaskGet());
+      DisplayIPAddress(P,ntohl(Usr_Flash_Params.Mask_Addr));
    else {
       ip_addr_t New_Ip;
       UART_ETHprintf(P->tpcb,"new mask:");
@@ -358,10 +370,10 @@ int Cmd_Mask(struct Parser_Queue_Struct* P, int argc, char *argv[])
    }
    return 0;
 }
-int Cmd_Gateway(struct Parser_Queue_Struct* P, int argc, char *argv[])
+int Cmd_Static_Gateway(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    if(argc==1)
-      DisplayIPAddress(P,lwIPLocalGWAddrGet());
+      DisplayIPAddress(P,ntohl(Usr_Flash_Params.Gateway_Addr));
    else {
       ip_addr_t New_Ip;
       UART_ETHprintf(P->tpcb,"new gateway:");
