@@ -19,6 +19,7 @@
 #include "leds.h"
 #include "buttons.h"
 #include "commands.h"
+#include "rs232.h"
 #include "schedule.h"
 #include "telnet.h"
 #include "udp.h"
@@ -27,42 +28,31 @@
 #include "one_wire_network.h"
 #include "usr_flash.h"/*}}}*/
 
-
 int main(void)
 {
-   Init_Clk();
-   //debug
-             SysCtlPeripheralEnable ( LED_SERIAL_PERIPH               );
-             GPIOPinTypeGPIOOutput  ( LED_SERIAL_PORT,LED_SERIAL_PIN  );
-             GPIOPinSet             ( LED_SERIAL_PORT, LED_SERIAL_PIN );
-   Init_Usr_Flash          ( );
-   Init_Led_Link ( );
-   lwIPInit(configCPU_CLOCK_HZ,
-            Usr_Flash_Params.Mac_Addr,
-            Usr_Flash_Params.Ip_Addr,
-            Usr_Flash_Params.Mask_Addr,
-            Usr_Flash_Params.Gateway_Addr,
-            IPADDR_USE_STATIC);
-//            Usr_Flash_Params.Dhcp_Enable?
-//                  IPADDR_USE_DHCP:
-//                  IPADDR_USE_STATIC);
-   Init_Wdog   ( );
-   Init_Uart   ( );
-   Init_Events ( );
-   Init_Schedule();
-   xTaskCreate ( State_Machine      ,"sm"            ,configMINIMAL_STACK_SIZE*2   ,NULL ,tskIDLE_PRIORITY+2 ,NULL );
-   xTaskCreate ( Schedule           ,"schedule"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( Led_Link_Task      ,"led link"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( Led_Rgb_Task       ,"leds RGB"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-// xTaskCreate ( Led_Serial_Task    ,"led serial"    ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( User_Commands_Task ,"user commands" ,configMINIMAL_STACK_SIZE ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( Button1_Task       ,"Button1"       ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( Parser_Task        ,"Parser"        ,configMINIMAL_STACK_SIZE*3 ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   Init_Clk        ( );
+   Init_Usr_Flash  ( );
+   Init_Wdog       ( );
+   Init_Events     ( );
+   Init_Schedule   ( );
+   lwIPInit       ( configCPU_CLOCK_HZ, Usr_Flash_Params.Mac_Addr );
+   xTaskCreate ( State_Machine   ,"sm"         ,configMINIMAL_STACK_SIZE*2 ,NULL ,tskIDLE_PRIORITY+2 ,NULL );
+   xTaskCreate ( Schedule        ,"schedule"   ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   xTaskCreate ( Led_Link_Task   ,"led link"   ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   xTaskCreate ( Led_Rgb_Task    ,"leds RGB"   ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+// xTaskCreate ( Led_Serial_Task ,"led serial" ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+#if RS232_ETH_ENABLE
+   xTaskCreate ( Rs232_Task      ,"rs232"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+#endif
+   xTaskCreate ( Button1_Task    ,"Button1"    ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   xTaskCreate ( Parser_Task     ,"Parser"     ,configMINIMAL_STACK_SIZE*3 ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+#if ONE_WIRE_ENABLE
    Init_One_Wire_Transport ( );
+#endif
    Init_Telnet             ( );
    Init_Udp                ( );
-   vTaskStartScheduler     ( );
 
+   vTaskStartScheduler     ( );
    while(1)
        ;
 }
@@ -72,5 +62,3 @@ int main(void)
 #ifdef DEBUG
 void __error__(char *pcFilename, uint32_t ui32Line) { }
 #endif
-// Required by lwIP library to support any host-related timer functions.
-void lwIPHostTimerHandler(void) { }

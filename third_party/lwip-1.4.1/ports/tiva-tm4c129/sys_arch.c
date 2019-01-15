@@ -1,110 +1,6 @@
-/**
- * @file - sys_arch.c
- * System Architecture support routines for TI Tiva devices.
- *
- */
-
-/*
- * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
- *
- * This file is part of the lwIP TCP/IP stack.
- *
- * Author: Adam Dunkels <adam@sics.se>
- *
- */
-
-/* Copyright (c) 2008 Texas Instruments Incorporated */
-
-/* lwIP includes. */
+// System Architecture support routines for TI Tiva devices.
 #include "lwip/opt.h"
 #include "lwip/sys.h"
-
-#if NO_SYS
-
-#if SYS_LIGHTWEIGHT_PROT
-
-/* TivaWare header files required for this interface driver. */
-#include <stdint.h>
-#include <stdbool.h>
-#include "inc/hw_types.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/rom.h"
-#include "driverlib/rom_map.h"
-
-/**
- * This global is defined in lwiplib.c and contains a count of the number of
- * elapsed milliseconds since lwIP started.
- */
-extern uint32_t g_ui32LocalTimer;
-
-/**
- * This function returns the system time in milliseconds.
- */
-u32_t
-sys_now(void)
-{
-    return(g_ui32LocalTimer);
-}
-
-
-/**
- * This function is used to lock access to critical sections when lwipopt.h
- * defines SYS_LIGHTWEIGHT_PROT. It disables interrupts and returns a value
- * indicating the interrupt enable state when the function entered. This
- * value must be passed back on the matching call to sys_arch_unprotect().
- *
- * @return the interrupt level when the function was entered.
- */
-sys_prot_t
-sys_arch_protect(void)
-{
-  return((sys_prot_t)MAP_IntMasterDisable());
-}
-
-/**
- * This function is used to unlock access to critical sections when lwipopt.h
- * defines SYS_LIGHTWEIGHT_PROT. It enables interrupts if the value of the lev
- * parameter indicates that they were enabled when the matching call to
- * sys_arch_protect() was made.
- *
- * @param lev is the interrupt level when the matching protect function was
- * called
- */
-void
-sys_arch_unprotect(sys_prot_t lev)
-{
-  /* Only turn interrupts back on if they were originally on when the matching
-     sys_arch_protect() call was made. */
-  if(!(lev & 1)) {
-    MAP_IntMasterEnable();
-  }
-}
-#endif /* SYS_LIGHTWEIGHT_PROT */
-
-#else /* NO_SYS */
 
 /* A structure to contain the variables for a sys_thread_t. */
 typedef struct {
@@ -112,9 +8,7 @@ typedef struct {
   void *stackend;
   void (*thread)(void *arg);
   void *arg;
-#if RTOS_FREERTOS
   xTaskHandle taskhandle;
-#endif /* RTOS_FREERTOS */
 } thread_t;
 
 /* Provide a default maximum number of threads. */
@@ -327,12 +221,9 @@ sys_mbox_new(sys_mbox_t *mbox, int size)
 #endif /* SYS_STATS */
     return ERR_MEM;
   }
-
-#if RTOS_FREERTOS
   /* Create a queue for this mailbox. */
   mbox->queue = xQueueCreate(size, sizeof(void *));
   if(mbox == NULL) {
-#endif /* RTOS_FREERTOS */
 
 #if SYS_STATS
     STATS_INC(sys.mbox.err);
@@ -409,7 +300,6 @@ sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 {
   portTickType starttime;
   void *dummyptr;
-
   /* If the actual message contents are not required, provide a local variable
      to recieve the message. */
   if(msg == NULL) {
@@ -433,7 +323,6 @@ sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
   } else {
     /* Try to receive a message until one arrives. */
     while(xQueueReceive(mbox->queue, msg, portMAX_DELAY) != pdPASS);
-
     /* Return the amount of time it took for the message to be received. */
     return (xTaskGetTickCount() - starttime) * portTICK_RATE_MS;
   }
@@ -471,17 +360,13 @@ sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
 
 /**
  * Destroys a mailbox.
- *
  * @param mbox is the mailbox to be destroyed.
  */
-void
-sys_mbox_free(sys_mbox_t *mbox)
+void sys_mbox_free(sys_mbox_t *mbox)
 {
   /* There should not be any messages waiting (if there are it is a bug).  If
      any are waiting, increment the mailbox error count. */
-#if RTOS_FREERTOS
   if(uxQueueMessagesWaiting(mbox->queue) != 0) {
-#endif /* RTOS_FREERTOS */
 
 #if SYS_STATS
     STATS_INC(sys.mbox.err);
@@ -536,7 +421,7 @@ sys_arch_thread(void *arg)
 
   /* Clear the stack from the thread structure. */
   threads[i].stackstart = NULL;
-  threads[i].stackend = NULL;
+  threads[i].stackend   = NULL;
 
   /* Delete this task. */
 #if RTOS_FREERTOS
@@ -580,52 +465,38 @@ sys_thread_new(const char *name, lwip_thread_fn thread, void *arg,
 
   /* Save the details of this thread. */
   threads[i].stackstart = data;
-  threads[i].stackend = (void *)((char *)data + stacksize);
-  threads[i].thread = thread;
-  threads[i].arg = arg;
+  threads[i].stackend   = (void *)((char *)data + stacksize);
+  threads[i].thread     = thread;
+  threads[i].arg        = arg;
 
   /* Create a new thread. */
-#if RTOS_FREERTOS
   if(xTaskCreate(sys_arch_thread, (portCHAR *)name,
                  stacksize/sizeof(int), (void *)i, tskIDLE_PRIORITY+prio,
                  &threads[i].taskhandle) != pdTRUE){
     threads[i].stackstart = NULL;
-    threads[i].stackend = NULL;
+    threads[i].stackend   = NULL;
     return NULL;
   }
   created_thread = threads[i].taskhandle;
-#endif /* RTOS_FREERTOS */
-
   /* Return this thread. */
   return created_thread;
 }
 
 /**
  * Enters a critical section.
- *
  * @return the previous protection level
  */
-sys_prot_t
-sys_arch_protect(void)
+sys_prot_t sys_arch_protect(void)
 {
-#if RTOS_FREERTOS
   taskENTER_CRITICAL();
-#endif
-
   return 1;
 }
 
 /**
  * Leaves a critical section.
- *
  * @param the preivous protection level
  */
-void
-sys_arch_unprotect(sys_prot_t val)
+void sys_arch_unprotect(sys_prot_t val)
 {
-#if RTOS_FREERTOS
   taskEXIT_CRITICAL();
-#endif
 }
-
-#endif /* NO_SYS */

@@ -34,6 +34,22 @@ uint32_t Read_Uptime(void)
 {
    return Uptime;
 }
+uint8_t Read_Uptime_Secs(void)
+{
+   return Uptime%60;
+}
+uint8_t Read_Uptime_Mins(void)
+{
+   return (Uptime/(60))%60;
+}
+uint8_t Read_Uptime_Hours(void)
+{
+   return (Uptime/(3660))%24;
+}
+uint32_t Read_Uptime_Days(void)
+{
+   return Uptime/(3660*24);
+}
 void Wdog_Task(void* nil)
 {
    while(1) {

@@ -64,9 +64,9 @@ ip_addr_set(struct ip_addr *dest, struct ip_addr *src)
   dest->addr[3] = src->addr[3];*/
 }
 
-u8_t
-ip_addr_isany(struct ip_addr *addr)
-{
-  if (addr == NULL) return 1;
-  return((addr->addr[0] | addr->addr[1] | addr->addr[2] | addr->addr[3]) == 0);
-}
+//u8_t
+//ip_addr_isany(struct ip_addr *addr)
+//{
+//  if (addr == NULL) return 1;
+//  return((addr->addr[0] | addr->addr[1] | addr->addr[2] | addr->addr[3]) == 0);
+//}

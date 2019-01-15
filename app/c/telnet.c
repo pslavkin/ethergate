@@ -7,6 +7,7 @@
 #include "state_machine.h"
 #include "events.h"
 #include "usr_flash.h"
+#include "rs232.h"
 #include "commands.h"
 #include "utils/uartstdio.h"
 #include "utils/ringbuf.h"
@@ -19,13 +20,13 @@ struct tcp_pcb *Soc_Cmd;
 struct tcp_pcb *Soc_Rs232;
 struct tcp_pcb *Soc_Sniffer;
 struct tcp_pcb *Soc_Virtual;
+struct tcp_pcb *Soc_Clients;
 
 struct Conn_List_Struct
 {
    struct tcp_pcb*   Tpcb;
    Tpcb_Type_T       Type;
 } Conn[TCP_REGISTERED_LIST];
-
 //-------------------------------------------------------------------------------------
 void Create_Cmd_Socket   ( void* nil );
 void Create_Rs232_Socket ( void* nil );
@@ -34,9 +35,11 @@ void Init_Telnet(void)         //inicializa los puertos que se usan en esta maqu
 {
    Init_Conn();
    tcpip_callback ( Create_Cmd_Socket     ,0 );
-   tcpip_callback ( Create_Rs232_Socket   ,0 );
    tcpip_callback ( Create_Sniffer_Socket ,0 );
+#if RS232_ETH_ENABLE
+   tcpip_callback ( Create_Rs232_Socket   ,0 );
    tcpip_callback ( Create_Virtual_Socket ,0 );
+#endif
 }
 //-----------ETH Console---------------------------------------------------------------
 err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
@@ -91,6 +94,9 @@ err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
    R->Ref      = R;
    tcp_recv ( newpcb ,Rcv_Cmd_Fn );
    tcp_arg  ( newpcb ,R          );
+   UART_ETHprintf(UART_MSG,"accepted con pointer=%d\r\n",newpcb);
+   UART_ETHprintf(UART_MSG,"soc_cmd pointer=%d\r\n",Soc_Cmd);
+   UART_ETHprintf(UART_MSG,"soc_client pointer=%d\r\n",Soc_Clients);
    return 0;
 }
 
@@ -113,7 +119,7 @@ bool Free_Conn(struct tcp_pcb* New)
           Empty++;
    }
    if(Empty==TCP_REGISTERED_LIST)
-      Send_Event(Conn_Free_Event,Commands());
+      Send_Event(Conn_Free_Event,Rs232());
    return false;
 }
 bool Add_Conn(struct tcp_pcb* New, Tpcb_Type_T Type)
@@ -123,7 +129,7 @@ bool Add_Conn(struct tcp_pcb* New, Tpcb_Type_T Type)
       if(Conn[i].Tpcb==NULL) {
          Conn[i].Tpcb=New;
          Conn[i].Type=Type;
-         if(Type==NORMAL) Send_Event(Conn_Regi_Event,Commands());
+         if(Type==NORMAL) Send_Event(Conn_Regi_Event,Rs232());
          return true;
       }
    }
@@ -260,4 +266,43 @@ void Create_Virtual_Socket(void* nil)
    Soc_Virtual=tcp_listen_with_backlog ( Soc_Virtual ,3                                          );
    tcp_accept                          ( Soc_Virtual ,Accept_Virtual_Fn                          );
 }
-
+//---CLIENTS--------------------------------------------------------------
+//err_t Rcv_Clients_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+//{
+//   if(p!=NULL)  {
+//      Emulate_Uart_Rx_Data(p->payload,p->len);
+//      tcp_recved ( tpcb ,p->len );
+//      pbuf_free  ( p            ); // libero bufer
+//      return ERR_OK;
+//   }
+//   else {
+//      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
+//      Free_Conn    ( tpcb    );
+//      tcp_close    ( tpcb    ); // cierro
+//      return ERR_OK;
+//   }
+//}
+//err_t Connected_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
+//{
+//   tcp_recv ( newpcb ,Rcv_Clients_Fn );
+//   tcp_arg  ( newpcb ,NULL           );
+//   Add_Conn ( newpcb ,NORMAL         );
+//   return 0;
+//}
+void Create_Clients_Socket(void* nil)
+{
+   ip_addr_t Ip;
+   ipaddr_aton("192.168.2.3",&Ip);
+   Soc_Clients=tcp_new ( );
+   tcp_connect ( Soc_Clients ,&Ip ,12345,Accept_Cmd_Fn );
+}
+int Cmd_Connect(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   Create_Clients_Socket(NULL);
+   return 0;
+}
+int Cmd_Client_State(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   UART_ETHprintf(P->tpcb,"state=%d\r\n",Soc_Clients->state);
+   return 0;
+}

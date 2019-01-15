@@ -37,8 +37,8 @@ void     Pullup   ( void ) {
 }
 
 void Init_One_Wire_Link(void) {
-   MAP_SysCtlPeripheralEnable (ONE_WIRE_PERIPH);
-   Bus_Hz        ( );
+   MAP_SysCtlPeripheralEnable ( ONE_WIRE_PERIPH );
+   Bus_Hz                     (                 );
 }
 //------------------------------------------------------------------
 void One_Wire_Power_On_Reset(void) {

@@ -13,7 +13,6 @@
 #include "utils/uartstdio.h"
 #include "utils/ustdlib.h"
 #include "utils/lwiplib.h"
-#include "state_machine.h"
 #include "usr_flash.h"
 #include "parser.h"
 #include "commands.h"
@@ -21,6 +20,7 @@
 #include "state_machine.h"
 #include "leds.h"
 #include "buttons.h"
+#include "rs232.h"
 #include "telnet.h"
 #include "opt.h"
 #include "wdog.h"
@@ -35,24 +35,29 @@
 #include "queue.h"
 #include "semphr.h"/*}}}*/
 
-//tCmdLineEntry* g_psCmdTable;
 tCmdLineEntry Login_Cmd_Table[] =/*{{{*/
 {
     { "login"  ,Cmd_Login   ,": login" }                                ,
     { "id"     ,Cmd_Show_Id ,": show id name" }                         ,
+#if ONE_WIRE_ENABLE
     { "t"      ,Cmd_T       ,": show temperatures" }                    ,
     { "tstart" ,Cmd_T_Start ,": start show temperatures periodically" } ,
     { "tstop"  ,Cmd_T_Stop  ,": stop show temperatures periodically" }  ,
-    { "exit"   ,Cmd_Exit    ,": exit and close connection" }            ,
+#endif
+    { "exit"   ,Cmd_Exit    ,": exit and close c;onnection" }            ,
     { "?"      ,Cmd_Help    ,": help" }                                 ,
     { 0        ,0           ,0 }
 };/*}}}*/
 tCmdLineEntry Main_Cmd_Table[] =/*{{{*/
 {
     { "net"    ,Cmd_Main2Ip     ,": network options" }     ,
+#if ONE_WIRE_ENABLE
     { "temp"   ,Cmd_Main2T      ,": temperature options" } ,
     { "snmp"   ,Cmd_Main2Snmp   ,": snmp options" }        ,
+#endif
+#if RS232_ETH_ENABLE
     { "rs232"  ,Cmd_Main2Rs232  ,": Rs232 options" }       ,
+#endif
     { "system" ,Cmd_Main2System ,": system options" }      ,
     { "?"      ,Cmd_Help        ,": help" }                ,
     { "<"      ,Cmd_Back2Login  ,": back" }                ,
@@ -72,6 +77,8 @@ tCmdLineEntry Ip_Cmd_Table[] =/*{{{*/
     { "vp"   ,Cmd_Virtual_Port   ,": show/save virtual rs232 port [default 49155]" }     ,
     { "sp"   ,Cmd_Sniffer_Port   ,": show/save sniffer port [default 49156]" }           ,
     { "link" ,Cmd_Link_State     ,": show link state" }                                  ,
+    { "con"  ,Cmd_Connect        ,": Connect " }                                  ,
+    { "state",Cmd_Client_State   ,": Client state " }                                  ,
     { "?"    ,Cmd_Help           ,": help" }                                             ,
     { "<"    ,Cmd_Back2Main      ,": back" }                                             ,
     { 0      ,0                  ,0 }
@@ -117,8 +124,7 @@ tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 { "pwd"     ,Cmd_Pwd       ,": show and/or save password"          },
 { "reboot"  ,Cmd_Reboot    ,": reboot"                             },
 { "task"    ,Cmd_TaskList  ,": rsv"                                },
-{ "hangs"   ,Cmd_Hangs     ,": hangs times"                        },
-{ "uptime"  ,Cmd_Uptime    ,": uptime [secs]"                      },
+{ "ut"      ,Cmd_Uptime    ,": uptime [secs]"                      },
 { "restore" ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)"       },
 { "wdog"    ,Cmd_Restore   ,": restore defaults values and reboot" },
 { "?"       ,Cmd_Help      ,": help"                               },
@@ -129,7 +135,7 @@ tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 //WELCOME-HELP{{{
 int Cmd_Welcome(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   UART_ETHprintf(P->tpcb,"\033[2J\033[H+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
+   UART_ETHprintf(P->tpcb,"\r\n+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
    return 0;
 }
 int Cmd_Help(struct Parser_Queue_Struct* P, int argc, char *argv[])
@@ -156,11 +162,6 @@ int Cmd_Login(struct Parser_Queue_Struct* P, int argc, char *argv[])
    }
    else
       UART_ETHprintf(P->tpcb,"no pwd\r\n");
-   return 0;
-}
-int Cmd_Hangs(struct Parser_Queue_Struct* P, int argc, char *argv[])
-{
-   UART_ETHprintf(P->tpcb,"Hang times=%d\r\n",Usr_Flash_Params.Hang_Times);
    return 0;
 }
 int Cmd_Exit(struct Parser_Queue_Struct* P, int argc, char *argv[])
@@ -389,14 +390,11 @@ int Cmd_Static_Gateway(struct Parser_Queue_Struct* P, int argc, char *argv[])
 }
 int Cmd_Dhcp(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   if(argc==1)
-      UART_ETHprintf(P->tpcb,"%d\r\n",Usr_Flash_Params.Dhcp_Enable);
-   else {
-      uint16_t New=atoi(argv[1]);
-      UART_ETHprintf(P->tpcb,"new dhcp=%d \r\n",New);
-      Usr_Flash_Params.Dhcp_Enable=New;
+   if(argc>1) {
+      Usr_Flash_Params.Dhcp_Enable=atoi(argv[1]);
       Save_Usr_Flash();
    }
+   Print_Enable_Disable(P,"Dhcp",Usr_Flash_Params.Dhcp_Enable);
    return 0;
 }
 int Cmd_Port(struct Parser_Queue_Struct* P, int argc, char *argv[],uint16_t* Struct_Port)
@@ -427,6 +425,10 @@ int Cmd_Sniffer_Port(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    Cmd_Port(P,argc,argv,&Usr_Flash_Params.Sniffer_Port);
    return 0;
+}
+void Print_Enable_Disable(struct Parser_Queue_Struct* P,const char* Legend,bool State)
+{
+   UART_ETHprintf(P->tpcb,"%s %s\r\n",Legend,State?"enable":"disable");
 }
 void DisplayIPAddress(struct Parser_Queue_Struct* P,uint32_t ui32Addr)
 {
@@ -540,13 +542,18 @@ int Cmd_Rs232_Menu_Enable(struct Parser_Queue_Struct* P, int argc, char *argv[])
       Usr_Flash_Params.Rs232_Menu_Enable=atoi(argv[1])>=1?true:false;
       Save_Usr_Flash();
    }
-   UART_ETHprintf(P->tpcb,"Menu %s\r\n", Usr_Flash_Params.Rs232_Menu_Enable?"enable":"disable");
+   Print_Enable_Disable(P,"Menu",Usr_Flash_Params.Rs232_Menu_Enable);
    return 0;
 }/*}}}*/
 //SYSTEM{{{
 int Cmd_Uptime(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   UART_ETHprintf(P->tpcb,"%d secs\r\n",Read_Uptime());
+   UART_ETHprintf(P->tpcb,"%d days %02d:%02d:%02d \r\n",
+                  Read_Uptime_Days  ( ),
+                  Read_Uptime_Hours ( ),
+                  Read_Uptime_Mins  ( ),
+                  Read_Uptime_Secs  ( )
+                  );
    return 0;
 }
 int Cmd_Wdog_Tout(struct Parser_Queue_Struct* P, int argc, char *argv[])
@@ -617,157 +624,3 @@ int Cmd_Pwd(struct Parser_Queue_Struct* P, int argc, char *argv[])
    }
    return 0;
 }/*}}}*/
-//--------------------------------------------------------------------------------
-const State
-   Idle2  [ ],
-   Console[ ],
-   Bridge [ ];
-
-const State*   Commands_Sm;
-struct Parser_Queue_Struct P;
-struct Line_Process_Struct L;
-//------------------------------------------------------------------
-void Init_Uart(void)
-{
-   ROM_SysCtlPeripheralEnable ( SYSCTL_PERIPH_GPIOA                      );
-   ROM_GPIOPinConfigure       ( GPIO_PA0_U0RX                            );
-   ROM_GPIOPinConfigure       ( GPIO_PA1_U0TX                            );
-   ROM_GPIOPinTypeUART        ( GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1 );
-
-   UARTStdioConfig ( 0, Usr_Flash_Params.Rs232_Baud, configCPU_CLOCK_HZ);
-}
-//-------------------------------------------------------
-void User_Commands_Task(void* nil)
-{
-   Commands_Sm = Idle2;
-   P.CmdTable=Login_Cmd_Table;
-   P.tpcb=UART_MSG;
-   P.Ref=&P;
-   Cmd_Welcome  ( &P ,0 ,NULL ); //debug
-   while(1) {
-      vTaskDelay(pdMS_TO_TICKS(25));
-      Send_Event(Rti_Event,Commands());
-   }
-}
-//-------------------------------------------------------
-const State** Commands    ( void ) { return &Commands_Sm;}
-
-void Is_Console_Enabled(void)
-{
-   Send_Event(Usr_Flash_Params.Rs232_Menu_Enable==true?
-         Console_Enable_Event:Console_Disable_Event,
-         Commands());
-}
-
-void Clear_Parser_Index   ( void ) {
-   P.Index=0;
-}
-bool Manage_Enter(uint8_t Char)
-{
-   if(Char=='\n' || Char=='\r') {
-      if(!Rx_Buffer_Empty()) {
-         uint8_t Next_Char = Peek_Next_Char();
-         if( (Char=='\n' && Next_Char=='\r') ||
-               (Char=='\r' && Next_Char=='\n'))
-            Read_Next_Char();
-      }
-      return true;
-   }
-   return false;
-}
-bool Manage_Backspace(uint8_t Char)
-{
-   if(Char==0x7F) {
-      if(P.Index>0)
-         P.Index--;
-      return true;
-   }
-   else
-      return false;
-}
-
-void Parser_Process(void)
-{
-   uint8_t Char;
-   while(!Rx_Buffer_Empty()) {
-      if(P.Index<sizeof(P.Buff)) {
-         Char = Read_Next_Char();
-         if(Manage_Enter(Char)==true) {
-            Insert_Event(Enter_Found_Event,Commands());
-            return;
-         }
-         if(Manage_Backspace(Char)==false)
-            P.Buff[P.Index++]=Char;
-      }
-      else {
-         Insert_Event(Max_Length_Event,Commands());
-         return;
-      }
-   }
-}
-void Send_Data2Parser(void)
-{
-   P.Buff[P.Index] = '\0';
-   P.Id++;
-   xQueueSend(Parser_Queue,&P,portMAX_DELAY);
-   P.Index=0;
-}
-//------------------------------------------------------------------------------------
-void Clear_Line_Index   ( void ) {
-   L.Index=0;
-}
-void Line_Process(void)
-{
-   uint8_t Char;
-
-   while(!Rx_Buffer_Empty()) {
-      L.Tout=0;
-      if(L.Index<Usr_Flash_Params.Rs232_Len) {
-         Char = Read_Next_Char();
-         L.Buff[L.Index++]=Char;
-         if(Char==Usr_Flash_Params.Rs232_Term) {
-            Insert_Event(Term_Found_Event,Commands());
-            return;
-         }
-      }
-      else {
-         Insert_Event(Max_Length_Event,Commands());
-         return;
-      }
-   }
-   if(L.Index>0 && (L.Tout++/4)>=Usr_Flash_Params.Rs232_Tout) {
-         Insert_Event(TOut_Event,Commands());
-         L.Tout=0;
-   }
-}
-void Send_Data2Tcp(void)
-{
-   Send_To_Normal_Tcp(L.Buff,L.Index);
-   L.Index=0;
-}
-//-------------------------------------------------------------------------------------
-const State const Idle2  [ ] =
-{
-   { Rti_Event            ,Is_Console_Enabled ,Idle2   } ,
-   { Console_Enable_Event ,Clear_Parser_Index ,Console } ,
-   { Conn_Regi_Event      ,Clear_Line_Index   ,Bridge  } ,
-   { ANY_Event            ,Rien               ,Idle2   } ,
-};
-const State Bridge[ ] =
-{
-   { Rti_Event        ,Line_Process  ,Bridge } ,
-   { Term_Found_Event ,Send_Data2Tcp ,Bridge } ,
-   { Max_Length_Event ,Send_Data2Tcp ,Bridge } ,
-   { TOut_Event       ,Send_Data2Tcp ,Bridge } ,
-   { Conn_Free_Event  ,Rien          ,Idle2  } ,
-   { ANY_Event        ,Rien          ,Bridge } ,
-};
-const State Console  [ ] =
-{
-   { Rti_Event         ,Parser_Process   ,Console } ,
-   { Enter_Found_Event ,Send_Data2Parser ,Console } ,
-   { TOut_Event        ,Send_Data2Parser ,Console } ,
-   { Max_Length_Event  ,Send_Data2Parser ,Console } ,
-   { Conn_Regi_Event   ,Clear_Line_Index ,Bridge  } ,
-   { ANY_Event         ,Rien             ,Console } ,
-};

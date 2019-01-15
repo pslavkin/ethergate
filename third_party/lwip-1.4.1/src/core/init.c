@@ -285,48 +285,43 @@
 /**
  * Perform Sanity check of user-configurable values, and initialize all modules.
  */
-void
-lwip_init(void)
+void lwip_init(void)
 {
-  /* Modules initialization */
-  stats_init();
-#if !NO_SYS
-  sys_init();
-#endif /* !NO_SYS */
+  stats_init ( ); /* Modules initialization */
+  sys_init   ( );
   mem_init   ( );
   memp_init  ( );
   pbuf_init  ( );
   netif_init ( );
 #if LWIP_SOCKET
   lwip_socket_init();
-#endif /* LWIP_SOCKET */
+#endif
   ip_init();
 #if LWIP_ARP
   etharp_init();
-#endif /* LWIP_ARP */
+#endif
 #if LWIP_RAW
   raw_init();
-#endif /* LWIP_RAW */
+#endif
 #if LWIP_UDP
   udp_init();
-#endif /* LWIP_UDP */
+#endif
 #if LWIP_TCP
   tcp_init();
-#endif /* LWIP_TCP */
+#endif
 #if LWIP_SNMP
   snmp_init();
-#endif /* LWIP_SNMP */
+#endif
 #if LWIP_AUTOIP
   autoip_init();
-#endif /* LWIP_AUTOIP */
+#endif
 #if LWIP_IGMP
   igmp_init();
-#endif /* LWIP_IGMP */
+#endif
 #if LWIP_DNS
   dns_init();
-#endif /* LWIP_DNS */
-
+#endif
 #if LWIP_TIMERS
   sys_timeouts_init();
-#endif /* LWIP_TIMERS */
+#endif
 }

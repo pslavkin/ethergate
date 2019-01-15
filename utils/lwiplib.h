@@ -13,24 +13,18 @@ extern "C"
 #endif
 
 //*****************************************************************************
-//
 // lwIP Options
-//
 //*****************************************************************************
 #include "lwip/opt.h"
+#include "stdbool.h"
 
 //*****************************************************************************
-//
 // Ensure that AUTOIP COOP option is configured correctly.
-//
 //*****************************************************************************
 #undef LWIP_DHCP_AUTOIP_COOP
 #define LWIP_DHCP_AUTOIP_COOP   ((LWIP_DHCP) && (LWIP_AUTOIP))
-
 //*****************************************************************************
-//
 // lwIP API Header Files
-//
 //*****************************************************************************
 #include <stdint.h>
 #include "lwip/api.h"
@@ -67,32 +61,23 @@ typedef void (* tHardwareTimerHandler)(uint32_t ui32Base,
                                        uint32_t ui32IntStatus);
 
 //*****************************************************************************
-//
 // lwIP Abstraction Layer API
-//
 //*****************************************************************************
-extern void lwIPInit(uint32_t ui32SysClkHz, const uint8_t *pui8Mac,
-                     uint32_t ui32IPAddr, uint32_t ui32NetMask,
-                     uint32_t ui32GWAddr, uint32_t ui32IPMode);
-extern void lwIPTimerCallbackRegister(tHardwareTimerHandler pfnTimerFunc);
-extern void lwIPTimer(uint32_t ui32TimeMS);
-extern void lwIPEthernetIntHandler(void);
-extern uint32_t lwIPLocalIPAddrGet(void);
-extern uint32_t lwIPLocalNetMaskGet(void);
-extern uint32_t lwIPLocalGWAddrGet(void);
-extern void lwIPLocalMACGet(uint8_t *pui8Mac);
-extern void lwIPNetworkConfigChange(uint32_t ui32IPAddr, uint32_t ui32NetMask,
-                                    uint32_t ui32GWAddr, uint32_t ui32IPMode);
-extern uint32_t lwIPAcceptUDPPort(uint16_t ui16Port);
-extern bool g_bLinkActive;
-
+void        lwIPInit                  ( uint32_t ui32SysClkHz, const uint8_t *pui8MAC                                       );
+void        lwIPTimerCallbackRegister ( tHardwareTimerHandler pfnTimerFunc                                                  );
+void        lwIPTimer                 ( uint32_t ui32TimeMS                                                                 );
+void        lwIPEthernetIntHandler    ( void                                                                                );
+uint32_t    lwIPLocalIPAddrGet        ( void                                                                                );
+uint32_t    lwIPLocalNetMaskGet       ( void                                                                                );
+uint32_t    lwIPLocalGWAddrGet        ( void                                                                                );
+void        lwIPLocalMACGet           ( uint8_t *pui8Mac                                                                    );
+void        lwIPNetworkConfigChange   ( uint32_t ui32IPAddr, uint32_t ui32NetMask, uint32_t ui32GWAddr, uint32_t ui32IPMode );
+uint32_t    lwIPAcceptUDPPort         ( uint16_t ui16Port                                                                   );
+bool        Read_Link_State(void);
 //*****************************************************************************
-//
 // Mark the end of the C bindings section for C++ compilers.
-//
 //*****************************************************************************
 #ifdef __cplusplus
 }
 #endif
-
 #endif // __LWIPLIB_H__

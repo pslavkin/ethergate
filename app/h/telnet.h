@@ -25,6 +25,9 @@ err_t    Rcv_Sniffer_Fn        ( void *arg, struct tcp_pcb *tpcb, struct pbuf *p
 void     Create_Virtual_Socket ( void* nil                                                        );
 err_t    Accept_Virtual_Fn     ( void *arg, struct tcp_pcb *newpcb, err_t err                     );
 err_t    Rcv_Virtual_Fn        ( void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err       );
+int Cmd_Connect(struct Parser_Queue_Struct* P, int argc, char *argv[]);
+int Cmd_Client_State(struct Parser_Queue_Struct* P, int argc, char *argv[]);
+
 
 #endif
 

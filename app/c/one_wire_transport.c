@@ -37,10 +37,11 @@ const State** One_Wire_Transport    ( void ) { return &One_Wire_Transport_Sm;}
 //debug
 void  Init_One_Wire_Transport ( void )
 {
-   Init_One_Wire_Network ( );
    One_Wire_Transport_Sm = Searching_Rom_Codes;
-   Refresh_One_Wire_Reload_TOut(Usr_Flash_Params.Reload_T_TOut);
-   Reload_One_Wire_Codes();
+   Init_Led_Serial              (                                );
+   Init_One_Wire_Network        (                                );
+   Refresh_One_Wire_Reload_TOut ( Usr_Flash_Params.Reload_T_TOut );
+   Reload_One_Wire_Codes        (                                );
 }
 void      Refresh_One_Wire_Reload_TOut(uint32_t TOut)
 {

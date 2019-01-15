@@ -186,8 +186,8 @@ void           Print_Bit_Error        ( void ) { UART_ETHprintf(DEBUG_MSG,"Bit E
 //-------------------------------------------------
 void     Init_One_Wire_Network   (void)
 {
-   Init_One_Wire_Link ( );
    One_Wire_Network_Sm=Idle;
+   Init_One_Wire_Link ( );
    Mark_All_Crc_Fail  ( );
    Reset_Actual_Code  ( );
 }

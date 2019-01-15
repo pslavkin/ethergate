@@ -73,7 +73,7 @@
 #include "lwip/stats.h"
 #include "lwip/mem.h"
 #include "lwip/udp.h"
-#include "lwip/ip_addr.h"
+#include "ipv4/lwip/ip_addr.h"
 #include "lwip/netif.h"
 #include "lwip/def.h"
 #include "lwip/dhcp.h"
@@ -625,8 +625,7 @@ void dhcp_cleanup(struct netif *netif)
  * - ERR_OK - No error
  * - ERR_MEM - Out of memory
  */
-err_t
-dhcp_start(struct netif *netif)
+err_t dhcp_start(struct netif *netif)
 {
   struct dhcp *dhcp;
   err_t result = ERR_OK;
@@ -634,8 +633,7 @@ dhcp_start(struct netif *netif)
   LWIP_ERROR("netif != NULL", (netif != NULL), return ERR_ARG;);
   dhcp = netif->dhcp;
   LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("dhcp_start(netif=%p) %c%c%"U16_F"\n", (void*)netif, netif->name[0], netif->name[1], (u16_t)netif->num));
-  /* Remove the flag that says this netif is handled by DHCP,
-     it is set when we succeeded starting. */
+  /* Remove the flag that says this netif is handled by DHCP, it is set when we succeeded starting. */
   netif->flags &= ~NETIF_FLAG_DHCP;
 
   /* check hwtype of the netif */
@@ -984,7 +982,7 @@ dhcp_bind(struct netif *netif)
 
   ip_addr_copy(gw_addr, dhcp->offered_gw_addr);
   /* gateway address not given? */
-  if (ip_addr_isany(&gw_addr)) {
+  if (ip_addr_isany(&gw_addr)==true) {
     /* copy network address */
     ip_addr_get_network(&gw_addr, &dhcp->offered_ip_addr, &sn_mask);
     /* use first host address on network as gateway */

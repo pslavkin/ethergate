@@ -77,7 +77,7 @@ u8_t ip_addr_netcmp(struct ip_addr *addr1, struct ip_addr *addr2,
         struct ip_addr *mask);
 u8_t ip_addr_cmp(struct ip_addr *addr1, struct ip_addr *addr2);
 void ip_addr_set(struct ip_addr *dest, struct ip_addr *src);
-u8_t ip_addr_isany(struct ip_addr *addr);
+//u8_t ip_addr_isany(struct ip_addr *addr);
 
 #define ip_addr_debug_print(debug, ipaddr) \
         LWIP_DEBUGF(debug, ("%"X32_F":%"X32_F":%"X32_F":%"X32_F":%"X32_F":%"X32_F":%"X32_F":%"X32_F"\n", \

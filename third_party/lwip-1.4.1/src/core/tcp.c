@@ -547,13 +547,13 @@ tcp_listen_with_backlog(struct tcp_pcb *pcb, u8_t backlog)
     return NULL;
   }
   lpcb->callback_arg = pcb->callback_arg;
-  lpcb->local_port = pcb->local_port;
-  lpcb->state = LISTEN;
-  lpcb->prio = pcb->prio;
-  lpcb->so_options = pcb->so_options;
+  lpcb->local_port   = pcb->local_port;
+  lpcb->state        = LISTEN;
+  lpcb->prio         = pcb->prio;
+  lpcb->so_options   = pcb->so_options;
   ip_set_option(lpcb, SOF_ACCEPTCONN);
-  lpcb->ttl = pcb->ttl;
-  lpcb->tos = pcb->tos;
+  lpcb->ttl          = pcb->ttl;
+  lpcb->tos          = pcb->tos;
   ip_addr_copy(lpcb->local_ip, pcb->local_ip);
   if (pcb->local_port != 0) {
     TCP_RMV(&tcp_bound_pcbs, pcb);

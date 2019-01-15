@@ -26,42 +26,24 @@
 //#define LWIP_HTTPD_DYNAMIC_HEADERS      1
 //#define HTTPD_DEBUG                     LWIP_DBG_ON
 
-#if !defined(EMAC_PHY_IS_EXT_MII) && !defined(EMAC_PHY_IS_EXT_RMII)
-#define EMAC_PHY_CONFIG (EMAC_PHY_TYPE_INTERNAL | EMAC_PHY_INT_MDIX_EN |      \
-                         EMAC_PHY_AN_100B_T_FULL_DUPLEX)
-#define PHY_PHYS_ADDR      0
-#endif
-#if defined(EMAC_PHY_IS_EXT_MII)
-#define EMAC_PHY_CONFIG  EMAC_PHY_TYPE_EXTERNAL_MII
-#define PHY_PHYS_ADDR      1
-#define EEE_SUPPORT        0
-#endif
-#if defined(EMAC_PHY_IS_EXT_RMII)
-#define EMAC_PHY_CONFIG  EMAC_PHY_TYPE_EXTERNAL_RMII
-#define PHY_PHYS_ADDR      1
-#define EEE_SUPPORT        0
-#endif
-#define NUM_TX_DESCRIPTORS 32
-#define NUM_RX_DESCRIPTORS 16
+#define EMAC_PHY_CONFIG          (EMAC_PHY_TYPE_INTERNAL |\
+                                  EMAC_PHY_INT_MDIX_EN |\
+                                  EMAC_PHY_AN_100B_T_FULL_DUPLEX)
+#define PHY_PHYS_ADDR            0
+#define NUM_TX_DESCRIPTORS       32
+#define NUM_RX_DESCRIPTORS       16
 
 //*****************************************************************************
-//
 // ---------- Platform specific locking ----------
-//
 //*****************************************************************************
 #define SYS_LIGHTWEIGHT_PROT            1           // default is 0
 #define NO_SYS                          0           // default is 0
-#if !NO_SYS
 #define LWIP_COMPAT_MUTEX               1
 #define RTOS_FREERTOS                   1
-#endif /* !NO_SYS */
 //#define MEMCPY(dst,src,len)             memcpy(dst,src,len)
 //#define SMEMCPY(dst,src,len)            memcpy(dst,src,len)
-
 //*****************************************************************************
-//
 // ---------- Memory options ----------
-//
 //*****************************************************************************
 //#define MEM_LIBC_MALLOC                 0
 #define MEM_ALIGNMENT                   4          // default is 1
@@ -72,15 +54,13 @@
 //#define MEMP_USE_CUSTOM_POOLS           0
 
 //*****************************************************************************
-//
 // ---------- Internal Memory Pool Sizes ----------
-//
 //*****************************************************************************
 #define MEMP_NUM_PBUF                     32    // Default 16
 #define MEMP_NUM_RAW_PCB                  0
 #define MEMP_NUM_UDP_PCB                  4
-#define MEMP_NUM_TCP_PCB                  6    // Default 5 //3 backlogs por cada listen
-#define MEMP_NUM_TCP_PCB_LISTEN           4     //uno para cmd y otro para RS232 
+#define MEMP_NUM_TCP_PCB                  6   // Default 5 //3 backlogs por cada listen
+#define MEMP_NUM_TCP_PCB_LISTEN           4     //1xrs232+1xtemp+1xconsola+1xvirtual232
 #define MEMP_NUM_TCP_SEG                  64  // Default 16
 //#define MEMP_NUM_REASSDATA              5
 //#define MEMP_NUM_ARP_QUEUE              30
@@ -92,9 +72,7 @@
 #define MEMP_NUM_TCPIP_MSG_INPKT          32
 
 //*****************************************************************************
-//
 // ---------- ARP options ----------
-//
 //*****************************************************************************
 #define LWIP_ARP                        1
 #define ARP_TABLE_SIZE                  10
@@ -102,9 +80,7 @@
 #define ETHARP_TRUST_IP_MAC             0
 
 //*****************************************************************************
-//
 // ---------- IP options ----------
-//
 //*****************************************************************************
 //#define IP_FORWARD                      0
 //#define IP_OPTIONS_ALLOWED              1
@@ -117,75 +93,49 @@
 //#define IP_DEFAULT_TTL                  255
 
 //*****************************************************************************
-//
 // ---------- ICMP options ----------
-//
 //*****************************************************************************
 //#define LWIP_ICMP                       1
 //#define ICMP_TTL                       (IP_DEFAULT_TTL)
-
 //*****************************************************************************
-//
 // ---------- RAW options ----------
-//
 //*****************************************************************************
 #define LWIP_RAW                        0
 #define RAW_TTL                        (IP_DEFAULT_TTL)
-
 //*****************************************************************************
-//
 // ---------- DHCP options ----------
-//
 //*****************************************************************************
 #define LWIP_DHCP                       1           // default is 0
 #define DHCP_DOES_ARP_CHECK             ((LWIP_DHCP) && (LWIP_ARP))
-
 //*****************************************************************************
-//
 // ---------- UPNP options ----------
-//
 //*****************************************************************************
 //#define LWIP_UPNP                       0
-
 //*****************************************************************************
-//
 // ---------- PTPD options ----------
-//
 //*****************************************************************************
 //#define LWIP_PTPD                       0
-
 //*****************************************************************************
-//
 // ---------- AUTOIP options ----------
-//
 //*****************************************************************************
 #define LWIP_AUTOIP                     0           // default is 0
 #define LWIP_DHCP_AUTOIP_COOP           ((LWIP_DHCP) && (LWIP_AUTOIP))
-                                                    // default is 0
 #define LWIP_DHCP_AUTOIP_COOP_TRIES     5           // default is 9
 
 //*****************************************************************************
-//
 // ---------- SNMP options ----------
-//
 //*****************************************************************************
 //#define LWIP_SNMP                       0
 //#define SNMP_CONCURRENT_REQUESTS        1
 //#define SNMP_TRAP_DESTINATIONS          1
 //#define SNMP_PRIVATE_MIB                0
 //#define SNMP_SAFE_REQUESTS              1
-
 //*****************************************************************************
-//
 // ---------- IGMP options ----------
-//
 //*****************************************************************************
 //#define LWIP_IGMP                       0
-
 //*****************************************************************************
-//
 // ---------- DNS options -----------
-//
 //*****************************************************************************
 //#define LWIP_DNS                        0
 //#define DNS_TABLE_SIZE                  4
@@ -194,20 +144,14 @@
 //#define DNS_DOES_NAME_CHECK             1
 //#define DNS_USES_STATIC_BUF             1
 //#define DNS_MSG_SIZE                    512
-
 //*****************************************************************************
-//
 // ---------- UDP options ----------
-//
 //*****************************************************************************
 #define LWIP_UDP                        1
 //#define LWIP_UDPLITE                    0
 //#define UDP_TTL                         (IP_DEFAULT_TTL)
-
 //*****************************************************************************
-//
 // ---------- TCP options ----------
-//
 //*****************************************************************************
 #define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
@@ -226,46 +170,32 @@
 #define TCP_DEFAULT_LISTEN_BACKLOG      3
 
 //*****************************************************************************
-//
 // ---------- API options ----------
-//
 //*****************************************************************************
 //#define LWIP_EVENT_API                  0
 //#define LWIP_CALLBACK_API               1
-
 //*****************************************************************************
-//
 // ---------- Pbuf options ----------
-//
 //*****************************************************************************
 #define PBUF_LINK_HLEN             16
 #define ETH_PAD_SIZE               0
 #define PBUF_POOL_SIZE             32   // Default 16
 #define PBUF_POOL_BUFSIZE          (LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN)+16)
-
 //*****************************************************************************
-//
 // ---------- Network Interfaces options ----------
-//
 //*****************************************************************************
 //#define LWIP_NETIF_HOSTNAME             0
 //#define LWIP_NETIF_API                  0
 //#define LWIP_NETIF_STATUS_CALLBACK      0
 #define LWIP_NETIF_LINK_CALLBACK        0
 //#define LWIP_NETIF_HWADDRHINT           0
-
 //*****************************************************************************
-//
 // ---------- LOOPIF options ----------
-//
 //*****************************************************************************
 //#define LWIP_HAVE_LOOPIF                0
 //#define LWIP_LOOPIF_MULTITHREADING      1
-
 //*****************************************************************************
-//
 // ---------- Thread options ----------
-//
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 //ble 1024 o se ahoga....

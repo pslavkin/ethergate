@@ -86,8 +86,9 @@ ${COMPILER}/out.axf: ${COMPILER}/snmp_agent.o
 ${COMPILER}/out.axf: ${COMPILER}/clk.o
 ${COMPILER}/out.axf: ${COMPILER}/wdog.o
 ${COMPILER}/out.axf: ${COMPILER}/commands.o
+${COMPILER}/out.axf: ${COMPILER}/rs232.o
 ${COMPILER}/out.axf: ${COMPILER}/lwiplib.o
-${COMPILER}/out.axf: ${COMPILER}/startup_${COMPILER}.o
+${COMPILER}/out.axf: ${COMPILER}/startup_gcc.o
 ${COMPILER}/out.axf: ${COMPILER}/cmdline.o
 ${COMPILER}/out.axf: ${COMPILER}/uartstdio.o
 ${COMPILER}/out.axf: ${COMPILER}/ustdlib.o

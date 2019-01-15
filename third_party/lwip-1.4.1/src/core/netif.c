@@ -171,7 +171,7 @@ netif_add(struct netif *netif, ip_addr_t *ipaddr, ip_addr_t *netmask,
 
   /* remember netif specific state information data */
   netif->state = state;
-  netif->num = netif_num++;
+  netif->num   = netif_num++;
   netif->input = input;
   NETIF_SET_HWADDRHINT(netif, NULL);
 #if ENABLE_LOOPBACK && LWIP_LOOPBACK_MAX_PBUFS
@@ -221,9 +221,9 @@ void
 netif_set_addr(struct netif *netif, ip_addr_t *ipaddr, ip_addr_t *netmask,
     ip_addr_t *gw)
 {
-  netif_set_ipaddr(netif, ipaddr);
-  netif_set_netmask(netif, netmask);
-  netif_set_gw(netif, gw);
+  netif_set_ipaddr  ( netif, ipaddr  );
+  netif_set_netmask ( netif, netmask );
+  netif_set_gw      ( netif, gw      );
 }
 
 /**
