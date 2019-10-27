@@ -65,7 +65,7 @@ extern void    Save_Community4Loaded ( void );
 extern void    View_Actual_Community ( void );
 extern void Response_Int(unsigned char Node,uint16_t Value);
 //------------------------------------------------------------------------------
-bool Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code,uint16_t* T);
+uint16_t Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code);
 void Response_Err(void);
 
 #endif

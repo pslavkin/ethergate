@@ -5,7 +5,8 @@ struct Cmd_Table_Struct;
 struct Parser_Queue_Struct
 {
    uint8_t                       Buff[APP_INPUT_BUF_SIZE];
-   uint32_t                      Index;
+   uint16_t                      Index;
+   uint16_t                      lastIndex;
    struct tcp_pcb*               tpcb;
    struct Cmd_Table_Struct*      CmdTable;
    struct Parser_Queue_Struct*   Ref;

@@ -54,7 +54,7 @@ void Rs232_Task(void* nil)
    Init_Uart   (             );
    Cmd_Welcome ( &P ,0 ,NULL ); // debug
    while(1) {
-      vTaskDelay ( pdMS_TO_TICKS(25 ));
+      vTaskDelay ( pdMS_TO_TICKS( 25 ));
       Send_Event ( Rti_Event,Rs232( ));
    }
 }
@@ -71,19 +71,27 @@ void Is_Console_Enabled(void)
 void Clear_Parser_Index   ( void ) {
    P.Index=0;
 }
-bool Manage_Enter(uint8_t Char)
+
+void manageLastInput(struct Parser_Queue_Struct* B)
+{
+   if(B->Index==0 && B->lastIndex>0) //con esto pregunto si se trata de una linea solo de /n. en ese caso repito el caomando anterior
+      B->Index=B->lastIndex;
+   else
+      B->Buff[B->Index] = '\0';
+}
+bool manageEnter(uint8_t Char, bool isNext, uint8_t nextChar, uint16_t *index )
 {
    if(Char=='\n' || Char=='\r') {
-      if(!Rx_Buffer_Empty()) {
-         uint8_t Next_Char = Peek_Next_Char();
-         if( (Char=='\n' && Next_Char=='\r') ||
-               (Char=='\r' && Next_Char=='\n'))
-            Read_Next_Char();
+      if(isNext==true) {
+         if( (Char=='\n' && nextChar=='\r') ||
+             (Char=='\r' && nextChar=='\n'))
+            index++;
       }
       return true;
    }
    return false;
 }
+
 bool Manage_Backspace(uint8_t Char)
 {
    if(Char==0x7F) {
@@ -97,16 +105,18 @@ bool Manage_Backspace(uint8_t Char)
 
 void Parser_Process(void)
 {
-   uint8_t Char;
+   uint8_t Data;
    while(!Rx_Buffer_Empty()) {
       if(P.Index<sizeof(P.Buff)) {
-         Char = Read_Next_Char();
-         if(Manage_Enter(Char)==true) {
+         Data = Read_Next_Char();
+         if(manageEnter(Data,!Rx_Buffer_Empty(),Peek_Next_Char(),&P.Index)==true) {
             Insert_Event(Enter_Found_Event,Rs232());
             return;
          }
-         if(Manage_Backspace(Char)==false)
-            P.Buff[P.Index++]=Char;
+         if(Manage_Backspace(Data)==false) {
+            P.Buff[P.Index++] = Data;
+            P.lastIndex       = P.Index;
+         }
       }
       else {
          Insert_Event(Max_Length_Event,Rs232());
@@ -116,7 +126,7 @@ void Parser_Process(void)
 }
 void Send_Data2Parser(void)
 {
-   P.Buff[P.Index] = '\0';
+   manageLastInput(&P);
    P.Id++;
    xQueueSend(Parser_Queue,&P,portMAX_DELAY);
    P.Index=0;

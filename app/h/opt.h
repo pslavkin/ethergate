@@ -15,13 +15,13 @@
 #define USR_FLASH_END            0x00028000                          // 2 bloques de 16 minimo para garantizar lectura
 #define USR_FLASH_SIZE           (USR_FLASH_END-USR_FLASH_START)/128 // no puede haber mas de 128 bloques.. y como cada pedazo borrable de flas es de 16k. 32k/128 son 256 bytes por cada estructura de parametros.. por ahora creo que no se que poner que ocupe 256 bytes.. asi que sobra.. sino se baja este numer y chau
 
-#define ONE_WIRE_ENABLE          0
+#define ONE_WIRE_ENABLE          1
 #define RS232_ETH_ENABLE         1
 #define ONE_WIRE_RX_BUFFER       35                                  // es tambien el tamaño maximo de algun comando...generalmente no pasa de 20, que es un match ROM + read Page
 #define MAX_ROM_CODES            2                                   // cantidad de nodos permitidos en la red..
 #define MAX_FAIL_CODES           20                                  // cantidad de veces que falla intentando leer el numero de codigo en la busqueda de codigos... usualmente falla cuando el cableado es malo y lee cualquier cosa. entonces con esto se puede reportar el problema...
 
 #define TCP_REGISTERED_LIST      6                                   // cuandtas conexiones se permiten registrar para eth<>232 para que se reenvien a todas
-
+#define MAX_TCP_CLIENTS          6                                   //cantidad de sockets que actuan como clientes
 
 #endif // __COMMANDS_H__

@@ -75,17 +75,13 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
    uint8_t Sensor_Code_Index;
    if ( Parse_Version() && Parse_Community()) {
       if(Object_Name_Match(&Sensor_Code_Index)) {
-         UART_ETHprintf(DEBUG_MSG,"snmp match\r\n");;
+         UART_ETHprintf(DEBUG_MSG,"snmp match\r\n");
          if(Next_Or_Bulk()) {
             Sensor_Code_Index++;
             UART_ETHprintf(DEBUG_MSG,"bulk or walk next=%d\r\n",Sensor_Code_Index);;
          }
          if(Sensor_Code_Index<MAX_ROM_CODES) {
-            uint16_t T;
-            if(Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index],&T))
-               Response_Int(Sensor_Code_Index,T);
-            else
-               Response_Int(Sensor_Code_Index,0x7FFE);
+            Response_Int(Sensor_Code_Index,Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index]));
          }
          else {
             UART_ETHprintf(DEBUG_MSG,"snmp walk last\r\n");
@@ -94,13 +90,9 @@ void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,
       }
       else {
          if(Next_Or_Bulk()) {
-            uint16_t T;
             Sensor_Code_Index=0;
             UART_ETHprintf(DEBUG_MSG,"snmp not match but bulk\r\n");;
-            if(Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index],&T))
-               Response_Int(Sensor_Code_Index,T);
-            else
-               Response_Int(Sensor_Code_Index,0x7FFE);
+            Response_Int(Sensor_Code_Index,Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index]));
          }
          else {
             UART_ETHprintf(DEBUG_MSG,"snmp not match neither bulk\r\n");;
@@ -170,15 +162,15 @@ void Response_Err(void)/*{{{*/
  Send_Snmp_Ans();
 }/*}}}*/
 //-----------------------------------------------------------------------------
-bool Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code,uint16_t* T)
+uint16_t Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code)
 {
    uint8_t i;
+   uint16_t T=0x7FFE;      //por defecto devuelve un valor invalido
    for ( i=0;i<One_Wire_On_Line_Nodes();i++ )
       if(memcmp(One_Wire_Code(i),Sensor_Code,8)==0) {
             UART_ETHprintf(DEBUG_MSG,"find sensor %d\r\n",i);
-           *T=One_Wire_T(i);
-           return true;
+           T=One_Wire_T(i);
+           break;
          }
-   UART_ETHprintf(DEBUG_MSG,"not find sensor %d\r\n",i);
-   return false;
+   return T;
 }

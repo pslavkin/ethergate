@@ -44,7 +44,7 @@ tCmdLineEntry Login_Cmd_Table[] =/*{{{*/
     { "tstart" ,Cmd_T_Start ,": start show temperatures periodically" } ,
     { "tstop"  ,Cmd_T_Stop  ,": stop show temperatures periodically" }  ,
 #endif
-    { "exit"   ,Cmd_Exit    ,": exit and close c;onnection" }            ,
+    { "exit"   ,Cmd_Exit    ,": exit and close connection" }            ,
     { "?"      ,Cmd_Help    ,": help" }                                 ,
     { 0        ,0           ,0 }
 };/*}}}*/
@@ -65,23 +65,24 @@ tCmdLineEntry Main_Cmd_Table[] =/*{{{*/
 };/*}}}*/
 tCmdLineEntry Ip_Cmd_Table[] =/*{{{*/
 {
-    { "mac"  ,Cmd_Mac            ,": show MAC address" }                                 ,
-    { "add"  ,Cmd_Actual_Address ,": show/save actual address" }                         ,
-    { "ip"   ,Cmd_Static_Ip      ,": show/save static ip" }                              ,
-    { "mask" ,Cmd_Static_Mask    ,": show/save static mask" }                            ,
-    { "gw"   ,Cmd_Static_Gateway ,": show/save static gateway" }                         ,
-    { "dhcp" ,Cmd_Dhcp           ,": show/save dhcp (0=disable 1=enable)" }              ,
-    { "cp"   ,Cmd_Config_Port    ,": show/save config tcp port [default 49152]" }        ,
-    { "tp"   ,Cmd_Temp_Port      ,": show/save temperature port [default 49153]" }       ,
-    { "bp"   ,Cmd_Rs232_Port     ,": show/save rs232<>tcp bridge port [default 49154]" } ,
-    { "vp"   ,Cmd_Virtual_Port   ,": show/save virtual rs232 port [default 49155]" }     ,
-    { "sp"   ,Cmd_Sniffer_Port   ,": show/save sniffer port [default 49156]" }           ,
-    { "link" ,Cmd_Link_State     ,": show link state" }                                  ,
-    { "con"  ,Cmd_Connect        ,": Connect " }                                  ,
-    { "state",Cmd_Client_State   ,": Client state " }                                  ,
-    { "?"    ,Cmd_Help           ,": help" }                                             ,
-    { "<"    ,Cmd_Back2Main      ,": back" }                                             ,
-    { 0      ,0                  ,0 }
+    { "mac"  ,Cmd_Mac                ,": show MAC address"                                 } ,
+    { "add"  ,Cmd_Actual_Address     ,": show/save actual address"                         } ,
+    { "ip"   ,Cmd_Static_Ip          ,": show/save static ip"                              } ,
+    { "mask" ,Cmd_Static_Mask        ,": show/save static mask"                            } ,
+    { "gw"   ,Cmd_Static_Gateway     ,": show/save static gateway"                         } ,
+    { "dhcp" ,Cmd_Dhcp               ,": show/save dhcp (0=disable 1=enable)"              } ,
+    { "cp"   ,Cmd_Config_Port        ,": show/save config tcp port [default 49152]"        } ,
+    { "tp"   ,Cmd_Temp_Port          ,": show/save temperature port [default 49153]"       } ,
+    { "bp"   ,Cmd_Rs232_Port         ,": show/save rs232<>tcp bridge port [default 49154]" } ,
+    { "sp"   ,Cmd_Sniffer_Port       ,": show/save sniffer port [default 49155]"           } ,
+    { "vp"   ,Cmd_Virtual_Port       ,": show/save virtual rs232 port [default 49156]"     } ,
+    { "link" ,Cmd_Link_State         ,": show link state"                                  } ,
+    { "con"  ,Cmd_Connect            ,": Connect "                                         } ,
+    { "list" ,Cmd_Print_Clients_List ,": Print Client List "                               } ,
+    { "init" ,Cmd_Init_Client_List   ,": Init Client List "                                } ,
+    { "?"    ,Cmd_Help               ,": help"                                             } ,
+    { "<"    ,Cmd_Back2Main          ,": back"                                             } ,
+    { 0      ,0                      ,0                                                    }
 };/*}}}*/
 tCmdLineEntry T_Cmd_Table[] =/*{{{*/
 {
@@ -93,7 +94,6 @@ tCmdLineEntry T_Cmd_Table[] =/*{{{*/
    { "tmin"      ,Cmd_Tmin          ,": show/save tmin" }                       ,
    { "scan"      ,Cmd_Reload_T      ,": scan sensor list" }                     ,
    { "scan_tout" ,Cmd_Reload_T_TOut ,": show/save scan sensor list tout" }      ,
-   { "tport"     ,Cmd_Temp_Port     ,": show/save tcp port [default 49153]" }   ,
    { "?"         ,Cmd_Help          ,": help" }                                 ,
    { "<"         ,Cmd_Back2Main     ,": back" }                                 ,
    { 0           ,0                 ,0 }
@@ -213,18 +213,6 @@ int Cmd_Back2Login(struct Parser_Queue_Struct* P, int argc, char *argv[])
    return 0;
 }/*}}}*/
 //TEMP{{{
-int Cmd_Temp_Port(struct Parser_Queue_Struct* P, int argc, char *argv[])
-{
-   if(argc==1)
-      UART_ETHprintf(P->tpcb,"%d\r\n",Usr_Flash_Params.Temp_Port);
-   else {
-      uint16_t New_Port=atoi(argv[1]);
-      UART_ETHprintf(P->tpcb,"new port=%d\r\n",New_Port);
-      Usr_Flash_Params.Temp_Port=New_Port;
-      Save_Usr_Flash();
-   }
-   return 0;
-}
 int Cmd_T(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    Print_Temp_Nodes(P->tpcb);
@@ -424,6 +412,11 @@ int Cmd_Rs232_Port(struct Parser_Queue_Struct* P, int argc, char *argv[])
 int Cmd_Sniffer_Port(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    Cmd_Port(P,argc,argv,&Usr_Flash_Params.Sniffer_Port);
+   return 0;
+}
+int Cmd_Temp_Port(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   Cmd_Port(P,argc,argv,&Usr_Flash_Params.Temp_Port);
    return 0;
 }
 void Print_Enable_Disable(struct Parser_Queue_Struct* P,const char* Legend,bool State)

@@ -535,9 +535,6 @@ again:
                     goto convert;
                 }
 
-                //
-                // Handle the %f command. Agregado por pslavkin
-                //
                 case 'f':
                 {
                     //

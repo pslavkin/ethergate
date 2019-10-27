@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <stdint.h>/*{{{*/
 #include <string.h>
 #include "utils/lwiplib.h"
 #include "utils/cmdline.h"
@@ -15,18 +15,28 @@
 #include "telnet.h"
 #include "leds.h"
 #include "utils/uartstdio.h"
+#include "lwip/ip_addr.h"/*}}}*/
 
 struct tcp_pcb *Soc_Cmd;
 struct tcp_pcb *Soc_Rs232;
 struct tcp_pcb *Soc_Sniffer;
 struct tcp_pcb *Soc_Virtual;
-struct tcp_pcb *Soc_Clients;
 
+
+struct Soc_Clients_Struct Clients_List[MAX_TCP_CLIENTS];
 struct Conn_List_Struct
 {
    struct tcp_pcb*   Tpcb;
    Tpcb_Type_T       Type;
 } Conn[TCP_REGISTERED_LIST];
+
+const State
+   Disabled  [ ],
+   Waiting   [ ],
+   Connecting[ ],
+   Connected [ ],
+   Closing   [ ];
+
 //-------------------------------------------------------------------------------------
 void Create_Cmd_Socket   ( void* nil );
 void Create_Rs232_Socket ( void* nil );
@@ -41,73 +51,13 @@ void Init_Telnet(void)         //inicializa los puertos que se usan en esta maqu
    tcpip_callback ( Create_Virtual_Socket ,0 );
 #endif
 }
-//-----------ETH Console---------------------------------------------------------------
-err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
-{
-   uint8_t Data;
-   uint16_t i;
-   struct Parser_Queue_Struct* B=arg;
-   if(p!=NULL)  {
-      for(i=0;i<p->len;i++) {
-         Data=((uint8_t*)p->payload)[i];
-         if(Data=='\n' || Data=='\r') {
-            if( (i+1)<p->len                                      &&
-               ((Data=='\n' && ((uint8_t*)p->payload)[i+1]=='\r') ||
-                (Data=='\r' && ((uint8_t*)p->payload)[i+1]=='\n'))
-              )
-               i++;
-            B->Buff[B->Index] = '\0';
-            xQueueSend(Parser_Queue,B,portMAX_DELAY);
-            B->Id++;
-            B->Index = 0;
-         }
-         else
-            if(B->Index<sizeof(B->Buff))
-               B->Buff[B->Index++]=Data;
-      }
-      tcp_recved(tpcb,p->len);
-      pbuf_free(p);                    //libero bufer
-      return ERR_OK;
-   }
-   else {
-      vPortFree    ( arg     ); // libero el buffer de recepcion
-      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
-      tcp_close    ( tpcb    ); // cierro
-      return ERR_OK;
-   }
-}
-
-void Telnet_Close ( struct tcp_pcb *tpcb)
+void Telnet_Close ( struct tcp_pcb *tpcb) //TODO: en realidad tengo que cerrar todas las conecciones abiertas si quiero rebootear, no solo la que lo pide...
 {
    if(tpcb!=DEBUG_MSG && tpcb!=UART_MSG ) {
       tcp_close(tpcb);
    }
 }
-
-err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
-{
-   struct Parser_Queue_Struct* R= ( struct Parser_Queue_Struct* )pvPortMalloc(sizeof(struct Parser_Queue_Struct));
-   R->Id       = 0;
-   R->Index    = 0;
-   R->tpcb     = newpcb;
-   R->CmdTable = Login_Cmd_Table;
-   R->Ref      = R;
-   tcp_recv ( newpcb ,Rcv_Cmd_Fn );
-   tcp_arg  ( newpcb ,R          );
-   UART_ETHprintf(UART_MSG,"accepted con pointer=%d\r\n",newpcb);
-   UART_ETHprintf(UART_MSG,"soc_cmd pointer=%d\r\n",Soc_Cmd);
-   UART_ETHprintf(UART_MSG,"soc_client pointer=%d\r\n",Soc_Clients);
-   return 0;
-}
-
-void Create_Cmd_Socket(void* nil)
-{
-   Soc_Cmd=tcp_new                 (                                                    );
-   tcp_bind                        ( Soc_Cmd ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
-   Soc_Cmd=tcp_listen_with_backlog ( Soc_Cmd ,3                                         );
-   tcp_accept                      ( Soc_Cmd ,Accept_Cmd_Fn                             );
-}
-//-------CONNECTION LIST----------------------------------------------------------------
+//-------CONNECTION LIST----------------------------------------------------------------{{{
 bool Free_Conn(struct tcp_pcb* New)
 {
    uint8_t i,Empty=0;
@@ -171,8 +121,61 @@ void Init_Conn(void)
    uint8_t i;
    for(i=0;i<TCP_REGISTERED_LIST;i++)
       Conn[i].Tpcb=NULL;
+}/*}}}*/
+//-------CMD CONSOLE---------------------------------------------------------------{{{
+err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+{
+   uint8_t Data;
+   uint16_t i;
+   struct Parser_Queue_Struct* B=arg;
+   if(p!=NULL)  {
+      for(i=0;i<p->len;i++) {
+         Data=((uint8_t*)p->payload)[i];
+         if(manageEnter(Data,(i+1)<p->len,((uint8_t*)p->payload)[i+1],&i)) {
+            manageLastInput(B);
+            xQueueSend(Parser_Queue,B,portMAX_DELAY);
+            B->Id++;
+            B->Index = 0;
+         }
+         else
+            if(B->Index<sizeof(B->Buff)) {
+               B->Buff[B->Index++] = Data;
+               B->lastIndex        = B->Index;
+            }
+      }
+      tcp_recved(tpcb,p->len);
+      pbuf_free(p);                    //libero bufer
+      return ERR_OK;
+   }
+   else {
+      vPortFree    ( arg     ); // libero el buffer de recepcion
+      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
+      tcp_close    ( tpcb    ); // cierro
+      return ERR_OK;
+   }
 }
-//-------RS232<>ETH RAW----------------------------------------------------------------
+err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
+{
+   struct Parser_Queue_Struct* R= ( struct Parser_Queue_Struct* )pvPortMalloc(sizeof(struct Parser_Queue_Struct));
+   R->Id       = 0;
+   R->Index    = 0;
+   R->lastIndex= 0;
+   R->tpcb     = newpcb;
+   R->CmdTable = Login_Cmd_Table;
+   R->Ref      = R;
+   tcp_recv ( newpcb ,Rcv_Cmd_Fn );
+   tcp_arg  ( newpcb ,R          );
+   return 0;
+}
+
+void Create_Cmd_Socket(void* nil)
+{
+   Soc_Cmd = tcp_new                 (                                                    );
+   tcp_bind                          ( Soc_Cmd ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
+   Soc_Cmd = tcp_listen_with_backlog ( Soc_Cmd ,3                                         );
+   tcp_accept                        ( Soc_Cmd ,Accept_Cmd_Fn                             );
+}/*}}}*/
+//-------RS232<>ETH RAW----------------------------------------------------------------{{{
 err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    if(p!=NULL)  {
@@ -206,8 +209,8 @@ void Create_Rs232_Socket(void* nil)
    tcp_bind                          ( Soc_Rs232 ,IP_ADDR_ANY ,Usr_Flash_Params.Rs232_Port );
    Soc_Rs232=tcp_listen_with_backlog ( Soc_Rs232 ,3                                        );
    tcp_accept                        ( Soc_Rs232 ,Accept_Rs232_Fn                           );
-}
-//---SNIFFER ETH&RS232 to ETH--------------------------------------------------------------
+}/*}}}*/
+//---SNIFFER ETH&RS232 to ETH--------------------------------------------------------------{{{
 err_t Rcv_Sniffer_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    if(p!=NULL)  {
@@ -235,8 +238,8 @@ void Create_Sniffer_Socket(void* nil)
    tcp_bind                            ( Soc_Sniffer ,IP_ADDR_ANY ,Usr_Flash_Params.Sniffer_Port );
    Soc_Sniffer=tcp_listen_with_backlog ( Soc_Sniffer ,3                                          );
    tcp_accept                          ( Soc_Sniffer ,Accept_Sniffer_Fn                          );
-}
-//---VIRTUAL RS232--------------------------------------------------------------
+}/*}}}*/
+//-------VIRTUAL RS232--------------------------------------------------------------{{{
 err_t Rcv_Virtual_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    if(p!=NULL)  {
@@ -265,44 +268,133 @@ void Create_Virtual_Socket(void* nil)
    tcp_bind                            ( Soc_Virtual ,IP_ADDR_ANY ,Usr_Flash_Params.Virtual_Port );
    Soc_Virtual=tcp_listen_with_backlog ( Soc_Virtual ,3                                          );
    tcp_accept                          ( Soc_Virtual ,Accept_Virtual_Fn                          );
-}
-//---CLIENTS--------------------------------------------------------------
-//err_t Rcv_Clients_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
-//{
-//   if(p!=NULL)  {
-//      Emulate_Uart_Rx_Data(p->payload,p->len);
-//      tcp_recved ( tpcb ,p->len );
-//      pbuf_free  ( p            ); // libero bufer
-//      return ERR_OK;
-//   }
-//   else {
-//      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
-//      Free_Conn    ( tpcb    );
-//      tcp_close    ( tpcb    ); // cierro
-//      return ERR_OK;
-//   }
-//}
-//err_t Connected_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
-//{
-//   tcp_recv ( newpcb ,Rcv_Clients_Fn );
-//   tcp_arg  ( newpcb ,NULL           );
-//   Add_Conn ( newpcb ,NORMAL         );
-//   return 0;
-//}
-void Create_Clients_Socket(void* nil)
+}/*}}}*/
+//---------CLIENTS--------------------------------------------------------------{{{
+void Init_Clients_Socket(void)
 {
-   ip_addr_t Ip;
-   ipaddr_aton("192.168.2.3",&Ip);
-   Soc_Clients=tcp_new ( );
-   tcp_connect ( Soc_Clients ,&Ip ,12345,Accept_Cmd_Fn );
+   uint8_t i;
+   for(i=0;i<MAX_TCP_CLIENTS;i++) {
+      Clients_List[i].Accept_Fn   = Accept_Cmd_Fn;
+      Clients_List[i].Port        = 12345+i;
+      Clients_List[i].Tout        = 1;
+      Clients_List[i].Actual_Tout = 1;
+      Clients_List[i].tpcb        = NULL;
+      Clients_List[i].C_State     = Disabled;
+      ipaddr_aton("192.168.2.3",&Clients_List[i].Ip);
+   }
+   Send_Event(Telnet_Enable_Event,&Clients_List[0].C_State);
+}
+
+void Connect_Clients_Socket(void)
+{
+   uint8_t i;
+   for(i=0;i<MAX_TCP_CLIENTS;i++) {
+      if(Clients_List[i].Accept_Fn!=NULL) {
+         if(Clients_List[i].Tout!=0) {
+            if(Clients_List[i].Actual_Tout==0) {
+               Clients_List[i].Actual_Tout=Clients_List[i].Tout;
+               if(Clients_List[i].tpcb!=NULL) {
+                  if(Clients_List[i].tpcb->state==CLOSED || Clients_List[i].tpcb->state==SYN_SENT){
+                     tcp_connect( Clients_List[i].tpcb,
+                                 &Clients_List[i].Ip,
+                                 Clients_List[i].Port,
+                                 Clients_List[i].Accept_Fn);
+                  }
+               }
+               else {
+                  Clients_List[i].tpcb=tcp_new();
+               }
+            }
+            else {
+               Clients_List[i].Actual_Tout--;
+            }
+         }
+      }
+   }
+}
+int Cmd_Print_Clients_List(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   uint8_t i;
+   char Ip_Buf[16];
+   for(i=0;i<MAX_TCP_CLIENTS;i++) {
+      ipaddr_ntoa_r(&Clients_List[i].Ip, Ip_Buf,sizeof(Ip_Buf));
+      UART_ETHprintf(P->tpcb,"Client:%d Ip:%s Port:%d Tout:%d Actual Tout:%d Conn State:%d \r\n",
+                     i,
+                     Ip_Buf,
+                     Clients_List[i].Port,
+                     Clients_List[i].Tout,
+                     Clients_List[i].Actual_Tout,
+                     Clients_List[i].tpcb->state);
+   }
+   return 0;
 }
 int Cmd_Connect(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   Create_Clients_Socket(NULL);
+   Telnet_Clients_Rti();
+//   Connect_Clients_Socket();
    return 0;
 }
-int Cmd_Client_State(struct Parser_Queue_Struct* P, int argc, char *argv[])
+int Cmd_Init_Client_List(struct Parser_Queue_Struct* P, int argc, char *argv[]) {
+   Init_Clients_Socket();
+   return 0;
+}/*}}}*/
+
+
+struct Soc_Clients_Struct* Clients4C_State(const State** C_State)
 {
-   UART_ETHprintf(P->tpcb,"state=%d\r\n",Soc_Clients->state);
-   return 0;
+   return (struct Soc_Clients_Struct*) C_State;
 }
+
+void Waiting_Rti(void)
+{
+   struct Soc_Clients_Struct* CS=Clients4C_State(Actual_Sm());
+   if(CS->Actual_Tout==0) {
+      Send_Event(Telnet_Connect_Event,Actual_Sm());
+      CS->Actual_Tout=CS->Tout;
+   }
+   else
+      CS->Actual_Tout--;
+}
+void Waiting_Connect(void)
+{
+   struct Soc_Clients_Struct* SC=Clients4C_State(Actual_Sm());
+   SC->tpcb=tcp_new();
+   tcp_connect ( SC-> tpcb,
+                &SC-> Ip,
+                 SC-> Port,
+                 SC-> Accept_Fn);
+}
+
+void Telnet_Clients_Rti(void)
+{
+   uint8_t i;
+   for( i = 0; i < MAX_TCP_CLIENTS  ; i ++ ) {
+      Send_Event(Rti_Event,&Clients_List[i].C_State);
+   }
+}
+
+const State Disabled  [ ] =
+{
+{ Telnet_Enable_Event  ,Rien            ,Waiting    },
+{ Rti_Event            ,Rien            ,Disabled   },
+{ ANY_Event            ,Rien            ,Disabled   },
+};
+const State Waiting   [ ] =
+{
+{ Rti_Event            ,Waiting_Rti     ,Waiting    },
+{ Telnet_Connect_Event ,Waiting_Connect ,Connecting },
+{ ANY_Event            ,Rien            ,Waiting    },
+};
+const State Connecting[ ] =
+{
+{ ANY_Event            ,Rien            ,Connecting },
+};
+const State Connected [ ] =
+{
+{ ANY_Event            ,Rien            ,Connected  },
+};
+const State Closing   [ ] =
+{
+{ ANY_Event            ,Rien            ,Closing    },
+};
+

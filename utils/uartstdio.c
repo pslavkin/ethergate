@@ -855,6 +855,7 @@ void Emulate_Uart_Rx_Data(uint8_t* Data, uint16_t Len)
       if(!RX_BUFFER_FULL) {
          g_pcUARTRxBuffer[g_ui32UARTRxWriteIndex] = Data[i];
          ADVANCE_RX_BUFFER_INDEX(g_ui32UARTRxWriteIndex);
+         Led_Rgb_Only_Blue(); //debug
       }
       else {
          Led_Rgb_Only_Blue(); //debug

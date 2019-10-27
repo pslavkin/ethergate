@@ -34,4 +34,9 @@ void Console_Data_Process ( void      );
 void Is_Console_Enabled   ( void      );
 void Bridge2Console       ( void      );
 void Console2Bridge       ( void      );
+
+
+
+bool manageEnter(uint8_t Char, bool isNext, uint8_t nextChar, uint16_t *index );
+void manageLastInput(struct Parser_Queue_Struct* B);
 #endif
