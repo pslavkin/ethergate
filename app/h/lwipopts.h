@@ -47,7 +47,7 @@
 //*****************************************************************************
 //#define MEM_LIBC_MALLOC                 0
 #define MEM_ALIGNMENT                   4          // default is 1
-#define MEM_SIZE                        (32*1024)  // con 2k no anda con 16, anda 2 horas
+#define MEM_SIZE                        ( 16*1024)  // con 2k no anda con 16, anda 2 horas
 #define MEMP_OVERFLOW_CHECK             1
 #define MEMP_SANITY_CHECK               1
 //#define MEM_USE_POOLS                   0
@@ -59,7 +59,7 @@
 #define MEMP_NUM_PBUF                     32    // Default 16
 #define MEMP_NUM_RAW_PCB                  0     // creo que no uso...
 #define MEMP_NUM_UDP_PCB                  2     // en teoria con 1 me alcanza...
-#define MEMP_NUM_TCP_PCB                  6     // Default 5 //3 backlogs por cada listen
+#define MEMP_NUM_TCP_PCB                  12    // Default 5 //3 backlogs por cada listen
 #define MEMP_NUM_TCP_PCB_LISTEN           4     // 1xrs232+1xtemp+1xconsola+1xvirtual232
 #define MEMP_NUM_TCP_SEG                  64    // Default 16 tiene  que valer a los miunumo TCP_SND_QUEUELEN
 //#define MEMP_NUM_REASSDATA              5
@@ -166,7 +166,7 @@
 #define TCP_SND_QUEUELEN                64 //(32* (TCP_SND_BUF/TCP_MSS))
 #define TCP_SNDQUEUELOWAT               32
 #define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
-#define TCP_LISTEN_BACKLOG              0
+#define TCP_LISTEN_BACKLOG              1
 #define TCP_DEFAULT_LISTEN_BACKLOG      3
 
 //*****************************************************************************
@@ -199,7 +199,7 @@
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 //ble 1024 o se ahoga....
-#define TCPIP_THREAD_STACKSIZE          (8*1024)
+#define TCPIP_THREAD_STACKSIZE          (4*1024)
 #define TCPIP_THREAD_PRIO               1
 #define TCPIP_MBOX_SIZE                 64
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
@@ -242,19 +242,19 @@
 // ---------- Statistics options ----------
 //
 //*****************************************************************************
-#define LWIP_STATS                      1
-#define LWIP_STATS_DISPLAY              1
-#define LINK_STATS                      1
-#define ETHARP_STATS                    (LWIP_ARP)
-#define IP_STATS                        1
+#define LWIP_STATS                      0
+//#define LWIP_STATS_DISPLAY              1
+//#define LINK_STATS                      1
+//#define ETHARP_STATS                    (LWIP_ARP)
+//#define IP_STATS                        1
 //#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
-#define ICMP_STATS                      1
+//#define ICMP_STATS                      1
 //#define IGMP_STATS                      (LWIP_IGMP)
 //#define UDP_STATS                       (LWIP_UDP)
 //#define TCP_STATS                       (LWIP_TCP)
-#define MEM_STATS                       1
-#define MEMP_STATS                      1
-#define SYS_STATS                       1
+//#define MEM_STATS                       1
+//#define MEMP_STATS                      1
+//#define SYS_STATS                       1
 
 //*****************************************************************************
 //
@@ -307,7 +307,7 @@
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 1
+#if 0
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"
@@ -334,7 +334,7 @@ extern void UARTprintf(const char *pcString, ...);
 
 #define ETHARP_DEBUG                    LWIP_DBG_OFF     // default is OFF
 #define NETIF_DEBUG                     LWIP_DBG_OFF     // default is OFF
-#define PBUF_DEBUG                      LWIP_DBG_ON
+#define PBUF_DEBUG                      LWIP_DBG_OFF
 #define API_LIB_DEBUG                   LWIP_DBG_OFF
 #define API_MSG_DEBUG                   LWIP_DBG_OFF
 #define SOCKETS_DEBUG                   LWIP_DBG_OFF
@@ -344,7 +344,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define IP_DEBUG                        LWIP_DBG_OFF   // default is OFF
 #define IP_REASS_DEBUG                  LWIP_DBG_OFF
 #define RAW_DEBUG                       LWIP_DBG_OFF
-#define MEM_DEBUG                       LWIP_DBG_ON
+#define MEM_DEBUG                       LWIP_DBG_OFF
 #define MEMP_DEBUG                      LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
 #define TCP_DEBUG                       LWIP_DBG_OFF

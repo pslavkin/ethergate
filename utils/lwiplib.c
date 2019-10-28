@@ -149,7 +149,7 @@ static xQueueHandle g_pInterrupt;
 static void lwIPInterruptTask(void *pvArg)
 {
    while(1) {
-      while(xQueueReceive  ( g_pInterrupt, &pvArg, 1000)==pdFALSE) { //portMAX_DELAY ) {
+      while(xQueueReceive  ( g_pInterrupt, &pvArg, pdMS_TO_TICKS(500))==pdFALSE) { //portMAX_DELAY ) {
 
          xSemaphoreGive ( Led_Link_Semphr                     );
       }
@@ -326,7 +326,7 @@ void lwIPEthernetIntHandler(void)
                                     EMAC_INT_TX_STOPPED |
                                     EMAC_INT_RX_NO_BUFFER |
                                     EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
-    //portYIELD_FROM_ISR(xWake);
+    portYIELD_FROM_ISR(xWake);
 }
 
 //*****************************************************************************

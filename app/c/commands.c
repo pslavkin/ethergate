@@ -122,15 +122,15 @@ tCmdLineEntry Rs232_Cmd_Table[] =/*{{{*/
 };/*}}}*/
 tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 {
-{ "id"      ,Cmd_Id        ,": show and/or save id"                },
-{ "pwd"     ,Cmd_Pwd       ,": show and/or save password"          },
-{ "reboot"  ,Cmd_Reboot    ,": reboot"                             },
-{ "task"    ,Cmd_TaskList  ,": rsv"                                },
-{ "ut"      ,Cmd_Uptime    ,": uptime [secs]"                      },
-{ "restore" ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)"       },
-{ "wdog"    ,Cmd_Restore   ,": restore defaults values and reboot" },
-{ "?"       ,Cmd_Help      ,": help"                               },
-{ "<"       ,Cmd_Back2Main ,": back"                               },
+{ "id"      ,Cmd_Id        ,": show and/or save id"                } ,
+{ "pwd"     ,Cmd_Pwd       ,": show and/or save password"          } ,
+{ "reboot"  ,Cmd_Reboot    ,": reboot"                             } ,
+{ "task"    ,Cmd_TaskList  ,": rsv"                                } ,
+{ "ut"      ,Cmd_Uptime    ,": uptime [secs]"                      } ,
+{ "wdog"    ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)"       } ,
+{ "restore" ,Cmd_Restore   ,": restore defaults values and reboot" } ,
+{ "?"       ,Cmd_Help      ,": help"                               } ,
+{ "<"       ,Cmd_Back2Main ,": back"                               } ,
 { 0         ,0             ,0                                      }
 };/*}}}*/
 tCmdLineEntry Stats_Cmd_Table[] =/*{{{*/
@@ -668,22 +668,7 @@ int Cmd_EthStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
 int Cmd_IcmpStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    ICMP_STATS_DISPLAY();
-//   return 0;
-  /* Clear any pending MAC interrupts. */
-  EMACIntClear(EMAC0_BASE, EMACIntStatus(EMAC0_BASE, false));
-
-  /* Enable the Ethernet MAC transmitter and receiver. */
-  EMACTxEnable(EMAC0_BASE);
-  EMACRxEnable(EMAC0_BASE);
-
-  /* Enable the Ethernet RX and TX interrupt source. */
-  EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
-                EMAC_INT_TX_STOPPED | EMAC_INT_RX_NO_BUFFER |
-                EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
-
-  /* Enable the Ethernet interrupt. */
-  IntEnable(INT_EMAC0);
-  return 0;
+   return 0;
 }
 int Cmd_AllStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
