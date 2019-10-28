@@ -42,12 +42,12 @@ bool  Parse_Version   ( void ) { return Rx_Snmp_Header()->Version==0 || Rx_Snmp_
 bool  Parse_Community ( void ) { return strncmp(Rx_Snmp_Header()->Community,Usr_Flash_Params.Snmp_Community,Rx_Snmp_Header()->Community_Length)==0;}
 bool  Object_Name_Match ( uint8_t* Index ) {
    uint8_t i;
-   if(Rx_Snmp_Object( )->Object_Name_Length!=Usr_Flash_Params.Snmp_Iso_Len)
-      return false;
+//   if(Rx_Snmp_Object( )->Object_Name_Length!=Usr_Flash_Params.Snmp_Iso_Len)
+//      return false;
    for(i=0;i<MAX_ROM_CODES &&
            memcmp(Usr_Flash_Params.Snmp_Iso[i],
                   Rx_Snmp_Object( )->Object_Name,
-                  Usr_Flash_Params.Snmp_Iso_Len)!=0 ;i++)
+                  Usr_Flash_Params.Snmp_Iso_Len[i])!=0 ;i++)
       ;
    *Index=i;
   return i<MAX_ROM_CODES;
@@ -118,10 +118,10 @@ void Response_Int(uint8_t Node,uint16_t Value)/*{{{*/
 {
  UART_ETHprintf(DEBUG_MSG,"Snmp Response\r\n");
 
- Rx_Snmp_Object ( )->Object_Name_Length= Usr_Flash_Params.Snmp_Iso_Len;
+ Rx_Snmp_Object ( )->Object_Name_Length= Usr_Flash_Params.Snmp_Iso_Len[Node];
  memcpy ( Rx_Snmp_Object( )->Object_Name,
           Usr_Flash_Params.Snmp_Iso[Node],
-          Usr_Flash_Params.Snmp_Iso_Len);
+          Usr_Flash_Params.Snmp_Iso_Len[Node]);
 
  Rx_Snmp_Value ( )->Value_Code   = 0x02              ; // codigo que corresponde a Integer...
  Rx_Snmp_Value ( )->Value_Length = 2                 ; // solo mando integer de 2 bytes...

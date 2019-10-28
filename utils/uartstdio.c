@@ -545,13 +545,27 @@ UARTgetc(void)
 //
 //*****************************************************************************
 char Buff[APP_OUT_BUF_SIZE];
+void UARTprintf(const char *pcString, ...)
+{
+   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+   if(xSemaphoreTakeFromISR(Print_Mutex,&xHigherPriorityTaskWoken)==pdTRUE) {
+      va_list vaArgP;
+      int len;
+      va_start(vaArgP, pcString);
+      len=uvsnprintf(Buff,sizeof(Buff),pcString, vaArgP);
+      UARTwrite(Buff,len);
+      va_end(vaArgP);
+      xSemaphoreGiveFromISR(Print_Mutex, &xHigherPriorityTaskWoken );
+   }
+}
+
 void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
 {
    if(tpcb==DEBUG_MSG)
 #ifndef DEBUG_UART
       return;
 #else
-   tcp=UART_MSG;
+   tcpb=UART_MSG;
 #endif
    xSemaphoreTake(Print_Mutex,portMAX_DELAY);
    va_list vaArgP;

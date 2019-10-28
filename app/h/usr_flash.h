@@ -17,7 +17,7 @@ struct Usr_Flash_Struct {
    uint16_t    Temp_Port                       ;
    uint16_t    Snmp_Port                       ;
    char        Snmp_Community[ 20 ]            ;
-   uint8_t     Snmp_Iso_Len                    ;
+   uint8_t     Snmp_Iso_Len [MAX_ROM_CODES]    ;
    uint8_t     Snmp_Iso[ MAX_ROM_CODES][ 20 ]  ;
    uint8_t     Sensor_Codes[MAX_ROM_CODES][ 8 ];
    float       Tmax                            ;

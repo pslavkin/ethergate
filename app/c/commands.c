@@ -6,6 +6,7 @@
 #include "driverlib/emac.h"
 #include "driverlib/flash.h"
 #include "inc/hw_memmap.h"
+#include "inc/hw_ints.h"
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/pin_map.h"
@@ -50,18 +51,19 @@ tCmdLineEntry Login_Cmd_Table[] =/*{{{*/
 };/*}}}*/
 tCmdLineEntry Main_Cmd_Table[] =/*{{{*/
 {
-    { "net"    ,Cmd_Main2Ip     ,": network options" }     ,
+    { "net"    ,Cmd_Main2Ip     ,": network options"     },
 #if ONE_WIRE_ENABLE
-    { "temp"   ,Cmd_Main2T      ,": temperature options" } ,
-    { "snmp"   ,Cmd_Main2Snmp   ,": snmp options" }        ,
+    { "temp"   ,Cmd_Main2T      ,": temperature options" },
+    { "snmp"   ,Cmd_Main2Snmp   ,": snmp options"        },
 #endif
 #if RS232_ETH_ENABLE
-    { "rs232"  ,Cmd_Main2Rs232  ,": Rs232 options" }       ,
+    { "rs232"  ,Cmd_Main2Rs232  ,": Rs232 options"       },
 #endif
-    { "system" ,Cmd_Main2System ,": system options" }      ,
-    { "?"      ,Cmd_Help        ,": help" }                ,
-    { "<"      ,Cmd_Back2Login  ,": back" }                ,
-    { 0        ,0               ,0 }
+    { "system" ,Cmd_Main2System ,": system options"      },
+    { "stats"  ,Cmd_Main2Stats  ,": stats options"       },
+    { "?"      ,Cmd_Help        ,": help"                },
+    { "<"      ,Cmd_Back2Login  ,": back"                },
+    { 0        ,0               ,0                       }
 };/*}}}*/
 tCmdLineEntry Ip_Cmd_Table[] =/*{{{*/
 {
@@ -131,6 +133,18 @@ tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 { "<"       ,Cmd_Back2Main ,": back"                               },
 { 0         ,0             ,0                                      }
 };/*}}}*/
+tCmdLineEntry Stats_Cmd_Table[] =/*{{{*/
+{
+{ "sys"  ,Cmd_SysStats  ,": sys stats"  },
+{ "mem"  ,Cmd_MemStats  ,": mem stats"  },
+{ "memp" ,Cmd_MempStats ,": memp stats" },
+{ "eth"  ,Cmd_EthStats  ,": eth stats"  },
+{ "icmp" ,Cmd_IcmpStats ,": icmp stats" },
+{ "all"  ,Cmd_AllStats  ,": all stats"  },
+{ "?"    ,Cmd_Help      ,": help"       },
+{ "<"    ,Cmd_Back2Main ,": back"       },
+{ 0      ,0             ,0              }
+};/*}}}*/
 //--------------------------------------------------------------------------------
 //WELCOME-HELP{{{
 int Cmd_Welcome(struct Parser_Queue_Struct* P, int argc, char *argv[])
@@ -197,6 +211,12 @@ int Cmd_Main2Rs232(struct Parser_Queue_Struct* P, int argc, char *argv[])
 int Cmd_Main2System(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
    P->Ref->CmdTable=System_Cmd_Table;
+//   Cmd_Help(P->tpcb, argc, argv);
+   return 0;
+}
+int Cmd_Main2Stats(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   P->Ref->CmdTable=Stats_Cmd_Table;
 //   Cmd_Help(P->tpcb, argc, argv);
    return 0;
 }
@@ -458,19 +478,23 @@ int Cmd_Snmp_Iso(struct Parser_Queue_Struct* P, int argc, char *argv[])
    if(argc==1)
       for(i=0;i<MAX_ROM_CODES;i++) {
          UART_ETHprintf(P->tpcb,"channel: %d sensor: %H snmp:",i,Usr_Flash_Params.Sensor_Codes[i],8);
-         Print_Snmp_Iso(P,Usr_Flash_Params.Snmp_Iso[i],Usr_Flash_Params.Snmp_Iso_Len);
+         Print_Snmp_Iso(P,Usr_Flash_Params.Snmp_Iso[i],Usr_Flash_Params.Snmp_Iso_Len[i]);
       }
    else {
-      uint8_t Channel=atoi(argv[1]);
-      for(i=0;i<8;i++)
-         Usr_Flash_Params.Sensor_Codes[Channel][i]=hextoc(argv[2]+2*i);
+      if(argc>3) {
+         uint8_t Channel=atoi(argv[1]);
+         if(Channel<MAX_ROM_CODES) {
+            for(i=0;i<8;i++)
+               Usr_Flash_Params.Sensor_Codes[Channel][i]=hextoc(argv[2]+2*i);
 
-      for(i=3;i<argc && i<sizeof(Usr_Flash_Params.Snmp_Iso[0]);i++)
-            Usr_Flash_Params.Snmp_Iso[Channel][i-3]=atoi(argv[i]);
-         Usr_Flash_Params.Snmp_Iso_Len=argc-3;
-         UART_ETHprintf(P->tpcb,"new snmp sensor link, channel: %d sensor: %H snmp:",Channel,Usr_Flash_Params.Sensor_Codes[Channel],8);
-         Print_Snmp_Iso(P,Usr_Flash_Params.Snmp_Iso[Channel],Usr_Flash_Params.Snmp_Iso_Len);
-         Save_Usr_Flash();
+            for(i=3;i<argc && i<sizeof(Usr_Flash_Params.Snmp_Iso[0]);i++)
+               Usr_Flash_Params.Snmp_Iso[Channel][i-3]=atoi(argv[i]);
+            Usr_Flash_Params.Snmp_Iso_Len[Channel]=argc-3;
+            UART_ETHprintf(P->tpcb,"new snmp sensor link, channel: %d sensor: %H snmp:",Channel,Usr_Flash_Params.Sensor_Codes[Channel],8);
+            Print_Snmp_Iso(P,Usr_Flash_Params.Snmp_Iso[Channel],Usr_Flash_Params.Snmp_Iso_Len[Channel]);
+            Save_Usr_Flash();
+         }
+      }
    }
    return 0;
 }/*}}}*/
@@ -617,3 +641,53 @@ int Cmd_Pwd(struct Parser_Queue_Struct* P, int argc, char *argv[])
    }
    return 0;
 }/*}}}*/
+//STATS{{{
+int Cmd_SysStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   SYS_STATS_DISPLAY();
+   return 0;
+}
+int Cmd_MemStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   MEM_STATS_DISPLAY();
+   return 0;
+}
+int Cmd_MempStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   uint8_t i;
+   for (i = 0; i < MEMP_MAX; i++) {
+      MEMP_STATS_DISPLAY(i);
+   }
+   return 0;
+}
+int Cmd_EthStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   ETHARP_STATS_DISPLAY();
+   return 0;
+}
+int Cmd_IcmpStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   ICMP_STATS_DISPLAY();
+//   return 0;
+  /* Clear any pending MAC interrupts. */
+  EMACIntClear(EMAC0_BASE, EMACIntStatus(EMAC0_BASE, false));
+
+  /* Enable the Ethernet MAC transmitter and receiver. */
+  EMACTxEnable(EMAC0_BASE);
+  EMACRxEnable(EMAC0_BASE);
+
+  /* Enable the Ethernet RX and TX interrupt source. */
+  EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
+                EMAC_INT_TX_STOPPED | EMAC_INT_RX_NO_BUFFER |
+                EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
+
+  /* Enable the Ethernet interrupt. */
+  IntEnable(INT_EMAC0);
+  return 0;
+}
+int Cmd_AllStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   stats_display();
+   return 0;
+}
+/*}}}*/
