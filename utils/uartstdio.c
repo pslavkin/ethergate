@@ -58,7 +58,7 @@ static bool g_bDisableEcho;
 // g_ui32UARTTxWriteIndex.  Buffer is empty if the two indices are the same.
 //
 //*****************************************************************************
-static unsigned char g_pcUARTTxBuffer[UART_TX_BUFFER_SIZE];
+static unsigned char* g_pcUARTTxBuffer; //el buffer lo genero dinamicamente
 static volatile uint32_t g_ui32UARTTxWriteIndex = 0;
 static volatile uint32_t g_ui32UARTTxReadIndex = 0;
 
@@ -68,7 +68,7 @@ static volatile uint32_t g_ui32UARTTxReadIndex = 0;
 // g_ui32UARTTxWriteIndex.  Buffer is empty if the two indices are the same.
 //
 //*****************************************************************************
-static unsigned char g_pcUARTRxBuffer[UART_RX_BUFFER_SIZE];
+static unsigned char* g_pcUARTRxBuffer;//el buffer lo genero dinamicamente
 static volatile uint32_t g_ui32UARTRxWriteIndex = 0;
 static volatile uint32_t g_ui32UARTRxReadIndex = 0;
 
@@ -326,10 +326,15 @@ UARTPrimeTransmit(uint32_t ui32Base)
 //
 //*****************************************************************************
 SemaphoreHandle_t Print_Mutex;
+char* Buff;
 
 void UARTStdioConfig(uint32_t ui32PortNum, uint32_t ui32Baud, uint32_t ui32SrcClock)
 {
     Print_Mutex         = xSemaphoreCreateMutex();
+    Buff             = pvPortMalloc(APP_OUT_BUF_SIZE);//sisi, la pido aca asi queda dentro del heap de freertos
+    g_pcUARTTxBuffer = pvPortMalloc(UART_TX_BUFFER_SIZE);
+    g_pcUARTRxBuffer = pvPortMalloc(UART_RX_BUFFER_SIZE);
+
     ASSERT(g_ui32Base == 0);
     // Check to make sure the UART peripheral is present.
     if(!MAP_SysCtlPeripheralPresent(g_ui32UARTPeriph[ui32PortNum]))
@@ -452,22 +457,24 @@ int UARTwrite(const char *pcBuf, uint32_t ui32Len)
 bool Rx_Buffer_Empty(void)
 {
    bool Empty;
-
-  // bool  bIntsOff = IntMasterDisable();
+   MAP_IntDisable(g_ui32UARTInt[g_ui32PortNum]);
       Empty=RX_BUFFER_EMPTY;
-   //if(!bIntsOff) IntMasterEnable();
+   MAP_IntEnable(g_ui32UARTInt[g_ui32PortNum]);
    return Empty;
 }
 uint8_t Peek_Next_Char(void)
 {
-   return g_pcUARTRxBuffer[g_ui32UARTRxReadIndex];
+   MAP_IntDisable(g_ui32UARTInt[g_ui32PortNum]);
+   uint8_t data=g_pcUARTRxBuffer[g_ui32UARTRxReadIndex];
+   MAP_IntEnable(g_ui32UARTInt[g_ui32PortNum]);
+   return data;
 }
 uint8_t Read_Next_Char(void)
 {
+   MAP_IntDisable(g_ui32UARTInt[g_ui32PortNum]);
    uint8_t cChar = g_pcUARTRxBuffer[g_ui32UARTRxReadIndex];
-//   bool  bIntsOff = IntMasterDisable();
       ADVANCE_RX_BUFFER_INDEX(g_ui32UARTRxReadIndex);
- //  if(!bIntsOff) IntMasterEnable();
+   MAP_IntEnable(g_ui32UARTInt[g_ui32PortNum]);
    return cChar;
 }
 unsigned char
@@ -544,19 +551,22 @@ UARTgetc(void)
 //! \return None.
 //
 //*****************************************************************************
-char Buff[APP_OUT_BUF_SIZE];
+//solo se usa para funciones de debug, por eso el semaforo desde ise, asi la puedo llamar desde
+//cualquier lado
 void UARTprintf(const char *pcString, ...)
 {
-   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-   if(xSemaphoreTakeFromISR(Print_Mutex,&xHigherPriorityTaskWoken)==pdTRUE) {
+  // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+   xSemaphoreTake(Print_Mutex,portMAX_DELAY);
+ //  if(xSemaphoreTakeFromISR(Print_Mutex,&xHigherPriorityTaskWoken)==pdTRUE) {
       va_list vaArgP;
       int len;
       va_start(vaArgP, pcString);
-      len=uvsnprintf(Buff,sizeof(Buff),pcString, vaArgP);
+      len=uvsnprintf(Buff,APP_OUT_BUF_SIZE,pcString, vaArgP);
       UARTwrite(Buff,len);
       va_end(vaArgP);
-      xSemaphoreGiveFromISR(Print_Mutex, &xHigherPriorityTaskWoken );
-   }
+   //   xSemaphoreGiveFromISR(Print_Mutex, &xHigherPriorityTaskWoken );
+   //}
+   xSemaphoreGive(Print_Mutex);
 }
 
 void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
@@ -571,7 +581,7 @@ void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
    va_list vaArgP;
    int len;
    va_start(vaArgP, pcString);
-   len=uvsnprintf(Buff,sizeof(Buff),pcString, vaArgP);
+   len=uvsnprintf(Buff,APP_OUT_BUF_SIZE,pcString, vaArgP);
    if(tpcb==UART_MSG)
       UARTwrite(Buff,len);
    else {

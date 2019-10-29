@@ -597,7 +597,9 @@ int Cmd_TaskList(struct Parser_Queue_Struct* P, int argc, char *argv[])
       UART_ETHprintf(P->tpcb,"%14s state   pri     stack  num\r\n","name");
       vTaskList( Buff );
       UART_ETHprintf(P->tpcb,Buff);
+      //para heap2
       UART_ETHprintf(P->tpcb,"Total Heap=%d\r\n", xPortGetFreeHeapSize());
+      //para heap4
       //UART_ETHprintf(P->tpcb,"Total Heap=%d Min=%d\r\n", xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
       vPortFree(Buff);
    }

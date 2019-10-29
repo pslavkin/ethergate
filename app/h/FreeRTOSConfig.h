@@ -9,15 +9,15 @@
 #define configMINIMAL_STACK_SIZE            ( ( unsigned short ) 100 )
 #define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 30000 ) )
 #define configMAX_TASK_NAME_LEN             ( 16 )
-#define configUSE_TRACE_FACILITY             1
-#define configUSE_STATS_FORMATTING_FUNCTIONS 1
+#define configUSE_TRACE_FACILITY             0
+#define configUSE_STATS_FORMATTING_FUNCTIONS 0
 //#define configGENERATE_RUN_TIME_STATS       0
 #define configUSE_16_BIT_TICKS              0
 #define configIDLE_SHOULD_YIELD             0
 #define configUSE_CO_ROUTINES               0
 #define configUSE_MUTEXES                   1
 #define configUSE_RECURSIVE_MUTEXES         0
-#define configCHECK_FOR_STACK_OVERFLOW      2 //taba en cero la pongo en 2 para chequear s.overfflow a ver si encuentro el bug de lwip
+#define configCHECK_FOR_STACK_OVERFLOW      0 //taba en cero la pongo en 2 para chequear s.overfflow a ver si encuentro el bug de lwip
 
 #define configMAX_PRIORITIES                (16UL) // ( unsigned portBASE_TYPEE ) 16 )
 #define configMAX_CO_ROUTINE_PRIORITIES     ( 2 )

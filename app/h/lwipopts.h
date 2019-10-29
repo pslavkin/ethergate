@@ -242,19 +242,19 @@
 // ---------- Statistics options ----------
 //
 //*****************************************************************************
-#define LWIP_STATS                      1
-#define LWIP_STATS_DISPLAY              1
-#define LINK_STATS                      1
-#define ETHARP_STATS                    (LWIP_ARP)
-#define IP_STATS                        1
-#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
-#define ICMP_STATS                      1
-#define IGMP_STATS                      (LWIP_IGMP)
-#define UDP_STATS                       (LWIP_UDP)
-#define TCP_STATS                       (LWIP_TCP)
-#define MEM_STATS                       1
-#define MEMP_STATS                      1
-#define SYS_STATS                       1
+#define LWIP_STATS                      0
+//#define LWIP_STATS_DISPLAY              1
+//#define LINK_STATS                      1
+//#define ETHARP_STATS                    (LWIP_ARP)
+//#define IP_STATS                        1
+//#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
+//#define ICMP_STATS                      1
+//#define IGMP_STATS                      (LWIP_IGMP)
+//#define UDP_STATS                       (LWIP_UDP)
+//#define TCP_STATS                       (LWIP_TCP)
+//#define MEM_STATS                       1
+//#define MEMP_STATS                      1
+//#define SYS_STATS                       1
 
 //*****************************************************************************
 //
@@ -307,7 +307,7 @@
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 1
+#if 0
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"
@@ -348,7 +348,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define MEMP_DEBUG                      LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
 #define TCP_DEBUG                       LWIP_DBG_OFF
-#define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
+#define TCP_INPUT_DEBUG                 LWIP_DBG_ON
 #define TCP_FR_DEBUG                    LWIP_DBG_OFF
 #define TCP_RTO_DEBUG                   LWIP_DBG_OFF
 #define TCP_CWND_DEBUG                  LWIP_DBG_OFF

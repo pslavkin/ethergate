@@ -53,7 +53,7 @@ void Rs232_Task(void* nil)
    P->CmdTable = Login_Cmd_Table;
    P->tpcb     = UART_MSG;
    P->Ref      = P;
-   Init_Uart   (             );
+   Init_Uart ( );
    Cmd_Welcome ( P ,0 ,NULL ); // debug
    while(1) {
       vTaskDelay ( pdMS_TO_TICKS( 25 ));
