@@ -32,8 +32,8 @@ const State
    Bridge [ ];
 
 const State*   Rs232_Sm;
-struct Parser_Queue_Struct P;
-struct Line_Process_Struct L;
+struct Parser_Queue_Struct *P;
+struct Line_Process_Struct *L;
 //------------------------------------------------------------------
 void Init_Uart(void)
 {
@@ -48,11 +48,13 @@ void Init_Uart(void)
 void Rs232_Task(void* nil)
 {
    Rs232_Sm   = Idle2;
-   P.CmdTable = Login_Cmd_Table;
-   P.tpcb     = UART_MSG;
-   P.Ref      = &P;
+   P=pvPortMalloc(sizeof(struct Parser_Queue_Struct));
+   L=pvPortMalloc(sizeof(struct Line_Process_Struct));
+   P->CmdTable = Login_Cmd_Table;
+   P->tpcb     = UART_MSG;
+   P->Ref      = P;
    Init_Uart   (             );
-   Cmd_Welcome ( &P ,0 ,NULL ); // debug
+   Cmd_Welcome ( P ,0 ,NULL ); // debug
    while(1) {
       vTaskDelay ( pdMS_TO_TICKS( 25 ));
       Send_Event ( Rti_Event,Rs232( ));
@@ -69,7 +71,7 @@ void Is_Console_Enabled(void)
 }
 
 void Clear_Parser_Index   ( void ) {
-   P.Index=0;
+   P->Index=0;
 }
 
 void manageLastInput(struct Parser_Queue_Struct* B)
@@ -95,8 +97,8 @@ bool manageEnter(uint8_t Char, bool isNext, uint8_t nextChar, uint16_t *index )
 bool Manage_Backspace(uint8_t Char)
 {
    if(Char==0x7F) {
-      if(P.Index>0)
-         P.Index--;
+      if(P->Index>0)
+         P->Index--;
       return true;
    }
    else
@@ -107,15 +109,15 @@ void Parser_Process(void)
 {
    uint8_t Data;
    while(!Rx_Buffer_Empty()) {
-      if(P.Index<sizeof(P.Buff)) {
+      if(P->Index<sizeof(P->Buff)) {
          Data = Read_Next_Char();
-         if(manageEnter(Data,!Rx_Buffer_Empty(),Peek_Next_Char(),&P.Index)==true) {
+         if(manageEnter(Data,!Rx_Buffer_Empty(),Peek_Next_Char(),&P->Index)==true) {
             Insert_Event(Enter_Found_Event,Rs232());
             return;
          }
          if(Manage_Backspace(Data)==false) {
-            P.Buff[P.Index++] = Data;
-            P.lastIndex       = P.Index;
+            P->Buff[P->Index++] = Data;
+            P->lastIndex       = P->Index;
          }
       }
       else {
@@ -126,24 +128,24 @@ void Parser_Process(void)
 }
 void Send_Data2Parser(void)
 {
-   manageLastInput(&P);
-   P.Id++;
-   xQueueSend(Parser_Queue,&P,portMAX_DELAY);
-   P.Index=0;
+   manageLastInput(P);
+   P->Id++;
+   xQueueSend(Parser_Queue,P,portMAX_DELAY);
+   P->Index=0;
 }
 //------------------------------------------------------------------------------------
 void Clear_Line_Index   ( void ) {
-   L.Index=0;
+   L->Index=0;
 }
 void Line_Process(void)
 {
    uint8_t Char;
 
    while(!Rx_Buffer_Empty()) {
-      L.Tout=0;
-      if(L.Index<Usr_Flash_Params.Rs232_Len) {
+      L->Tout=0;
+      if(L->Index<Usr_Flash_Params.Rs232_Len) {
          Char = Read_Next_Char();
-         L.Buff[L.Index++]=Char;
+         L->Buff[L->Index++]=Char;
          if(Char==Usr_Flash_Params.Rs232_Term) {
             Insert_Event(Term_Found_Event,Rs232());
             return;
@@ -154,15 +156,15 @@ void Line_Process(void)
          return;
       }
    }
-   if(L.Index>0 && (L.Tout++/4)>=Usr_Flash_Params.Rs232_Tout) {
+   if(L->Index>0 && (L->Tout++/4)>=Usr_Flash_Params.Rs232_Tout) {
          Insert_Event(TOut_Event,Rs232());
-         L.Tout=0;
+         L->Tout=0;
    }
 }
 void Send_Data2Tcp(void)
 {
-   Send_To_Normal_Tcp(L.Buff,L.Index);
-   L.Index=0;
+   Send_To_Normal_Tcp(L->Buff,L->Index);
+   L->Index=0;
 }
 //-------------------------------------------------------------------------------------
 const State const Idle2  [ ] =

@@ -47,8 +47,8 @@
 //*****************************************************************************
 //#define MEM_LIBC_MALLOC                 0
 #define MEM_ALIGNMENT                   4          // default is 1
-#define MEM_SIZE                        ( 16*1024)  // con 2k no anda con 16, anda 2 horas
-#define MEMP_OVERFLOW_CHECK             1
+#define MEM_SIZE                        (16  *1024)  // con 2k no anda con 16, anda 2 horas
+#define MEMP_OVERFLOW_CHECK             3
 #define MEMP_SANITY_CHECK               1
 //#define MEM_USE_POOLS                   0
 //#define MEMP_USE_CUSTOM_POOLS           0
@@ -59,7 +59,7 @@
 #define MEMP_NUM_PBUF                     32    // Default 16
 #define MEMP_NUM_RAW_PCB                  0     // creo que no uso...
 #define MEMP_NUM_UDP_PCB                  2     // en teoria con 1 me alcanza...
-#define MEMP_NUM_TCP_PCB                  12    // Default 5 //3 backlogs por cada listen
+#define MEMP_NUM_TCP_PCB                  15    // Default 5 //3 backlogs por cada listen
 #define MEMP_NUM_TCP_PCB_LISTEN           4     // 1xrs232+1xtemp+1xconsola+1xvirtual232
 #define MEMP_NUM_TCP_SEG                  64    // Default 16 tiene  que valer a los miunumo TCP_SND_QUEUELEN
 //#define MEMP_NUM_REASSDATA              5
@@ -179,7 +179,7 @@
 //*****************************************************************************
 #define PBUF_LINK_HLEN             16
 #define ETH_PAD_SIZE               0
-#define PBUF_POOL_SIZE             32   // Default 16
+#define PBUF_POOL_SIZE             32    // Default 16
 #define PBUF_POOL_BUFSIZE          (LWIP_MEM_ALIGN_SIZE(TCP_MSS+40+PBUF_LINK_HLEN)+16)
 //*****************************************************************************
 // ---------- Network Interfaces options ----------
@@ -199,7 +199,7 @@
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 //ble 1024 o se ahoga....
-#define TCPIP_THREAD_STACKSIZE          (4*1024)
+#define TCPIP_THREAD_STACKSIZE          (2*1024) //en la creacion divide por 4 y se mete en el heap de lwip
 #define TCPIP_THREAD_PRIO               1
 #define TCPIP_MBOX_SIZE                 64
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
@@ -228,7 +228,7 @@
 //
 // ---------- Socket Options ----------
 //
-//*****************************************************************************
+//****************************************************************************
 #define LWIP_SOCKET                     0           // default is 1
 //#define LWIP_COMPAT_SOCKETS             1
 //#define LWIP_POSIX_SOCKETS_IO_NAMES     1
@@ -242,19 +242,19 @@
 // ---------- Statistics options ----------
 //
 //*****************************************************************************
-#define LWIP_STATS                      0
-//#define LWIP_STATS_DISPLAY              1
-//#define LINK_STATS                      1
-//#define ETHARP_STATS                    (LWIP_ARP)
-//#define IP_STATS                        1
-//#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
-//#define ICMP_STATS                      1
-//#define IGMP_STATS                      (LWIP_IGMP)
-//#define UDP_STATS                       (LWIP_UDP)
-//#define TCP_STATS                       (LWIP_TCP)
-//#define MEM_STATS                       1
-//#define MEMP_STATS                      1
-//#define SYS_STATS                       1
+#define LWIP_STATS                      1
+#define LWIP_STATS_DISPLAY              1
+#define LINK_STATS                      1
+#define ETHARP_STATS                    (LWIP_ARP)
+#define IP_STATS                        1
+#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
+#define ICMP_STATS                      1
+#define IGMP_STATS                      (LWIP_IGMP)
+#define UDP_STATS                       (LWIP_UDP)
+#define TCP_STATS                       (LWIP_TCP)
+#define MEM_STATS                       1
+#define MEMP_STATS                      1
+#define SYS_STATS                       1
 
 //*****************************************************************************
 //
@@ -307,7 +307,7 @@
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 0
+#if 1
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"

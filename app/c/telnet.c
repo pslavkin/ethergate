@@ -54,7 +54,13 @@ void Init_Telnet(void)         //inicializa los puertos que se usan en esta maqu
 void Telnet_Close ( struct tcp_pcb *tpcb) //TODO: en realidad tengo que cerrar todas las conecciones abiertas si quiero rebootear, no solo la que lo pide...
 {
    if(tpcb!=DEBUG_MSG && tpcb!=UART_MSG ) {
-      tcp_close(tpcb);
+      if(tpcb->callback_arg!=(void*)0xFFFFFFFF) {
+         tcpip_callback((tcpip_callback_fn)tcp_close,tpcb);
+         vPortFree    ( tpcb->callback_arg );  // libero el buffer de recepcion
+         tcp_accepted ( Soc_Cmd            );  // libreo 1 lugar para el backlog
+         tpcb->callback_arg=(void*)0xFFFFFFFF; // con esto me acuerdo si ya estoy en el proceso de cierre o no porque es diferente si arranco el cierre desde el equipo o desde el cliente
+         UART_ETHprintf(DEBUG_MSG,"close Soc_Cmd backlogs=%i\r\n",((struct tcp_pcb_listen *)Soc_Cmd)->accepts_pending);
+      }
    }
 }
 //-------CONNECTION LIST----------------------------------------------------------------{{{
@@ -148,23 +154,28 @@ err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
       return ERR_OK;
    }
    else {
-      vPortFree    ( arg     ); // libero el buffer de recepcion
-      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
-      tcp_close    ( tpcb    ); // cierro
-      return ERR_OK;
+      Telnet_Close(tpcb);
    }
+   return ERR_OK;
 }
 err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    struct Parser_Queue_Struct* R= ( struct Parser_Queue_Struct* )pvPortMalloc(sizeof(struct Parser_Queue_Struct));
-   R->Id       = 0;
-   R->Index    = 0;
-   R->lastIndex= 0;
-   R->tpcb     = newpcb;
-   R->CmdTable = Login_Cmd_Table;
-   R->Ref      = R;
-   tcp_recv ( newpcb ,Rcv_Cmd_Fn );
-   tcp_arg  ( newpcb ,R          );
+   if(R!=NULL) {
+      R->Id       = 0;
+      R->Index    = 0;
+      R->lastIndex= 0;
+      R->tpcb     = newpcb;
+      R->CmdTable = Login_Cmd_Table;
+      R->Ref      = R;
+      tcp_recv ( newpcb ,Rcv_Cmd_Fn );
+      tcp_arg  ( newpcb ,R          );
+   }
+   else {
+      UART_ETHprintf(UART_MSG,"Accept_Cmd_Fn no tiene espacio\r\n");
+      tcp_arg ( newpcb ,NULL );
+      Telnet_Close(newpcb);
+   }
    return 0;
 }
 
@@ -172,7 +183,7 @@ void Create_Cmd_Socket(void* nil)
 {
    Soc_Cmd = tcp_new                 (                                                    );
    tcp_bind                          ( Soc_Cmd ,IP_ADDR_ANY ,Usr_Flash_Params.Config_Port );
-   Soc_Cmd = tcp_listen_with_backlog ( Soc_Cmd ,3                                         );
+   Soc_Cmd = tcp_listen_with_backlog ( Soc_Cmd ,TCP_DEFAULT_LISTEN_BACKLOG                );
    tcp_accept                        ( Soc_Cmd ,Accept_Cmd_Fn                             );
 }/*}}}*/
 //-------RS232<>ETH RAW----------------------------------------------------------------{{{
@@ -207,8 +218,8 @@ void Create_Rs232_Socket(void* nil)
 {
    Soc_Rs232=tcp_new                 (                                                     );
    tcp_bind                          ( Soc_Rs232 ,IP_ADDR_ANY ,Usr_Flash_Params.Rs232_Port );
-   Soc_Rs232=tcp_listen_with_backlog ( Soc_Rs232 ,3                                        );
-   tcp_accept                        ( Soc_Rs232 ,Accept_Rs232_Fn                           );
+   Soc_Rs232=tcp_listen_with_backlog ( Soc_Rs232 ,TCP_DEFAULT_LISTEN_BACKLOG               );
+   tcp_accept                        ( Soc_Rs232 ,Accept_Rs232_Fn                          );
 }/*}}}*/
 //---SNIFFER ETH&RS232 to ETH--------------------------------------------------------------{{{
 err_t Rcv_Sniffer_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
@@ -236,7 +247,7 @@ void Create_Sniffer_Socket(void* nil)
 {
    Soc_Sniffer=tcp_new                 (                                                     );
    tcp_bind                            ( Soc_Sniffer ,IP_ADDR_ANY ,Usr_Flash_Params.Sniffer_Port );
-   Soc_Sniffer=tcp_listen_with_backlog ( Soc_Sniffer ,3                                          );
+   Soc_Sniffer=tcp_listen_with_backlog ( Soc_Sniffer ,TCP_DEFAULT_LISTEN_BACKLOG                 );
    tcp_accept                          ( Soc_Sniffer ,Accept_Sniffer_Fn                          );
 }/*}}}*/
 //-------VIRTUAL RS232--------------------------------------------------------------{{{
@@ -266,7 +277,7 @@ void Create_Virtual_Socket(void* nil)
 {
    Soc_Virtual=tcp_new                 (                                                     );
    tcp_bind                            ( Soc_Virtual ,IP_ADDR_ANY ,Usr_Flash_Params.Virtual_Port );
-   Soc_Virtual=tcp_listen_with_backlog ( Soc_Virtual ,3                                          );
+   Soc_Virtual=tcp_listen_with_backlog ( Soc_Virtual ,TCP_DEFAULT_LISTEN_BACKLOG                 );
    tcp_accept                          ( Soc_Virtual ,Accept_Virtual_Fn                          );
 }/*}}}*/
 //---------CLIENTS--------------------------------------------------------------{{{

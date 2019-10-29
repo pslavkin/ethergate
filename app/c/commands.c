@@ -591,13 +591,19 @@ int Cmd_Wdog_Tout(struct Parser_Queue_Struct* P, int argc, char *argv[])
 }
 int Cmd_TaskList(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
+#if (configUSE_TRACE_FACILITY == 1)
    if(argc==2 && ustrcmp("tareas",argv[1])==0) {
       char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
+      UART_ETHprintf(P->tpcb,"%14s state   pri     stack  num\r\n","name");
       vTaskList( Buff );
       UART_ETHprintf(P->tpcb,Buff);
-      UART_ETHprintf(P->tpcb,"Total Heap=%d Min=%d\r\n", xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
+      UART_ETHprintf(P->tpcb,"Total Heap=%d\r\n", xPortGetFreeHeapSize());
+      //UART_ETHprintf(P->tpcb,"Total Heap=%d Min=%d\r\n", xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
       vPortFree(Buff);
    }
+#else
+   UART_ETHprintf(P->tpcb,"Trace not defined\r\n");
+#endif
    return 0;
 }
 int Cmd_Reboot(struct Parser_Queue_Struct* P, int argc, char *argv[])

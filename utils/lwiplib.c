@@ -136,7 +136,7 @@ uint8_t Link_State = false;
 //*****************************************************************************
 // The stack size for the interrupt task.
 //*****************************************************************************
-#define STACKSIZE_LWIPINTTASK   1024//256 //128
+#define STACKSIZE_LWIPINTTASK   256 //128
 //*****************************************************************************
 // The handle for the "queue" (semaphore) used to signal the interrupt task
 // from the interrupt handler.
@@ -149,11 +149,8 @@ static xQueueHandle g_pInterrupt;
 static void lwIPInterruptTask(void *pvArg)
 {
    while(1) {
-      while(xQueueReceive  ( g_pInterrupt, &pvArg, pdMS_TO_TICKS(500))==pdFALSE) { //portMAX_DELAY ) {
-
-         xSemaphoreGive ( Led_Link_Semphr                     );
-      }
-       xSemaphoreGive ( Led_Link_Semphr                     );
+      xQueueReceive  ( g_pInterrupt, &pvArg, portMAX_DELAY );
+      xSemaphoreGive ( Led_Link_Semphr                     );
       tivaif_interrupt(&g_sNetIF, (uint32_t)pvArg);                         // Processes any packets waiting to be sent or received.
       MAP_EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT | // Re-enable the Ethernet interrupts.
                EMAC_INT_TX_STOPPED |
@@ -226,7 +223,7 @@ static void lwIPPrivateInit(void *pvArg)
     // the Ethernet interrupt task from the Ethernet interrupt handler.
     g_pInterrupt = xQueueCreate(3, sizeof(void *));
     xTaskCreate(lwIPInterruptTask, (portCHAR *)"eth_int",
-                STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 2, //estaba en +1 lo paso a +3
+                STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 3, //estaba en +1 lo paso a +3
                 0);
     ip_addr.addr  = 0; //arranco en cero, el lwIPPrivateHostTimer se encargara de configurar cuando se linkee
     net_mask.addr = 0;

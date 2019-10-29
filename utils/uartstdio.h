@@ -31,7 +31,7 @@
 #include "app/h/opt.h"
 
 #define DEBUG_MSG ((struct tcp_pcb*)(NULL))
-#define UART_MSG ((struct tcp_pcb*)(1))
+#define UART_MSG  ((struct tcp_pcb*)(0xFFFFFFFF))        //what?? que trucho para pasar como tpcb valido pero imposible
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header

@@ -4,7 +4,7 @@
 //#define DEBUG_UART
 
 #define APP_INPUT_BUF_SIZE       128                                 // usado para procesar la linea de comandos solamente y para la cola de pareser
-#define APP_OUT_BUF_SIZE         512                                 // usando para el printf solamente (el uartwrite escribe directo al circular de salida)
+#define APP_OUT_BUF_SIZE         UART_TX_BUFFER_SIZE                 // usando para el printf solamente (el uartwrite escribe directo al circular de salida)
 #define UART_BUFFERED
 #define UART_RX_BUFFER_SIZE      (2*TCP_MSS+1)
 #define UART_TX_BUFFER_SIZE      (2*TCP_MSS+1)                       // igual al buffer (mas uno porque es circular) de lwip para que un paquete de tcp pueda caber justo dentro de la cola de transmision

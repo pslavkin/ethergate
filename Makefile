@@ -95,7 +95,7 @@ ${COMPILER}/out.axf: ${COMPILER}/ustdlib.o
 ${COMPILER}/out.axf: ${COMPILER}/ringbuf.o
 
 ${COMPILER}/out.axf: ${COMPILER}/timers.o
-${COMPILER}/out.axf: ${COMPILER}/heap_4.o
+${COMPILER}/out.axf: ${COMPILER}/heap_2.o
 ${COMPILER}/out.axf: ${COMPILER}/port.o
 ${COMPILER}/out.axf: ${COMPILER}/list.o
 ${COMPILER}/out.axf: ${COMPILER}/queue.o

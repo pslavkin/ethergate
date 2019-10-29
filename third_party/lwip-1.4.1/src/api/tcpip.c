@@ -459,7 +459,8 @@ void tcpip_init(tcpip_init_done_fn initfunc, void *arg)
   if(sys_mbox_new(&mbox, TCPIP_MBOX_SIZE) != ERR_OK) {
     LWIP_ASSERT("failed to create tcpip_thread mbox", 0);
   }
-  sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
+  xTaskCreate(tcpip_thread, TCPIP_THREAD_NAME, TCPIP_THREAD_STACKSIZE, NULL,TCPIP_THREAD_PRIO,NULL);
+//  sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
 }
 
 /**

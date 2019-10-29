@@ -470,8 +470,15 @@ sys_thread_new(const char *name, lwip_thread_fn thread, void *arg,
   threads[i].arg        = arg;
 
   /* Create a new thread. */
+  //esto estaba mal! se crea una tarea de freeRtos con un stack de freertos pero solo para
+  //llamar a una funcion que despacha tareas segun un indice, pero que usa otro heap, el heao
+  //de lwip, con lo cual para la tarea de freertos me alcance con lo minimo para llamar a la
+  //tarea despachante, luego la tarea despachada usa su propio stack tomado del heap de lwip..
+  //entonces para que tomar 2 veces de distintos heap..ahora igual estoy viendo de usar
+  //directamente la llamada a xtaskcreate de freertos y volar esto a la bosta
   if(xTaskCreate(sys_arch_thread, (portCHAR *)name,
-                 stacksize/sizeof(int), (void *)i, tskIDLE_PRIORITY+prio,
+                 configMINIMAL_STACK_SIZE*2/*stacksize/sizeof(int)*/,
+                 (void *)i, tskIDLE_PRIORITY+prio,
                  &threads[i].taskhandle) != pdTRUE){
     threads[i].stackstart = NULL;
     threads[i].stackend   = NULL;

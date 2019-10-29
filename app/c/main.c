@@ -28,6 +28,16 @@
 #include "one_wire_network.h"
 #include "usr_flash.h"/*}}}*/
 
+void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
+{
+   while(1) {
+      MAP_UARTCharPut(UART0_BASE, 's');
+      MAP_UARTCharPut(UART0_BASE, 't');
+      MAP_UARTCharPut(UART0_BASE, 'a');
+      MAP_UARTCharPut(UART0_BASE, 'c');
+      MAP_UARTCharPut(UART0_BASE, ' ');
+   }
+}
 int main(void)
 {
    Init_Clk        ( );
