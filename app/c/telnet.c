@@ -147,7 +147,8 @@ err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
          Data=((uint8_t*)p->payload)[i];
          if(manageEnter(Data,(i+1)<p->len,((uint8_t*)p->payload)[i+1],&i)) {
             manageLastInput(B);
-            xQueueSend(Parser_Queue,B,0);//portMAX_DELAY);
+            //xQueueSend(Parser_Queue,B,0);//portMAX_DELAY);
+            CmdLineProcess(B);
             //len=usprintf(Buff,"chau %d\r\n",Id++);
             //tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY);
             B->Id++;
