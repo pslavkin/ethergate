@@ -585,8 +585,10 @@ void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)
    if(tpcb==UART_MSG)
       UARTwrite(Buff,len);
    else {
-      tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY);
-      tcp_output(tpcb);
+      taskENTER_CRITICAL();
+         tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY);
+      taskEXIT_CRITICAL();
+         tcpip_callback((tcpip_callback_fn)tcp_output,tpcb);
    }
    va_end(vaArgP);
    xSemaphoreGive(Print_Mutex);
@@ -711,6 +713,7 @@ UARTFlushRx(void)
     //
     // Temporarily turn off interrupts.
     //
+    //TODO
     ui32Int = MAP_IntMasterDisable();
 
     //
@@ -725,6 +728,7 @@ UARTFlushRx(void)
     //
     if(!ui32Int)
     {
+       //TODO
         MAP_IntMasterEnable();
     }
 }
@@ -761,6 +765,7 @@ UARTFlushTx(bool bDiscard)
         // The remaining data should be discarded, so temporarily turn off
         // interrupts.
         //
+        //TODO
         ui32Int = MAP_IntMasterDisable();
 
         //
@@ -775,7 +780,8 @@ UARTFlushTx(bool bDiscard)
         //
         if(!ui32Int)
         {
-            MAP_IntMasterEnable();
+           //TODO
+           MAP_IntMasterEnable();
         }
     }
     else

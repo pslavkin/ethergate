@@ -47,13 +47,14 @@ void One_Wire_Power_On_Reset(void) {
 
 bool Presence(void) {
    uint8_t Ans;
+   bool irqState;
    Bus_Hz     (   );
    Delay_Useg ( 1 ); // aguanta que se estabilice todo.
    if( Bus_Read( )== 0) {
       Bus_Lo ( );          // hasta dentro de 1 segundo que vuelve por aca, queda el bus en cero, que equivale a apagar los sensores...
       return 1  ;          // liberen el barco!! porque asi no laburo... todo '0' es un CRC valido, asi que si esta en corto, cuenta como nodo valido!!!!
    }
-CPUcpsid     (     );
+irqState = MAP_IntMasterDisable();
    Bus_Lo       (     ); // baja
    Delay_Useg   ( 510 ); // 480<T<960 espera el tiempo de reset
    Pullup       (     ); // sube el bus con fuerza, espera y luego lo libera...
@@ -61,7 +62,7 @@ CPUcpsid     (     );
 //   GPIOPinSet   ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Ans=Bus_Read (     ); // lobo esta?
 //   GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
-CPUcpsie     (     );
+if(!irqState) MAP_IntMasterEnable();
    Delay_Useg   ( 430 ); // 480-70 minimo, completa el tiempo de slot...
    Bus_Hi     (    ); // arriba
 //   Pullup       (     ); // despues de un presense, solo lo deja en pullup, porque si no hay nadie ara que tenerlo en alta que podria haber un corto...
@@ -70,11 +71,13 @@ CPUcpsie     (     );
 //------------------------------------------------------------------
 uint8_t Write_Bit_Zero(void)
 {
-CPUcpsid   (    );
+   bool irqState;
+irqState = MAP_IntMasterDisable();
    Bus_Lo     (    ); // baja
    Delay_Useg ( 70 ); // 60<T<120
    Pullup     (    ); // sube el bus con fuerza, espera y luego lo libera...
-CPUcpsie   (    );
+if(!irqState) MAP_IntMasterEnable();
+
    Delay_Useg ( 5  ); // 1u<T<inf.
 //   Pullup       (    ); // sube el bus con fuerza, espera y luego lo libera...
    Bus_Hi     (    ); // arriba
@@ -84,7 +87,8 @@ CPUcpsie   (    );
 uint8_t Write_Bit_One_And_Read(void)
 {
    uint8_t Ans;
-CPUcpsid   (    );
+   bool irqState;
+irqState = MAP_IntMasterDisable();
    Bus_Lo       (    ); // baja
    Delay_Useg   ( 10 ); // 1<T<15 espera 6useg (offset 3+3)
    Pullup       (    ); // sube el bus con fuerza, espera y luego lo libera...
@@ -92,7 +96,7 @@ CPUcpsid   (    );
 //  GPIOPinSet   ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
    Ans=Bus_Read (    ); // samplea a los 14useg (Texas obliga a 15 como maximo)
 //   GPIOPinReset ( LED_SERIAL_PORT, LED_SERIAL_PIN ) ;
-CPUcpsie     (    );
+if(!irqState) MAP_IntMasterEnable();
    Delay_Useg   ( 55 ); // 45 como minimo.. despues de los 15 de lectura...+ 1us de recupero
 //   Pullup       (    ); // sube el bus con fuerza, espera y luego lo libera...
    Bus_Hi       (    ); // arriba

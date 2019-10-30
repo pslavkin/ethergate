@@ -49,7 +49,7 @@ void Led_Link_Task ( void* nil )
 {
    MAP_SysCtlPeripheralEnable (LED_LINK_PERIPH);
    MAP_GPIOPinTypeGPIOOutput  (LED_LINK_PORT,LED_LINK_PIN);
-   Led_Link_Semphr = xSemaphoreCreateCounting(20,0);
+   Led_Link_Semphr = xSemaphoreCreateCounting( 20,0);
    bool Link_State;
    while(1) {
       Link_State=Read_Link_State();

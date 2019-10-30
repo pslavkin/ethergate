@@ -122,15 +122,17 @@ tCmdLineEntry Rs232_Cmd_Table[] =/*{{{*/
 };/*}}}*/
 tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 {
-{ "id"      ,Cmd_Id        ,": show and/or save id"                } ,
-{ "pwd"     ,Cmd_Pwd       ,": show and/or save password"          } ,
-{ "reboot"  ,Cmd_Reboot    ,": reboot"                             } ,
-{ "task"    ,Cmd_TaskList  ,": rsv"                                } ,
-{ "ut"      ,Cmd_Uptime    ,": uptime [secs]"                      } ,
-{ "wdog"    ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)"       } ,
-{ "restore" ,Cmd_Restore   ,": restore defaults values and reboot" } ,
-{ "?"       ,Cmd_Help      ,": help"                               } ,
-{ "<"       ,Cmd_Back2Main ,": back"                               } ,
+{ "id"      ,Cmd_Id        ,": show and/or save id"                },
+{ "pwd"     ,Cmd_Pwd       ,": show and/or save password"          },
+{ "reboot"  ,Cmd_Reboot    ,": reboot"                             },
+{ "task"    ,Cmd_TaskList  ,": rsv"                                },
+{ "ut"      ,Cmd_Uptime    ,": uptime [secs]"                      },
+{ "wdog"    ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)"       },
+{ "restore" ,Cmd_Restore   ,": restore defaults values and reboot" },
+{ "irqe"    ,Cmd_IrqEna    ,": enable irq manual"                  },
+{ "irqd"    ,Cmd_IrqDis    ,": disable irq manual"                 },
+{ "?"       ,Cmd_Help      ,": help"                               },
+{ "<"       ,Cmd_Back2Main ,": back"                               },
 { 0         ,0             ,0                                      }
 };/*}}}*/
 tCmdLineEntry Stats_Cmd_Table[] =/*{{{*/
@@ -648,7 +650,31 @@ int Cmd_Pwd(struct Parser_Queue_Struct* P, int argc, char *argv[])
       Save_Usr_Flash();
    }
    return 0;
-}/*}}}*/
+}
+
+int Cmd_IrqDis(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   UART_ETHprintf(P->tpcb,"disable emaca irq\r\n");
+    MAP_EMACIntDisable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
+                                    EMAC_INT_TX_STOPPED |
+                                    EMAC_INT_RX_NO_BUFFER |
+                                    EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
+//   lwIPEthernetIntHandler();
+   return 0;
+}
+int Cmd_IrqEna(struct Parser_Queue_Struct* P, int argc, char *argv[])
+{
+   UART_ETHprintf(P->tpcb,"enable emaca irq\r\n");
+   lwIPInit2       ( configCPU_CLOCK_HZ, Usr_Flash_Params.Mac_Addr );
+//      MAP_EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT | // Re-enable the Ethernet interrupts.
+//               EMAC_INT_TX_STOPPED |
+//               EMAC_INT_RX_NO_BUFFER |
+//               EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
+   lwIPEthernetIntHandler();
+   return 0;
+}
+
+/*}}}*/
 //STATS{{{
 int Cmd_SysStats(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {

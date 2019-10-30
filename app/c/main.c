@@ -45,8 +45,11 @@ int main(void)
    Init_Wdog       ( );
    Init_Events     ( );
    Init_Schedule   ( );
+      Init_Uart ( );
+      UARTwrite("init1\r\n",7);
+      UARTwrite("init2\r\n",7);
    lwIPInit       ( configCPU_CLOCK_HZ, Usr_Flash_Params.Mac_Addr );
-   xTaskCreate ( State_Machine   ,"sm"         ,configMINIMAL_STACK_SIZE*2 ,NULL ,tskIDLE_PRIORITY+2 ,NULL );
+   xTaskCreate ( State_Machine   ,"sm"         ,configMINIMAL_STACK_SIZE*3 ,NULL ,tskIDLE_PRIORITY+2 ,NULL );
    xTaskCreate ( Schedule        ,"schedule"   ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
    xTaskCreate ( Led_Link_Task   ,"led link"   ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
    xTaskCreate ( Led_Rgb_Task    ,"leds RGB"   ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
@@ -55,13 +58,16 @@ int main(void)
    xTaskCreate ( Rs232_Task      ,"rs232"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
 #endif
    xTaskCreate ( Button1_Task    ,"Button1"    ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
-   xTaskCreate ( Parser_Task     ,"Parser"     ,configMINIMAL_STACK_SIZE*3 ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
+   xTaskCreate ( Parser_Task     ,"Parser"     ,configMINIMAL_STACK_SIZE*2 ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
 #if ONE_WIRE_ENABLE
    Init_One_Wire_Transport ( );
 #endif
+      UARTwrite("init3\r\n",7);
    Init_Telnet             ( );
    Init_Udp                ( );
 
+   MAP_IntMasterEnable();
+      UARTwrite("init4\r\n",7);
    vTaskStartScheduler     ( );
    while(1)
        ;

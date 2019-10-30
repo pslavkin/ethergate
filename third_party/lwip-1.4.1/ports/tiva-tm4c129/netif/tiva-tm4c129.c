@@ -56,6 +56,8 @@
 #include "netif/ppp_oe.h"
 #include "netif/tivaif.h"
 
+#include "../../../../../utils/uartstdio.h" //debug TODO
+
 /**
  * Sanity Check:  This interface driver will NOT work if the following defines
  * are incorrect.
@@ -396,7 +398,8 @@ tivaif_hwinit(struct netif *psNetif)
   IntEnable(INT_EMAC0);
 
   /* Enable all processor interrupts. */
-  IntMasterEnable();
+  //TODO debug
+//  IntMasterEnable();
 
   /* Tell the PHY to start an auto-negotiation cycle. */
 #if defined(EMAC_PHY_IS_EXT_MII) || defined(EMAC_PHY_IS_EXT_RMII)
@@ -1124,6 +1127,7 @@ tivaif_interrupt(struct netif *psNetif, uint32_t ui32Status)
 
   if(ui32Status & EMAC_INT_ABNORMAL_INT)
   {
+      UARTwrite("abnormal interrupt\r\n",20); //debug TODOj
       g_ui32AbnormalInts++;
   }
 
@@ -1154,8 +1158,7 @@ tivaif_interrupt(struct netif *psNetif, uint32_t ui32Status)
    * stalled due to missing buffers since the receive function will attempt to
    * allocate new pbufs for descriptor entries which have none.
    */
-  if(ui32Status & (EMAC_INT_RECEIVE | EMAC_INT_RX_NO_BUFFER |
-     EMAC_INT_RX_STOPPED))
+  if(ui32Status & (EMAC_INT_RECEIVE | EMAC_INT_RX_NO_BUFFER | EMAC_INT_RX_STOPPED))
   {
       tivaif_receive(psNetif);
   }

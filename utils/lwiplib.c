@@ -148,10 +148,17 @@ static xQueueHandle g_pInterrupt;
 //*****************************************************************************
 static void lwIPInterruptTask(void *pvArg)
 {
+//aca estaba raro, hay que verificar, pero mandaba a la lectura de la cola el pvArg, pero el
+//pvArg es el parametro de la tarea que al crearse se puso en 0!,...nose.. lo logico es generar
+//una local y usarla para copiar los datos, no el parametro de la funcion y alli guardar el
+//dato que viene por copia
+   uint32_t arg;
    while(1) {
-      xQueueReceive  ( g_pInterrupt, &pvArg, portMAX_DELAY );
-      xSemaphoreGive ( Led_Link_Semphr                     );
-      tivaif_interrupt(&g_sNetIF, (uint32_t)pvArg);                         // Processes any packets waiting to be sent or received.
+      while(xQueueReceive( g_pInterrupt, &arg, pdMS_TO_TICKS(500))==pdFALSE)
+         xSemaphoreGive ( Led_Link_Semphr );
+
+      xSemaphoreGive ( Led_Link_Semphr );
+      tivaif_interrupt(&g_sNetIF, arg);                         // Processes any packets waiting to be sent or received.
       MAP_EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT | // Re-enable the Ethernet interrupts.
                EMAC_INT_TX_STOPPED |
                EMAC_INT_RX_NO_BUFFER |
@@ -175,7 +182,6 @@ static void lwIPLinkDetect(void)
    Link_State  &= 0x03;
    Link_State  |= (MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_BMSR) & EPHY_BMSR_LINKSTAT)?
                   1:0;
-
    switch(Link_State) {
       case 0x00:                                // sigue apagado
          break;
@@ -221,9 +227,10 @@ static void lwIPPrivateInit(void *pvArg)
     struct ip_addr gw_addr;
     // If using a RTOS, create a queue (to be used as a semaphore) to signal
     // the Ethernet interrupt task from the Ethernet interrupt handler.
-    g_pInterrupt = xQueueCreate(3, sizeof(void *));
+//    g_pInterrupt = xQueueCreate(100, sizeof(void *)); //decia un solo elemento
+    g_pInterrupt = xQueueCreate(10, sizeof(uint32_t)); //decia un solo elemento
     xTaskCreate(lwIPInterruptTask, (portCHAR *)"eth_int",
-                STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 3, //estaba en +1 lo paso a +3
+                STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 2, //estaba en +1 lo paso a +3
                 0);
     ip_addr.addr  = 0; //arranco en cero, el lwIPPrivateHostTimer se encargara de configurar cuando se linkee
     net_mask.addr = 0;
@@ -254,6 +261,9 @@ static void lwIPPrivateInit(void *pvArg)
 //! \return None.
 //
 //*****************************************************************************
+void lwIPInit2(uint32_t ui32SysClkHz, const uint8_t *pui8MAC)//debug TODO
+{
+}
 void lwIPInit(uint32_t ui32SysClkHz, const uint8_t *pui8MAC)
 {
     MAP_SysCtlPeripheralEnable ( SYSCTL_PERIPH_EMAC0 );      // Enable the ethernet peripheral.
@@ -315,7 +325,8 @@ void lwIPEthernetIntHandler(void)
     if(ui32Status) {
         MAP_EMACIntClear(EMAC0_BASE, ui32Status);
     }
-    xQueueSendFromISR(g_pInterrupt, (void *)&ui32Status, &xWake);
+    xQueueSendFromISR(g_pInterrupt, &ui32Status, &xWake);
+    //
     // Disable the Ethernet interrupts.  Since the interrupts have not been
     // handled, they are not asserted.  Once they are handled by the Ethernet
     // interrupt task, it will re-enable the interrupts.

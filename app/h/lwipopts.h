@@ -48,15 +48,15 @@
 //#define MEM_LIBC_MALLOC                 0
 #define MEM_ALIGNMENT                   4          // default is 1
 #define MEM_SIZE                        (16  *1024)  // con 2k no anda con 16, anda 2 horas
-#define MEMP_OVERFLOW_CHECK             3
-#define MEMP_SANITY_CHECK               1
+#define MEMP_OVERFLOW_CHECK             0
+#define MEMP_SANITY_CHECK               0
 //#define MEM_USE_POOLS                   0
 //#define MEMP_USE_CUSTOM_POOLS           0
 
 //*****************************************************************************
 // ---------- Internal Memory Pool Sizes ----------
 //*****************************************************************************
-#define MEMP_NUM_PBUF                     32    // Default 16
+#define MEMP_NUM_PBUF                     32   // Default 16
 #define MEMP_NUM_RAW_PCB                  0     // creo que no uso...
 #define MEMP_NUM_UDP_PCB                  2     // en teoria con 1 me alcanza...
 #define MEMP_NUM_TCP_PCB                  15    // Default 5 //3 backlogs por cada listen
@@ -158,8 +158,8 @@
 #define TCP_MSS                         536 //500 //1460         // default is 536
 #define TCP_WND                         (1*TCP_MSS) // default is 2048
 #define TCP_SND_BUF                     (2*TCP_MSS)
-//#define TCP_MAXRTX                      12
-//#define TCP_SYNMAXRTX                   6
+//#define TCP_MAXRTX                    12
+//#define TCP_SYNMAXRTX                 6
 #define TCP_QUEUE_OOSEQ                 0
 #define TCP_CALCULATE_EFF_SEND_MSS      0
                                                     // default is 256
@@ -200,7 +200,7 @@
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 //ble 1024 o se ahoga....
 #define TCPIP_THREAD_STACKSIZE          (2*1024) //en la creacion divide por 4 y se mete en el heap de lwip
-#define TCPIP_THREAD_PRIO               1
+#define TCPIP_THREAD_PRIO               5
 #define TCPIP_MBOX_SIZE                 64
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
 //#define SLIPIF_THREAD_STACKSIZE         0
