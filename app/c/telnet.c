@@ -55,8 +55,7 @@ void Telnet_Close ( struct tcp_pcb *tpcb) //TODO: en realidad tengo que cerrar t
 {
    if(tpcb!=DEBUG_MSG && tpcb!=UART_MSG ) {
       if(tpcb->callback_arg!=(void*)0xFFFFFFFF) {
-         tcpip_callback((tcpip_callback_fn)tcp_close,tpcb);
-//         tcp_close(tpcb);
+         tcp_close(tpcb);
          vPortFree    ( tpcb->callback_arg );  // libero el buffer de recepcion
          tcp_accepted ( Soc_Cmd            );  // libreo 1 lugar para el backlog
          tpcb->callback_arg=(void*)0xFFFFFFFF; // con esto me acuerdo si ya estoy en el proceso de cierre o no porque es diferente si arranco el cierre desde el equipo o desde el cliente
@@ -130,30 +129,30 @@ void Init_Conn(void)
       Conn[i].Tpcb=NULL;
 }/*}}}*/
 //-------CMD CONSOLE---------------------------------------------------------------{{{
-void Err_Cmd_Fn (void *arg, err_t err)
-{  //debug msg TODO
-   UART_ETHprintf(UART_MSG,"error fatal de conexion %i\r\n",err);
-}
-static uint32_t Id=0; //debug TODO
 err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    uint8_t Data;
    uint16_t i;
-   char Buff[20]="que tal\r\n";
-   uint8_t len;
    struct Parser_Queue_Struct* B=arg;
    if(p!=NULL)  {
       for(i=0;i<p->len;i++) {
          Data=((uint8_t*)p->payload)[i];
          if(manageEnter(Data,(i+1)<p->len,((uint8_t*)p->payload)[i+1],&i)) {
             manageLastInput(B);
-            //xQueueSend(Parser_Queue,B,0);//portMAX_DELAY);
+            //CLAVE! no se puede mandar el dato B a otra tarea para que se procese, porque el
+            //procesamiento puede generar printf y neceistar enviar datos a este tpcb, y eso
+            //SOLO se puede hacer desde dentro de esta tarea, con lo cual hay varias
+            //soliciones, 1) mando el B para que se procese y el resultado se mete en otra cola
+            //para que se procese dentro de esta tarea cuando le toque.. pero tengo que
+            //mantener copia de los buffer de salida.. no parece gran idea. 2) hago esto.
+            //pcroceso directamente aca, bloqueando a cualquier otra tarea que quiera procesar,
+            //y cuando termino, los resultados se envian desde aca mismo. es mas rapida, aunque
+            //bloquea porque cmdprocess tiene un semaforp, o tambien puede ser bloqueada y
+            //tener que esperar a que otro termine, pero es thread-sage porque pasa todo aqui
+            //dentro. .funciona de lujo, asi que sigo por aca..
             CmdLineProcess(B);
-            //len=usprintf(Buff,"chau %d\r\n",Id++);
-            //tcp_write(tpcb,Buff,len,TCP_WRITE_FLAG_COPY);
             B->Id++;
             B->Index = 0;
-            //Telnet_Close(tpcb);
          }
          else
             if(B->Index<sizeof(B->Buff)) {
@@ -167,7 +166,6 @@ err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
    }
    else {
       Telnet_Close(tpcb);
-      return ERR_ABRT;
    }
    return ERR_OK;
 }
@@ -182,11 +180,10 @@ err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
       R->CmdTable = Login_Cmd_Table;
       R->Ref      = R;
       tcp_recv ( newpcb ,Rcv_Cmd_Fn );
-      tcp_err  ( newpcb ,Err_Cmd_Fn );
       tcp_arg  ( newpcb ,R          );
    }
    else {
-      UART_ETHprintf(UART_MSG,"Accept_Cmd_Fn no tiene espacio\r\n");
+      UART_ETHprintf(DEBUG_MSG,"Accept_Cmd_Fn no tiene espacio\r\n");
       tcp_arg ( newpcb ,NULL );
       Telnet_Close(newpcb);
    }
@@ -363,7 +360,6 @@ int Cmd_Init_Client_List(struct Parser_Queue_Struct* P, int argc, char *argv[]) 
    Init_Clients_Socket();
    return 0;
 }/*}}}*/
-
 
 struct Soc_Clients_Struct* Clients4C_State(const State** C_State)
 {

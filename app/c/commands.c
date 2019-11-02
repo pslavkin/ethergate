@@ -38,16 +38,17 @@
 
 tCmdLineEntry Login_Cmd_Table[] =/*{{{*/
 {
-    { "login"  ,Cmd_Login   ,": login" }                                ,
-    { "id"     ,Cmd_Show_Id ,": show id name" }                         ,
+    { "login"  ,Cmd_Login   ,": login"                                },
+    { "id"     ,Cmd_Show_Id ,": show id name"                         },
 #if ONE_WIRE_ENABLE
-    { "t"      ,Cmd_T       ,": show temperatures" }                    ,
-    { "tstart" ,Cmd_T_Start ,": start show temperatures periodically" } ,
-    { "tstop"  ,Cmd_T_Stop  ,": stop show temperatures periodically" }  ,
+    { "t"      ,Cmd_T       ,": show temperatures"                    },
+    { "tstart" ,Cmd_T_Start ,": start show temperatures periodically" },
+    { "tstop"  ,Cmd_T_Stop  ,": stop show temperatures periodically"  },
 #endif
-    { "exit"   ,Cmd_Exit    ,": exit and close connection" }            ,
-    { "?"      ,Cmd_Help    ,": help" }                                 ,
-    { 0        ,0           ,0 }
+    { "exit"   ,Cmd_Exit    ,": exit and close connection"            },
+    { "version",Cmd_Welcome ,": shot actual version"                  },
+    { "?"      ,Cmd_Help    ,": help"                                 },
+    { 0        ,0           ,0                                        }
 };/*}}}*/
 tCmdLineEntry Main_Cmd_Table[] =/*{{{*/
 {
@@ -151,7 +152,10 @@ tCmdLineEntry Stats_Cmd_Table[] =/*{{{*/
 //WELCOME-HELP{{{
 int Cmd_Welcome(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   UART_ETHprintf(P->tpcb,"\r\n+++ Ethergate V8.0 +++\r\nwww.disenioconingenio.com.ar\r\n");
+   UART_ETHprintf(P->tpcb,"\r\n"
+         "+++          Ethergate           +++\r\n"
+         "+++ www.disenioconingenio.com.ar +++\r\n"
+         "+++       v8.1 03/11/2019        +++\r\n");
    return 0;
 }
 int Cmd_Help(struct Parser_Queue_Struct* P, int argc, char *argv[])
@@ -600,9 +604,9 @@ int Cmd_TaskList(struct Parser_Queue_Struct* P, int argc, char *argv[])
       vTaskList( Buff );
       UART_ETHprintf(P->tpcb,Buff);
       //para heap2
-      UART_ETHprintf(P->tpcb,"Total Heap=%d\r\n", xPortGetFreeHeapSize());
+      //UART_ETHprintf(P->tpcb,"Total Heap=%d\r\n", xPortGetFreeHeapSize());
       //para heap4
-      //UART_ETHprintf(P->tpcb,"Total Heap=%d Min=%d\r\n", xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
+      UART_ETHprintf(P->tpcb,"Total Heap=%d Min=%d\r\n", xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
       vPortFree(Buff);
    }
 #else

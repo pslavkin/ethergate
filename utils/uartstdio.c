@@ -551,21 +551,16 @@ UARTgetc(void)
 //! \return None.
 //
 //*****************************************************************************
-//solo se usa para funciones de debug, por eso el semaforo desde ise, asi la puedo llamar desde
-//cualquier lado
+//solo se usa para funciones de debug
 void UARTprintf(const char *pcString, ...)
 {
-  // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
    xSemaphoreTake(Print_Mutex,portMAX_DELAY);
- //  if(xSemaphoreTakeFromISR(Print_Mutex,&xHigherPriorityTaskWoken)==pdTRUE) {
-      va_list vaArgP;
-      int len;
-      va_start(vaArgP, pcString);
-      len=uvsnprintf(Buff,APP_OUT_BUF_SIZE,pcString, vaArgP);
-      UARTwrite(Buff,len);
-      va_end(vaArgP);
-   //   xSemaphoreGiveFromISR(Print_Mutex, &xHigherPriorityTaskWoken );
-   //}
+   va_list vaArgP;
+   int len;
+   va_start(vaArgP, pcString);
+   len=uvsnprintf(Buff,APP_OUT_BUF_SIZE,pcString, vaArgP);
+   UARTwrite(Buff,len);
+   va_end(vaArgP);
    xSemaphoreGive(Print_Mutex);
 }
 
@@ -838,9 +833,6 @@ bool Uart_Mutex_Flag=false;
 
 void UARTStdioIntHandler(void)
 {
-   if(Uart_Mutex_Flag==true) return;
-
-    Uart_Mutex_Flag=true;
     uint32_t ui32Ints;
     int8_t   cChar;
     // Get and clear the current interrupt source(s)
@@ -872,25 +864,22 @@ void UARTStdioIntHandler(void)
             }
         }
     }
-    Uart_Mutex_Flag=false;
 }
 void Emulate_Uart_Rx_Data(uint8_t* Data, uint16_t Len)
 {
-   if(Uart_Mutex_Flag==true) return;
-   Uart_Mutex_Flag=true;
    uint8_t i;
+   MAP_UARTIntDisable(g_ui32Base, (UART_INT_RX | UART_INT_RT));
    for(i=0;i<Len;i++) {
       if(!RX_BUFFER_FULL) {
          g_pcUARTRxBuffer[g_ui32UARTRxWriteIndex] = Data[i];
          ADVANCE_RX_BUFFER_INDEX(g_ui32UARTRxWriteIndex);
-         Led_Rgb_Only_Blue(); //debug
       }
       else {
          Led_Rgb_Only_Blue(); //debug
          break;
       }
    }
-   Uart_Mutex_Flag=false;
+   MAP_UARTIntEnable(g_ui32Base, (UART_INT_RX | UART_INT_RT));
 }
 //*****************************************************************************
 //

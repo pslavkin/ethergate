@@ -50,13 +50,17 @@ void Rs232_Task(void* nil)
    Rs232_Sm   = Idle2;
    P=pvPortMalloc(sizeof(struct Parser_Queue_Struct));
    L=pvPortMalloc(sizeof(struct Line_Process_Struct));
-   P->CmdTable = Login_Cmd_Table;
-   P->tpcb     = UART_MSG;
-   P->Ref      = P;
-//   Init_Uart ( );
-   Cmd_Welcome ( P ,0 ,NULL ); // debug
+   P->CmdTable  = Login_Cmd_Table;
+   P->tpcb      = UART_MSG;
+   P->Ref       = P;
+   P->Index     = 0;
+   P->lastIndex = 0;
+   P->Id        = 0;
+   strcpy((char*)P->Buff,"version");
+   Init_Uart ( );
+   CmdLineProcess(P);
    while(1) {
-      vTaskDelay ( pdMS_TO_TICKS( 250 ));
+      vTaskDelay ( pdMS_TO_TICKS( 50 ));
       Send_Event ( Rti_Event,Rs232( ));
    }
 }
@@ -86,8 +90,9 @@ bool manageEnter(uint8_t Char, bool isNext, uint8_t nextChar, uint16_t *index )
    if(Char=='\n' || Char=='\r') {
       if(isNext==true) {
          if( (Char=='\n' && nextChar=='\r') ||
-             (Char=='\r' && nextChar=='\n'))
-            index++;
+             (Char=='\r' && nextChar=='\n')) {
+            (*index)++;
+         }
       }
       return true;
    }
@@ -130,7 +135,8 @@ void Send_Data2Parser(void)
 {
    manageLastInput(P);
    P->Id++;
-   xQueueSend(Parser_Queue,P,portMAX_DELAY);
+   CmdLineProcess (P);
+   //xQueueSend(Parser_Queue,P,portMAX_DELAY);
    P->Index=0;
 }
 //------------------------------------------------------------------------------------

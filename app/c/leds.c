@@ -69,12 +69,6 @@ void Led_Link_Task ( void* nil )
    }
 }
 //--------------------------------------------------------------------------------
-void Led_Serial_Task(void* nil)
-{
-   while(1)
-      vTaskDelay ( portMAX_DELAY);
-}
-//--------------------------------------------------------------------------------
 float T_Prom;
 void Led_Rgb_Only_Red(void)
 {

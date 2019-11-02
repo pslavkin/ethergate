@@ -198,8 +198,7 @@
 // ---------- Thread options ----------
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
-//ble 1024 o se ahoga....
-#define TCPIP_THREAD_STACKSIZE          (2*1024) //en la creacion divide por 4 y se mete en el heap de lwip
+#define TCPIP_THREAD_STACKSIZE          400 //(2*1024) //en la creacion de sys_thread divide por 4 pero como estoy usando xthread, no lo divide
 #define TCPIP_THREAD_PRIO               5
 #define TCPIP_MBOX_SIZE                 64
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
@@ -242,19 +241,19 @@
 // ---------- Statistics options ----------
 //
 //*****************************************************************************
-#define LWIP_STATS                      0
-//#define LWIP_STATS_DISPLAY              1
+#define LWIP_STATS                      1
+#define LWIP_STATS_DISPLAY              1
 //#define LINK_STATS                      1
 //#define ETHARP_STATS                    (LWIP_ARP)
 //#define IP_STATS                        1
-//#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
+#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
 //#define ICMP_STATS                      1
 //#define IGMP_STATS                      (LWIP_IGMP)
 //#define UDP_STATS                       (LWIP_UDP)
-//#define TCP_STATS                       (LWIP_TCP)
-//#define MEM_STATS                       1
-//#define MEMP_STATS                      1
-//#define SYS_STATS                       1
+#define TCP_STATS                       (LWIP_TCP)
+#define MEM_STATS                       1
+#define MEMP_STATS                      1
+#define SYS_STATS                       1
 
 //*****************************************************************************
 //
@@ -307,7 +306,7 @@
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 0
+#if 1
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"
@@ -348,7 +347,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define MEMP_DEBUG                      LWIP_DBG_OFF
 #define SYS_DEBUG                       LWIP_DBG_OFF
 #define TCP_DEBUG                       LWIP_DBG_OFF
-#define TCP_INPUT_DEBUG                 LWIP_DBG_ON
+#define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
 #define TCP_FR_DEBUG                    LWIP_DBG_OFF
 #define TCP_RTO_DEBUG                   LWIP_DBG_OFF
 #define TCP_CWND_DEBUG                  LWIP_DBG_OFF

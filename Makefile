@@ -76,7 +76,7 @@ ${COMPILER}/out.axf: ${COMPILER}/one_wire_network.o
 ${COMPILER}/out.axf: ${COMPILER}/one_wire_transport.o
 ${COMPILER}/out.axf: ${COMPILER}/buttons.o
 ${COMPILER}/out.axf: ${COMPILER}/leds.o
-${COMPILER}/out.axf: ${COMPILER}/parser.o
+#${COMPILER}/out.axf: ${COMPILER}/parser.o
 ${COMPILER}/out.axf: ${COMPILER}/state_machine.o
 ${COMPILER}/out.axf: ${COMPILER}/telnet.o
 ${COMPILER}/out.axf: ${COMPILER}/usr_flash.o
@@ -94,7 +94,7 @@ ${COMPILER}/out.axf: ${COMPILER}/uartstdio.o
 ${COMPILER}/out.axf: ${COMPILER}/ustdlib.o
 
 ${COMPILER}/out.axf: ${COMPILER}/timers.o
-${COMPILER}/out.axf: ${COMPILER}/heap_2.o
+${COMPILER}/out.axf: ${COMPILER}/heap_4.o
 ${COMPILER}/out.axf: ${COMPILER}/port.o
 ${COMPILER}/out.axf: ${COMPILER}/list.o
 ${COMPILER}/out.axf: ${COMPILER}/queue.o

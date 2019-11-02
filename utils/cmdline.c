@@ -17,6 +17,7 @@ static char *g_ppcArgv[CMDLINE_MAX_ARGS + 1];
 void CmdLineProcess(struct Parser_Queue_Struct* P)
 {
     char*          pcChar;
+    uint16_t       i;                  //contador auxiliar
     uint_fast8_t   ui8Argc;
     bool           bFindArg = true;
     tCmdLineEntry* psCmdEntry;
@@ -26,7 +27,6 @@ void CmdLineProcess(struct Parser_Queue_Struct* P)
     pcChar  = (char*)P->Buff;
                                                                        // Advance through the command line until a zero character is found.
     while(*pcChar) {
-                                                                       // If there is a space, then replace it with a zero, and set the flag to search for the next argument.
         if(*pcChar == ' ') {
             *pcChar  = 0;
             bFindArg = true;
@@ -67,8 +67,11 @@ void CmdLineProcess(struct Parser_Queue_Struct* P)
         }
        UART_ETHprintf(P->tpcb,"bad command\r\n");
     }
-                                                                     ; // Fall through to here means that no matching command was found, so return an error.
+                                                                     // Fall through to here means that no matching command was found, so return an error.
 prompt:
+    for (i=0;i<P->Index;i++)           //vuelvo a poner espacios donde puse NULL porque quiero dejar el buffer intacto porque lo quiero usar luego si tengo que repetir el comando.. y parrece tener sentido que no me ensucie el buffer...
+       if(P->Buff[i]=='\0')
+          P->Buff[i]=' ';
     UART_ETHprintf(P->tpcb,"> ");
 }
 

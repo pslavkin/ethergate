@@ -70,5 +70,19 @@ void Init_Wdog(void)
    MAP_WatchdogEnable         ( WATCHDOG0_BASE                     ); // Enable the watchdog timer.
    xTaskCreate ( Wdog_Task ,"wdog" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
 }
+void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
+{
+   while(1) {
+      MAP_UARTCharPut(UART0_BASE, 's');
+      MAP_UARTCharPut(UART0_BASE, 't');
+      MAP_UARTCharPut(UART0_BASE, 'a');
+      MAP_UARTCharPut(UART0_BASE, 'c');
+      MAP_UARTCharPut(UART0_BASE, ' ');
+   }
+}
+// The error routine that is called if the driver library encounters an error.
+#ifdef DEBUG
+void __error__(char *pcFilename, uint32_t ui32Line) { }
+#endif
 
 
