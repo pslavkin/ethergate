@@ -155,7 +155,7 @@
 //*****************************************************************************
 #define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_MSS                         536 //500 //1460         // default is 536
+#define TCP_MSS                         1460//1460 //536 //500 //1460         // default is 536
 #define TCP_WND                         (1*TCP_MSS) // default is 2048
 #define TCP_SND_BUF                     (2*TCP_MSS)
 //#define TCP_MAXRTX                    12
@@ -241,19 +241,19 @@
 // ---------- Statistics options ----------
 //
 //*****************************************************************************
-#define LWIP_STATS                      1
-#define LWIP_STATS_DISPLAY              1
+#define LWIP_STATS                      0
+//#define LWIP_STATS_DISPLAY              0
 //#define LINK_STATS                      1
 //#define ETHARP_STATS                    (LWIP_ARP)
 //#define IP_STATS                        1
-#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
+//#define IPFRAG_STATS                    (IP_REASSEMBLY || IP_FRAG)
 //#define ICMP_STATS                      1
 //#define IGMP_STATS                      (LWIP_IGMP)
 //#define UDP_STATS                       (LWIP_UDP)
-#define TCP_STATS                       (LWIP_TCP)
-#define MEM_STATS                       1
-#define MEMP_STATS                      1
-#define SYS_STATS                       1
+//#define TCP_STATS                       (LWIP_TCP)
+//#define MEM_STATS                       1
+//#define MEMP_STATS                      1
+//#define SYS_STATS                       1
 
 //*****************************************************************************
 //
@@ -306,7 +306,7 @@
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 1
+#if 0
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"

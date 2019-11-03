@@ -72,7 +72,4 @@ int Cmd_AllStats  ( struct Parser_Queue_Struct* P, int argc, char *argv[] );
 void Print_Enable_Disable ( struct Parser_Queue_Struct* P,const char* Legend,bool State );
 void DisplayIPAddress     ( struct Parser_Queue_Struct* P,uint32_t ui32Addr             );
 
-int Cmd_IrqDis(struct Parser_Queue_Struct* P, int argc, char *argv[]);
-int Cmd_IrqEna(struct Parser_Queue_Struct* P, int argc, char *argv[]);
-
 #endif

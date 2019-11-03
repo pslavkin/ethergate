@@ -130,8 +130,6 @@ tCmdLineEntry System_Cmd_Table[] =/*{{{*/
 { "ut"      ,Cmd_Uptime    ,": uptime [secs]"                      },
 { "wdog"    ,Cmd_Wdog_Tout ,": wdog tout [secs] (0 disable)"       },
 { "restore" ,Cmd_Restore   ,": restore defaults values and reboot" },
-{ "irqe"    ,Cmd_IrqEna    ,": enable irq manual"                  },
-{ "irqd"    ,Cmd_IrqDis    ,": disable irq manual"                 },
 { "?"       ,Cmd_Help      ,": help"                               },
 { "<"       ,Cmd_Back2Main ,": back"                               },
 { 0         ,0             ,0                                      }
@@ -478,7 +476,7 @@ int Cmd_Snmp_Iso(struct Parser_Queue_Struct* P, int argc, char *argv[])
    uint8_t i;
    if(argc==1)
       for(i=0;i<MAX_ROM_CODES;i++) {
-         UART_ETHprintf(P->tpcb,"channel: %d sensor: %H snmp:",i,Usr_Flash_Params.Sensor_Codes[i],8);
+         UART_ETHprintf(P->tpcb,"channel: %d sensor-MIB: %H ",i,Usr_Flash_Params.Sensor_Codes[i],8);
          Print_Snmp_Iso(P,Usr_Flash_Params.Snmp_Iso[i],Usr_Flash_Params.Snmp_Iso_Len[i]);
       }
    else {
@@ -491,7 +489,7 @@ int Cmd_Snmp_Iso(struct Parser_Queue_Struct* P, int argc, char *argv[])
             for(i=3;i<argc && i<sizeof(Usr_Flash_Params.Snmp_Iso[0]);i++)
                Usr_Flash_Params.Snmp_Iso[Channel][i-3]=atoi(argv[i]);
             Usr_Flash_Params.Snmp_Iso_Len[Channel]=argc-3;
-            UART_ETHprintf(P->tpcb,"new snmp sensor link, channel: %d sensor: %H snmp:",Channel,Usr_Flash_Params.Sensor_Codes[Channel],8);
+            UART_ETHprintf(P->tpcb,"new snmp sensor link, channel: %d sensor-MIB %H ",Channel,Usr_Flash_Params.Sensor_Codes[Channel],8);
             Print_Snmp_Iso(P,Usr_Flash_Params.Snmp_Iso[Channel],Usr_Flash_Params.Snmp_Iso_Len[Channel]);
             Save_Usr_Flash();
          }
@@ -597,11 +595,7 @@ int Cmd_TaskList(struct Parser_Queue_Struct* P, int argc, char *argv[])
       char* Buff=(char*)pvPortMalloc(UART_TX_BUFFER_SIZE);
       UART_ETHprintf(P->tpcb,"%14s state   pri     stack  num\r\n","name");
       vTaskList( Buff );
-      UART_ETHprintf(P->tpcb,Buff);
-      //para heap2
-      //UART_ETHprintf(P->tpcb,"Total Heap=%d\r\n", xPortGetFreeHeapSize());
-      //para heap4
-      UART_ETHprintf(P->tpcb,"Total Heap=%d Min=%d\r\n", xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
+      UART_ETHprintf(P->tpcb,"%sTotal Heap=%d Min=%d\r\n",Buff, xPortGetFreeHeapSize(),xPortGetMinimumEverFreeHeapSize());
       vPortFree(Buff);
    }
 #else
@@ -650,29 +644,6 @@ int Cmd_Pwd(struct Parser_Queue_Struct* P, int argc, char *argv[])
    }
    return 0;
 }
-
-int Cmd_IrqDis(struct Parser_Queue_Struct* P, int argc, char *argv[])
-{
-   UART_ETHprintf(P->tpcb,"disable emaca irq\r\n");
-    MAP_EMACIntDisable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
-                                    EMAC_INT_TX_STOPPED |
-                                    EMAC_INT_RX_NO_BUFFER |
-                                    EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
-//   lwIPEthernetIntHandler();
-   return 0;
-}
-int Cmd_IrqEna(struct Parser_Queue_Struct* P, int argc, char *argv[])
-{
-   UART_ETHprintf(P->tpcb,"enable emaca irq\r\n");
-   lwIPInit2       ( configCPU_CLOCK_HZ, Usr_Flash_Params.Mac_Addr );
-//      MAP_EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT | // Re-enable the Ethernet interrupts.
-//               EMAC_INT_TX_STOPPED |
-//               EMAC_INT_RX_NO_BUFFER |
-//               EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
-   lwIPEthernetIntHandler();
-   return 0;
-}
-
 /*}}}*/
 //STATS{{{
 int Cmd_SysStats(struct Parser_Queue_Struct* P, int argc, char *argv[])

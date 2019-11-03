@@ -707,7 +707,7 @@ UARTFlushRx(void)
     // Temporarily turn off interrupts.
     //
     //TODO
-    ui32Int = MAP_IntMasterDisable();
+//    ui32Int = MAP_IntMasterDisable();
 
     //
     // Flush the receive buffer.
@@ -722,7 +722,7 @@ UARTFlushRx(void)
     if(!ui32Int)
     {
        //TODO
-        MAP_IntMasterEnable();
+ //       MAP_IntMasterEnable();
     }
 }
 #endif
@@ -759,7 +759,7 @@ UARTFlushTx(bool bDiscard)
         // interrupts.
         //
         //TODO
-        ui32Int = MAP_IntMasterDisable();
+//        ui32Int = MAP_IntMasterDisable();
 
         //
         // Flush the transmit buffer.
@@ -774,7 +774,7 @@ UARTFlushTx(bool bDiscard)
         if(!ui32Int)
         {
            //TODO
-           MAP_IntMasterEnable();
+//           MAP_IntMasterEnable();
         }
     }
     else

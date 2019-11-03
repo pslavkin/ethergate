@@ -24,19 +24,17 @@ void              Init_Rs232 ( void );
 const State**     Rs232      ( void );
 void              Init_Uart  ( void );
 
-void Rs232_Task           ( void* nil );
-void Line_Process         ( void      );
-void Parser_Process       ( void      );
-void Send_Data2Tcp        ( void      );
-void Bridge_Data_Process  ( void      );
-void Send_Data2Parser     ( void      );
-void Console_Data_Process ( void      );
-void Is_Console_Enabled   ( void      );
-void Bridge2Console       ( void      );
-void Console2Bridge       ( void      );
-
-
-
-bool manageEnter(uint8_t Char, bool isNext, uint8_t nextChar, uint16_t *index );
-void manageLastInput(struct Parser_Queue_Struct* B);
+void Rs232_Task             ( void* nil                                                    );
+void Line_Process           ( void                                                         );
+void Parser_Process         ( void                                                         );
+void Send_Data2Tcp          ( void* n                                                      );
+void Callback_Send_Data2Tcp ( void                                                         );
+void Bridge_Data_Process    ( void                                                         );
+void Send_Data2Parser       ( void                                                         );
+void Console_Data_Process   ( void                                                         );
+void Is_Console_Enabled     ( void                                                         );
+void Bridge2Console         ( void                                                         );
+void Console2Bridge         ( void                                                         );
+bool manageEnter            ( uint8_t Char, bool isNext, uint8_t nextChar, uint16_t *index );
+void manageLastInput        ( struct Parser_Queue_Struct* B                                );
 #endif

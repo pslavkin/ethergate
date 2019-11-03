@@ -485,7 +485,7 @@ sys_thread_new(const char *name, lwip_thread_fn thread, void *arg,
     threads[i].stackend   = NULL;
     return NULL;
   }
-  created_thread = threads[i].taskhandle; //al pedo esta asignacion, podria evitarse la var. local TODO0
+  created_thread = threads[i].taskhandle; //al pedo esta asignacion, podria evitarse la var. local TODO
   /* Return this thread. */
   return created_thread;
 }
