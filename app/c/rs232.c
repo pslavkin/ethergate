@@ -53,11 +53,10 @@ void Rs232_Task(void* nil)
    strcpy((char*)P->Buff,"version");
    P->CmdTable  = Login_Cmd_Table;
    P->tpcb      = UART_MSG;
-   //P->Ref       = P;
    P->Id        = 0;
    P->Index     = 7;
    P->lastIndex = 7;
-//   Init_Uart ( );
+   Init_Uart ( );
    CmdLineProcess(P);
    while(1) {
       vTaskDelay ( pdMS_TO_TICKS( 25 ));
@@ -166,34 +165,41 @@ void Line_Process(void)
          L->Tout=0;
    }
 }
-void Send_Data2Tcp(void)
+
+void Send_Data2Tcp(void* n)
 {
    Send_To_Normal_Tcp(L->Buff,L->Index);
    L->Index=0;
 }
+void Callback_Send_Data2Tcp(void)
+{
+   //no se debe mandar nada desde otra tarea (state_machone en este caso) que no sea tcpip, por
+   //esto este doble wrapper
+   tcpip_callback(Send_Data2Tcp,NULL);
+}
 //-------------------------------------------------------------------------------------
 const State const Idle2  [ ] =
 {
-   { Rti_Event            ,Is_Console_Enabled ,Idle2   } ,
-   { Console_Enable_Event ,Clear_Parser_Index ,Console } ,
-   { Conn_Regi_Event      ,Clear_Line_Index   ,Bridge  } ,
-   { ANY_Event            ,Rien               ,Idle2   } ,
-};
+   { Rti_Event            ,Is_Console_Enabled     ,Idle2   },
+   { Console_Enable_Event ,Clear_Parser_Index     ,Console },
+   { Conn_Regi_Event      ,Clear_Line_Index       ,Bridge  },
+   { ANY_Event            ,Rien                   ,Idle2   },
+                                                           };
 const State Bridge[ ] =
 {
-   { Rti_Event        ,Line_Process  ,Bridge } ,
-   { Term_Found_Event ,Send_Data2Tcp ,Bridge } ,
-   { Max_Length_Event ,Send_Data2Tcp ,Bridge } ,
-   { TOut_Event       ,Send_Data2Tcp ,Bridge } ,
-   { Conn_Free_Event  ,Rien          ,Idle2  } ,
-   { ANY_Event        ,Rien          ,Bridge } ,
-};
+   { Rti_Event            ,Line_Process           ,Bridge  },
+   { Term_Found_Event     ,Callback_Send_Data2Tcp ,Bridge  },
+   { Max_Length_Event     ,Callback_Send_Data2Tcp ,Bridge  },
+   { TOut_Event           ,Callback_Send_Data2Tcp ,Bridge  },
+   { Conn_Free_Event      ,Rien                   ,Idle2   },
+   { ANY_Event            ,Rien                   ,Bridge  },
+                                                           };
 const State Console  [ ] =
 {
-   { Rti_Event         ,Parser_Process   ,Console } ,
-   { Enter_Found_Event ,Send_Data2Parser ,Console } ,
-   { TOut_Event        ,Send_Data2Parser ,Console } ,
-   { Max_Length_Event  ,Send_Data2Parser ,Console } ,
-   { Conn_Regi_Event   ,Clear_Line_Index ,Bridge  } ,
-   { ANY_Event         ,Rien             ,Console } ,
-};
+   { Rti_Event            ,Parser_Process         ,Console },
+   { Enter_Found_Event    ,Send_Data2Parser       ,Console },
+   { TOut_Event           ,Send_Data2Parser       ,Console },
+   { Max_Length_Event     ,Send_Data2Parser       ,Console },
+   { Conn_Regi_Event      ,Clear_Line_Index       ,Bridge  },
+   { ANY_Event            ,Rien                   ,Console },
+                                                           };

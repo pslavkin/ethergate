@@ -63,7 +63,6 @@ typedef void (* tHardwareTimerHandler)(uint32_t ui32Base,
 //*****************************************************************************
 // lwIP Abstraction Layer API
 //*****************************************************************************
-void        lwIPInit2(uint32_t ui32SysClkHz, const uint8_t *pui8MAC); //debug TODO
 void        lwIPInit                  ( uint32_t ui32SysClkHz, const uint8_t *pui8MAC                                       );
 void        lwIPTimerCallbackRegister ( tHardwareTimerHandler pfnTimerFunc                                                  );
 void        lwIPTimer                 ( uint32_t ui32TimeMS                                                                 );

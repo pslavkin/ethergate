@@ -30,12 +30,10 @@
 
 int main(void)
 {
-   Init_Clk        ( );
-   Init_Usr_Flash  ( );
-   Init_Wdog       ( );
-   Init_Uart ( );
-   UARTwrite("hola\r",5);
-
+   Init_Clk       ( );
+   Init_Usr_Flash ( );
+   Init_Wdog      ( );
+//   Init_Uart      ( );
 
    Init_Events     ( );
    Init_Schedule   ( );
@@ -48,7 +46,7 @@ int main(void)
    xTaskCreate ( Led_Rgb_Task    ,"leds RGB"   ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
    xTaskCreate ( Button1_Task    ,"Button1"    ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
 #if ONE_WIRE_ENABLE
-   Init_One_Wire_Transport (                                               );
+   Init_One_Wire_Transport ( );
 #endif
    lwIPInit    ( configCPU_CLOCK_HZ, Usr_Flash_Params.Mac_Addr );
    Init_Telnet (                                               );

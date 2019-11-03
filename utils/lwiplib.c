@@ -261,9 +261,6 @@ static void lwIPPrivateInit(void *pvArg)
 //! \return None.
 //
 //*****************************************************************************
-void lwIPInit2(uint32_t ui32SysClkHz, const uint8_t *pui8MAC)//debug TODO
-{
-}
 void lwIPInit(uint32_t ui32SysClkHz, const uint8_t *pui8MAC)
 {
     MAP_SysCtlPeripheralEnable ( SYSCTL_PERIPH_EMAC0 );      // Enable the ethernet peripheral.

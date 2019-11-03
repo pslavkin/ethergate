@@ -26,7 +26,6 @@ struct Usr_Flash_Struct {
    char        Id[ 20 ]                        ;
    char        Pwd[ 10 ]                       ;
    uint32_t    Wdog                            ;
-   uint16_t    Hang_Times                      ;
    uint16_t    Rs232_Len                       ;
    uint16_t    Rs232_Tout                      ;
    uint16_t    Rs232_Term                      ;

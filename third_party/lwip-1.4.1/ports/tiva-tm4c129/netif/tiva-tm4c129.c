@@ -56,7 +56,6 @@
 #include "netif/ppp_oe.h"
 #include "netif/tivaif.h"
 
-#include "../../../../../utils/uartstdio.h" //debug TODO
 
 /**
  * Sanity Check:  This interface driver will NOT work if the following defines
@@ -398,8 +397,7 @@ tivaif_hwinit(struct netif *psNetif)
   IntEnable(INT_EMAC0);
 
   /* Enable all processor interrupts. */
-  //TODO debug
-//  IntMasterEnable();
+  IntMasterEnable();
 
   /* Tell the PHY to start an auto-negotiation cycle. */
 #if defined(EMAC_PHY_IS_EXT_MII) || defined(EMAC_PHY_IS_EXT_RMII)
@@ -1127,7 +1125,6 @@ tivaif_interrupt(struct netif *psNetif, uint32_t ui32Status)
 
   if(ui32Status & EMAC_INT_ABNORMAL_INT)
   {
-      UARTwrite("abnormal interrupt\r\n",20); //debug TODOj
       g_ui32AbnormalInts++;
   }
 

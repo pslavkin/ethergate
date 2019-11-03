@@ -731,28 +731,6 @@ pbuf_ref(struct pbuf *p)
   }
 }
 
-/*
-* seteo la longitud del pbuf obligandola a la que le paso. No es legal, pero lo uso solo a
-* sabiendas que le estoy pasando una total len menor que la que tengo reservada. es solo apra
-* mandar por snmp
-*/
-
-#include "../../../../utils/uartstdio.h"
-void
-pbuf_force_new_tot_len(struct pbuf *h,u16_t len) //agregado por pslavkin TODO
-{
-  struct pbuf *p;
-  u16_t i=0;
-  for (p = h; p->next != NULL; p = p->next) {
-    p->tot_len = len;
-    UART_ETHprintf(UART_MSG,"pbuf %i\r\n",i);
-    i++;
-  }
-    p->len = p->tot_len-len;
-    UART_ETHprintf(UART_MSG,"last pbuf tot=%i\r\n",p->tot_len,p->len);
-    p->tot_len = len;
-}
-
 /**
  * Concatenate two pbufs (each may be a pbuf chain) and take over
  * the caller's reference of the tail pbuf.

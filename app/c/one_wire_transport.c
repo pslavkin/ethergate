@@ -34,7 +34,6 @@ const State*   One_Wire_Transport_Sm;
 unsigned char  Actual_Node,Actual_Sending_Node;
 //------------------------------------------------------------------
 const State** One_Wire_Transport    ( void ) { return &One_Wire_Transport_Sm;}
-//debug
 void  Init_One_Wire_Transport ( void )
 {
    One_Wire_Transport_Sm = Searching_Rom_Codes;
