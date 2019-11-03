@@ -33,6 +33,7 @@ int main(void)
    Init_Clk        ( );
    Init_Usr_Flash  ( );
    Init_Wdog       ( );
+   Init_Uart ( );
 
    Init_Events     ( );
    Init_Schedule   ( );
@@ -51,7 +52,8 @@ int main(void)
    Init_Telnet (                                               );
    Init_Udp    (                                               );
 
-   vTaskStartScheduler     ( );
+   MAP_IntMasterEnable ( );
+   vTaskStartScheduler ( );
    while(1)
        ;
 }

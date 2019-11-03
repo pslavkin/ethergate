@@ -50,17 +50,17 @@ void Rs232_Task(void* nil)
    Rs232_Sm   = Idle2;
    P=pvPortMalloc(sizeof(struct Parser_Queue_Struct));
    L=pvPortMalloc(sizeof(struct Line_Process_Struct));
+   strcpy((char*)P->Buff,"version");
    P->CmdTable  = Login_Cmd_Table;
    P->tpcb      = UART_MSG;
-   P->Ref       = P;
-   P->Index     = 0;
-   P->lastIndex = 0;
+   //P->Ref       = P;
    P->Id        = 0;
-   strcpy((char*)P->Buff,"version");
-   Init_Uart ( );
+   P->Index     = 7;
+   P->lastIndex = 7;
+//   Init_Uart ( );
    CmdLineProcess(P);
    while(1) {
-      vTaskDelay ( pdMS_TO_TICKS( 50 ));
+      vTaskDelay ( pdMS_TO_TICKS( 25 ));
       Send_Event ( Rti_Event,Rs232( ));
    }
 }
@@ -136,7 +136,6 @@ void Send_Data2Parser(void)
    manageLastInput(P);
    P->Id++;
    CmdLineProcess (P);
-   //xQueueSend(Parser_Queue,P,portMAX_DELAY);
    P->Index=0;
 }
 //------------------------------------------------------------------------------------

@@ -155,7 +155,9 @@ int Cmd_Welcome(struct Parser_Queue_Struct* P, int argc, char *argv[])
    UART_ETHprintf(P->tpcb,"\r\n"
          "+++          Ethergate           +++\r\n"
          "+++ www.disenioconingenio.com.ar +++\r\n"
-         "+++       v8.1 03/11/2019        +++\r\n");
+         "+++       v8.1 03/11/2019        +++\r\n"
+         "\r\n?: help\r\n"
+         );
    return 0;
 }
 int Cmd_Help(struct Parser_Queue_Struct* P, int argc, char *argv[])
@@ -174,7 +176,6 @@ int Cmd_Login(struct Parser_Queue_Struct* P, int argc, char *argv[])
       if(ustrcmp(argv[1],Usr_Flash_Params.Pwd)==0) {
          UART_ETHprintf(P->tpcb,"success\r\n");
          P->CmdTable      = Main_Cmd_Table;
-         P->Ref->CmdTable = Main_Cmd_Table;
          Cmd_Help(P,argc,argv);
       }
       else
@@ -191,51 +192,45 @@ int Cmd_Exit(struct Parser_Queue_Struct* P, int argc, char *argv[])
 }
 int Cmd_Main2Ip(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=Ip_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=Ip_Cmd_Table;
    return 0;
 }
 int Cmd_Main2T(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=T_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=T_Cmd_Table;
+
    return 0;
 }
 int Cmd_Main2Snmp(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=Snmp_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=Snmp_Cmd_Table;
    return 0;
 }
 
 int Cmd_Main2Rs232(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=Rs232_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=Rs232_Cmd_Table;
    return 0;
 }
 int Cmd_Main2System(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=System_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=System_Cmd_Table;
    return 0;
 }
 int Cmd_Main2Stats(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=Stats_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=Stats_Cmd_Table;
    return 0;
 }
 int Cmd_Back2Main(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=Main_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=Main_Cmd_Table;
+
    return 0;
 }
 int Cmd_Back2Login(struct Parser_Queue_Struct* P, int argc, char *argv[])
 {
-   P->Ref->CmdTable=Login_Cmd_Table;
-//   Cmd_Help(P->tpcb, argc, argv);
+   P->CmdTable=Login_Cmd_Table;
    return 0;
 }/*}}}*/
 //TEMP{{{

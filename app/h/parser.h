@@ -9,7 +9,6 @@ struct Parser_Queue_Struct
    uint16_t                      lastIndex;
    struct tcp_pcb*               tpcb;
    struct Cmd_Table_Struct*      CmdTable;
-   struct Parser_Queue_Struct*   Ref;
    uint32_t                      Id;
 };
 

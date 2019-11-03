@@ -138,19 +138,8 @@ err_t Rcv_Cmd_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
       for(i=0;i<p->len;i++) {
          Data=((uint8_t*)p->payload)[i];
          if(manageEnter(Data,(i+1)<p->len,((uint8_t*)p->payload)[i+1],&i)) {
-            manageLastInput(B);
-            //CLAVE! no se puede mandar el dato B a otra tarea para que se procese, porque el
-            //procesamiento puede generar printf y neceistar enviar datos a este tpcb, y eso
-            //SOLO se puede hacer desde dentro de esta tarea, con lo cual hay varias
-            //soliciones, 1) mando el B para que se procese y el resultado se mete en otra cola
-            //para que se procese dentro de esta tarea cuando le toque.. pero tengo que
-            //mantener copia de los buffer de salida.. no parece gran idea. 2) hago esto.
-            //pcroceso directamente aca, bloqueando a cualquier otra tarea que quiera procesar,
-            //y cuando termino, los resultados se envian desde aca mismo. es mas rapida, aunque
-            //bloquea porque cmdprocess tiene un semaforp, o tambien puede ser bloqueada y
-            //tener que esperar a que otro termine, pero es thread-sage porque pasa todo aqui
-            //dentro. .funciona de lujo, asi que sigo por aca..
-            CmdLineProcess(B);
+            manageLastInput ( B );
+            CmdLineProcess  ( B );
             B->Id++;
             B->Index = 0;
          }
@@ -173,12 +162,14 @@ err_t Accept_Cmd_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    struct Parser_Queue_Struct* R= ( struct Parser_Queue_Struct* )pvPortMalloc(sizeof(struct Parser_Queue_Struct));
    if(R!=NULL) {
+      strcpy((char*)R->Buff,"version");
       R->Id       = 0;
-      R->Index    = 0;
-      R->lastIndex= 0;
+      R->Index    = 7;
+      R->lastIndex= 7;
       R->tpcb     = newpcb;
       R->CmdTable = Login_Cmd_Table;
-      R->Ref      = R;
+      CmdLineProcess  ( R );
+      R->Index    = 0;
       tcp_recv ( newpcb ,Rcv_Cmd_Fn );
       tcp_arg  ( newpcb ,R          );
    }
@@ -212,9 +203,9 @@ err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
          return ERR_INPROGRESS; //parece que anda, pero no lo revise.. o sea no puedo mandar.. volve mas tarde
    }
    else {
-      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
-      Free_Conn    ( tpcb    );
-      tcp_close    ( tpcb    ); // cierro
+      tcp_accepted ( Soc_Rs232 ); // libreo 1 lugar para el blog
+      Free_Conn    ( tpcb      );
+      tcp_close    ( tpcb      ); // cierro
       return ERR_OK;
    }
 }
@@ -241,9 +232,9 @@ err_t Rcv_Sniffer_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
          return ERR_OK;
    }
    else {
-      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
-      Free_Conn    ( tpcb    );
-      tcp_close    ( tpcb    ); // cierro
+      tcp_accepted ( Soc_Sniffer ); // libreo 1 lugar para el blog
+      Free_Conn    ( tpcb        );
+      tcp_close    ( tpcb        ); // cierro
       return ERR_OK;
    }
 }
@@ -271,9 +262,9 @@ err_t Rcv_Virtual_Fn(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
       return ERR_OK;
    }
    else {
-      tcp_accepted ( Soc_Cmd ); // libreo 1 lugar para el blog
-      Free_Conn    ( tpcb    );
-      tcp_close    ( tpcb    ); // cierro
+      tcp_accepted ( Soc_Virtual ); // libreo 1 lugar para el blog
+      Free_Conn    ( tpcb        );
+      tcp_close    ( tpcb        ); // cierro
       return ERR_OK;
    }
 }
