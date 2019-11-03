@@ -34,6 +34,8 @@ int main(void)
    Init_Usr_Flash  ( );
    Init_Wdog       ( );
    Init_Uart ( );
+   UARTwrite("hola\r",5);
+
 
    Init_Events     ( );
    Init_Schedule   ( );

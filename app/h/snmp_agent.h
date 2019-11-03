@@ -59,14 +59,13 @@ extern void    View_Loaded_Oid       ( void );
 extern void    Save_Oid4Loaded       ( void );
 extern void    View_Actual_Oid       ( void );
 // ----------------------------------------------------------------
-extern void    Load_Community4Tcp    ( void );
-extern void    View_Loaded_Community ( void );
-extern void    Save_Community4Loaded ( void );
-extern void    View_Actual_Community ( void );
-extern void Response_Int(unsigned char Node,uint16_t Value);
-//------------------------------------------------------------------------------
-uint16_t Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code);
-void Response_Err(void);
+extern void    Load_Community4Tcp          ( void                                                                                   );
+extern void    View_Loaded_Community       ( void                                                                                   );
+extern void    Save_Community4Loaded       ( void                                                                                   );
+extern void    View_Actual_Community       ( void                                                                                   );
+void           Response_Int                ( struct udp_pcb *upcb, char* in,ip_addr_t* addr, u16_t port,uint8_t Node,uint16_t Value );
+void           Response_Err                ( struct udp_pcb *upcb, char* in,ip_addr_t* addr, u16_t port                             );
+uint16_t       Find_One_Wire_T4Sensor_Code ( uint8_t* Sensor_Code                                                                   );
 
 #endif
 

@@ -26,140 +26,177 @@
 #include "one_wire_network.h"
 #include "usr_flash.h"/*}}}*/
 
-const State*      Snmp_Agent_Sm;
-struct pbuf*      Snmp_Data=NULL;
-struct udp_pcb    Snmp_Pcb;
-ip_addr_t         Snmp_Addr;
-u16_t             Snmp_Port;
 //------------------------------------------------------------------------------
-char * Udp_Rx_Payload                        ( void ) { return Snmp_Data->payload                                                                                  ;}
-struct Snmp_Header_Struct*    Rx_Snmp_Header ( void ) { return (struct Snmp_Header_Struct*) Udp_Rx_Payload()                                                       ;}
-struct Snmp_Msg_Struct*       Rx_Snmp_Msg    ( void ) { return (struct Snmp_Msg_Struct*)    (Rx_Snmp_Header()->Community+Rx_Snmp_Header()->Community_Length)       ;}
-struct Snmp_Object_Struct*    Rx_Snmp_Object ( void ) { return (struct Snmp_Object_Struct*)   (Rx_Snmp_Msg()->Request_Id+Rx_Snmp_Msg()->Request_Id_Length)         ;}
-struct Snmp_Value_Struct*     Rx_Snmp_Value  ( void ) { return (struct Snmp_Value_Struct*)     (Rx_Snmp_Object()->Object_Name+Rx_Snmp_Object()->Object_Name_Length);}
+struct Snmp_Header_Struct*    Snmp_Header ( char* p ) { return ( struct Snmp_Header_Struct*)p                                                                                        ;}
+struct Snmp_Msg_Struct*       Snmp_Msg    ( char* p ) { return ( struct Snmp_Msg_Struct*)(Snmp_Header(p)->Community+Snmp_Header(p)->Community_Length)                           ;}
+struct Snmp_Object_Struct*    Snmp_Object ( char* p ) { return ( struct Snmp_Object_Struct*)                ( Snmp_Msg    (p)->Request_Id+Snmp_Msg     (p)->Request_Id_Length) ;}
+struct Snmp_Value_Struct*     Snmp_Value  ( char* p ) { return ( struct Snmp_Value_Struct*)                 ( Snmp_Object (p)->Object_Name+Snmp_Object (p)->Object_Name_Length);}
 //------------------------------------------------------------------------------
-bool  Parse_Version   ( void ) { return Rx_Snmp_Header()->Version==0 || Rx_Snmp_Header()->Version==1       ;}
-bool  Parse_Community ( void ) { return strncmp(Rx_Snmp_Header()->Community,Usr_Flash_Params.Snmp_Community,Rx_Snmp_Header()->Community_Length)==0;}
-bool  Object_Name_Match ( uint8_t* Index ) {
+bool  Parse_Version   ( char* p ) { return Snmp_Header(p)->Version==0 || Snmp_Header(p)->Version==1       ;}
+bool  Parse_Community ( char* p ) { return strncmp(Snmp_Header(p)->Community,Usr_Flash_Params.Snmp_Community,strlen(Usr_Flash_Params.Snmp_Community))==0;}
+bool  Object_Name_Match ( char* p, uint8_t* Index ) {
    uint8_t i;
-//   if(Rx_Snmp_Object( )->Object_Name_Length!=Usr_Flash_Params.Snmp_Iso_Len)
-//      return false;
-   for(i=0;i<MAX_ROM_CODES &&
-           memcmp(Usr_Flash_Params.Snmp_Iso[i],
-                  Rx_Snmp_Object( )->Object_Name,
-                  Usr_Flash_Params.Snmp_Iso_Len[i])!=0 ;i++)
-      ;
-   *Index=i;
+   for(i=0;i<MAX_ROM_CODES;i++) {
+     if(Snmp_Object(p)->Object_Name_Length==Usr_Flash_Params.Snmp_Iso_Len[i] &&
+           memcmp(Usr_Flash_Params.Snmp_Iso[i],Snmp_Object(p)->Object_Name, Usr_Flash_Params.Snmp_Iso_Len[i])==0) {
+        *Index=i;
+        break;
+     }
+   }
   return i<MAX_ROM_CODES;
 }
-bool  Next_Or_Bulk ( void ) { return Rx_Snmp_Msg( )->Msg_Code==Get_Next_Request_Event || Rx_Snmp_Msg( )->Msg_Code==Get_Bulk_Request_Event;}
+bool  Next_Or_Bulk ( char* p ) { return Snmp_Msg(p)->Msg_Code==Get_Next_Request_Event || Snmp_Msg(p)->Msg_Code==Get_Bulk_Request_Event;}
 //------------------------------------------------------------------------------
 void Snmp_Packet_Arrived (struct udp_pcb *upcb, struct pbuf *p, ip_addr_t* addr,  u16_t port)
 {
-   if(Snmp_Data!=NULL) { //si eta operando en un mensaje anterior.. tira el nuevo.. solo piuedo procesar 1 peticion de snmp a la vez
-      pbuf_free(p);
-      return;
-   }
-   //TODO me faltan 2 bytes.. pero si los agrego anidadnod buf,.. vuela todo al rato.. asi que no encontre manera
-   //decidi pisar lo que aiga y a la m.. y anda!! resolverlo!!
-//   struct pbuf* q = pbuf_alloc(PBUF_RAW,2,PBUF_RAM);
-//   pbuf_chain(p,q);
-   Snmp_Data=p; // me guardo en una local el puntero al mensaje
-                // no funciona realloc para estirar pbuf aun.. tengo que hacerme una copia lamentablemente0
-                // pbuf_realloc(Snmp_Data,Snmp_Data->tot_len+2); // estiro 2 bytes... porque necesito 2 mas para mandar un entero
-
-   Snmp_Pcb  = *upcb;
-   Snmp_Addr = *addr;
-   Snmp_Port = port;
-
    uint8_t Sensor_Code_Index;
-   if ( Parse_Version() && Parse_Community()) {
-      if(Object_Name_Match(&Sensor_Code_Index)) {
+   char* snmpIn = p->payload;
+
+   if ( Parse_Version(snmpIn) && Parse_Community(snmpIn)) {
+      if(Object_Name_Match(snmpIn,&Sensor_Code_Index)) {
          UART_ETHprintf(DEBUG_MSG,"snmp match\r\n");
-         if(Next_Or_Bulk()) {
+         if(Next_Or_Bulk(snmpIn)) {
             Sensor_Code_Index++;
-            UART_ETHprintf(DEBUG_MSG,"bulk or walk next=%d\r\n",Sensor_Code_Index);;
+            UART_ETHprintf(DEBUG_MSG,"bulk or walk next=%d\r\n",Sensor_Code_Index);
          }
          if(Sensor_Code_Index<MAX_ROM_CODES) {
-            Response_Int(Sensor_Code_Index,Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index]));
+            Response_Int(upcb,snmpIn,addr,port,Sensor_Code_Index,Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index]));
          }
          else {
             UART_ETHprintf(DEBUG_MSG,"snmp walk last\r\n");
-            Response_Err();
+            Response_Err(upcb,snmpIn,addr,port);
          }
       }
       else {
-         if(Next_Or_Bulk()) {
+         if(Next_Or_Bulk(snmpIn)) {
             Sensor_Code_Index=0;
             UART_ETHprintf(DEBUG_MSG,"snmp not match but bulk\r\n");;
-            Response_Int(Sensor_Code_Index,Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index]));
+            Response_Int(upcb,snmpIn,addr,port,Sensor_Code_Index,Find_One_Wire_T4Sensor_Code(Usr_Flash_Params.Sensor_Codes[Sensor_Code_Index]));
          }
          else {
             UART_ETHprintf(DEBUG_MSG,"snmp not match neither bulk\r\n");;
-            Response_Err();
+            Response_Err(upcb,snmpIn,addr,port);
          }
       }
    }
    else {
-      pbuf_free(Snmp_Data);                    //libreo bufer
-      Snmp_Data=NULL;
       UART_ETHprintf ( DEBUG_MSG,"Bad Version or Community\r\n" );
    }
+   pbuf_free(p);
 }
 //-----------------------------------------------------------------------------
-void Send_Snmp_Ans(void) {
-   udp_connect    ( &Snmp_Pcb,&Snmp_Addr,Snmp_Port );
-   udp_send       ( &Snmp_Pcb,Snmp_Data            );
-   udp_disconnect ( &Snmp_Pcb                      );
-   pbuf_free      ( Snmp_Data                      ); // libreo bufer
-   Snmp_Data=NULL;
+void Send_Snmp_Ans(struct udp_pcb *upcb, struct pbuf *p,ip_addr_t* addr, u16_t port) {
+   UART_ETHprintf(DEBUG_MSG,"Envio paquete UDP:\r\n%H\r\n",p->payload,p->tot_len);
+   if ( udp_connect(upcb,addr,port ) == ERR_OK)
+      if ( udp_send( upcb,p ) == ERR_OK)
+         udp_disconnect ( upcb );
+   pbuf_free ( p );
 }
-void Response_Int(uint8_t Node,uint16_t Value)/*{{{*/
+
+void Response_Int(struct udp_pcb *upcb, char* in,ip_addr_t* addr,  u16_t port,uint8_t Node,uint16_t Value)/*{{{*/
 {
- UART_ETHprintf(DEBUG_MSG,"Snmp Response\r\n");
+   uint16_t ansLen;
+   ansLen=  sizeof(struct Snmp_Header_Struct)-1 + strlen(Usr_Flash_Params.Snmp_Community);
+   ansLen+= sizeof(struct Snmp_Msg_Struct)-1    + Snmp_Msg(in)->Request_Id_Length;
+   ansLen+= sizeof(struct Snmp_Object_Struct)-1 + Usr_Flash_Params.Snmp_Iso_Len[Node];
+   ansLen+= sizeof(struct Snmp_Value_Struct)-1  + 2;
+   struct pbuf *outPbuf = pbuf_alloc(PBUF_TRANSPORT,ansLen,PBUF_RAM);
+   char* out            = outPbuf->payload;
 
- Rx_Snmp_Object ( )->Object_Name_Length= Usr_Flash_Params.Snmp_Iso_Len[Node];
- memcpy ( Rx_Snmp_Object( )->Object_Name,
-          Usr_Flash_Params.Snmp_Iso[Node],
-          Usr_Flash_Params.Snmp_Iso_Len[Node]);
+   UART_ETHprintf(DEBUG_MSG,"Snmp Response len=%i\r\n",ansLen);
 
- Rx_Snmp_Value ( )->Value_Code   = 0x02              ; // codigo que corresponde a Integer...
- Rx_Snmp_Value ( )->Value_Length = 2                 ; // solo mando integer de 2 bytes...
- Rx_Snmp_Value ( )->Value[0]     = ((char*)&Value)[1];
- Rx_Snmp_Value ( )->Value[1]     = ((char*)&Value)[0];
+   Snmp_Header (out)->Message_Code     = Snmp_Header (in)->Message_Code;
+// Snmp_Header (out)->Message_Length   = Snmp_Header (in)->Message_Length  ;
+   Snmp_Header (out)->Version_Code     = Snmp_Header (in)->Version_Code    ;
+   Snmp_Header (out)->Version_Length   = Snmp_Header (in)->Version_Length  ;
+   Snmp_Header (out)->Version          = Snmp_Header (in)->Version         ;
+   Snmp_Header (out)->Community_Code   = Snmp_Header (in)->Community_Code  ;
+   Snmp_Header (out)->Community_Length = strlen(Usr_Flash_Params.Snmp_Community);
+   memcpy ( Snmp_Header(out)->Community,Usr_Flash_Params.Snmp_Community,Snmp_Header (out)->Community_Length);
 
- Rx_Snmp_Object ( )->Item_Code      = 0x30                                                                  ;
- Rx_Snmp_Object ( )->Item_Length    = Rx_Snmp_Object()->Object_Name_Length+2+Rx_Snmp_Value()->Value_Length+2;
- Rx_Snmp_Object ( )->Binding_Code   = 0x30                                                                  ;
- Rx_Snmp_Object ( )->Binding_Length = Rx_Snmp_Object()->Item_Length+2                                       ;
- Rx_Snmp_Object ( )->Error_Status   = 0x00                                                                  ;
+   Snmp_Msg ( out )->Msg_Code          = Get_Response_Event;
+// Snmp_Msg ( out )->Msg_Length        = Snmp_Msg(in)->Msg_Length      ;
+   Snmp_Msg ( out )->Request_Id_Code   = Snmp_Msg(in)->Request_Id_Code ;
+   Snmp_Msg ( out )->Request_Id_Length = Snmp_Msg(in)->Request_Id_Length;
+   memcpy ( Snmp_Msg(out)->Request_Id,Snmp_Msg(in)->Request_Id,Snmp_Msg(in)->Request_Id_Length);
 
- Rx_Snmp_Msg ( )->Msg_Code       = Get_Response_Event                                                       ;
- Rx_Snmp_Msg ( )->Msg_Length     = Rx_Snmp_Object()->Binding_Length+2+6 + Rx_Snmp_Msg()->Request_Id_Length+2;
+   Snmp_Object ( out )-> Error_Status_Code   = Snmp_Object(in)->Error_Status_Code  ;
+   Snmp_Object ( out )-> Error_Status_Length = Snmp_Object(in)->Error_Status_Length;
+   Snmp_Object ( out )-> Error_Status        = 0                                   ;
+   Snmp_Object ( out )-> Error_Index_Code    = Snmp_Object(in)->Error_Index_Code   ;
+   Snmp_Object ( out )-> Error_Index_Length  = Snmp_Object(in)->Error_Index_Length ;
+   Snmp_Object ( out )-> Error_Index         = Snmp_Object(in)->Error_Index        ;
+   Snmp_Object ( out )-> Binding_Code        = 0x30                                ;
+// Snmp_Object   ( out )-> Binding_Length      = Snmp_Object(in)->Binding_Length     ;
+   Snmp_Object ( out )-> Item_Code           = 0x30                                ;
+// Snmp_Object   ( out )-> Item_Length         = Snmp_Object(in)->Item_Length        ;
+   Snmp_Object ( out )-> Object_Name_Code    = Snmp_Object(in)->Object_Name_Code   ;
+   Snmp_Object ( out )-> Object_Name_Length  = Usr_Flash_Params.Snmp_Iso_Len[ Node];
+   memcpy      ( Snmp_Object ( out )-> Object_Name,Usr_Flash_Params.Snmp_Iso       [ Node],Snmp_Object(out)->Object_Name_Length);
 
- Rx_Snmp_Header                                   ( )->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3;
- Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header ( )->Message_Length+2                                                                   ;
- Send_Snmp_Ans();
+   Snmp_Value ( out )->Value_Code   = 0x02              ; // codigo que corresponde a Integer...
+   Snmp_Value ( out )->Value_Length = 2                 ; // solo mando integer de 2 bytes...
+   Snmp_Value ( out )->Value[0]     = ((char*)&Value)[1];
+   Snmp_Value ( out )->Value[1]     = ((char*)&Value)[0];
+
+   Snmp_Object ( out )->Item_Length    = Snmp_Object(out)->Object_Name_Length+2+Snmp_Value(out)->Value_Length+2;
+   Snmp_Object ( out )->Binding_Length = Snmp_Object(out)->Item_Length+2                                       ;
+
+   Snmp_Msg    ( out )->Msg_Length     = Snmp_Object(out)->Binding_Length+2+6 + Snmp_Msg(out)->Request_Id_Length+2;
+   Snmp_Header ( out )->Message_Length = Snmp_Msg(out)->Msg_Length+2+Snmp_Header(out)->Community_Length+2+3       ;
+   Send_Snmp_Ans(upcb,outPbuf,addr,port);
 }/*}}}*/
-void Response_Err(void)/*{{{*/
+
+void Response_Err(struct udp_pcb *upcb, char* in,ip_addr_t* addr, u16_t port)/*{{{*/
 {
- UART_ETHprintf(DEBUG_MSG,"Snmp Response Err\r\n");;
+   uint16_t ansLen;
+   ansLen=  sizeof(struct Snmp_Header_Struct)-1 + Snmp_Header(in)->Community_Length;;
+   ansLen+= sizeof(struct Snmp_Msg_Struct)-1    + Snmp_Msg(in)->Request_Id_Length;
+   ansLen+= sizeof(struct Snmp_Object_Struct)-1 + Snmp_Object(in)->Object_Name_Length;
+   ansLen+= sizeof(struct Snmp_Value_Struct)-1  + 1;
+   struct pbuf *outPbuf = pbuf_alloc(PBUF_TRANSPORT,ansLen,PBUF_RAM);
+   char* out            = outPbuf->payload;
+   UART_ETHprintf(DEBUG_MSG,"Snmp Response Err len=%i\r\n",ansLen);
 
- Rx_Snmp_Value ( )->Value_Code   = 0x05; // codigo que corresponde a NO-SUCH-NAME
- Rx_Snmp_Value ( )->Value_Length = 1   ;
- Rx_Snmp_Value ( )->Value[0]     = 0   ;
+   Snmp_Header (out)->Message_Code     = Snmp_Header (in)->Message_Code;
+// Snmp_Header (out)->Message_Length   = Snmp_Header (in)->Message_Length  ;
+   Snmp_Header (out)->Version_Code     = Snmp_Header (in)->Version_Code    ;
+   Snmp_Header (out)->Version_Length   = Snmp_Header (in)->Version_Length  ;
+   Snmp_Header (out)->Version          = Snmp_Header (in)->Version         ;
+   Snmp_Header (out)->Community_Code   = Snmp_Header (in)->Community_Code  ;
+   Snmp_Header (out)->Community_Length = Snmp_Header (in)->Community_Length;
+   memcpy ( Snmp_Header(out)->Community,Snmp_Header(in)->Community,Snmp_Header (out)->Community_Length);
 
- Rx_Snmp_Object ( )->Item_Length    = Rx_Snmp_Object()->Object_Name_Length+2+Rx_Snmp_Value()->Value_Length+2;
- Rx_Snmp_Object ( )->Binding_Length = Rx_Snmp_Object()->Item_Length+2                                       ;
- Rx_Snmp_Object ( )->Error_Status   = 0x02                                                                  ;
+   Snmp_Msg ( out )->Msg_Code          = Get_Response_Event;
+// Snmp_Msg ( out )->Msg_Length        = Snmp_Msg(in)->Msg_Length      ;
+   Snmp_Msg ( out )->Request_Id_Code   = Snmp_Msg(in)->Request_Id_Code ;
+   Snmp_Msg ( out )->Request_Id_Length = Snmp_Msg(in)->Request_Id_Length;
+   memcpy ( Snmp_Msg(out)->Request_Id,Snmp_Msg(in)->Request_Id,Snmp_Msg(in)->Request_Id_Length);
 
- Rx_Snmp_Msg    ( )->Msg_Code       = Get_Response_Event;
- Rx_Snmp_Msg    ( )->Msg_Length     = Rx_Snmp_Object()->Binding_Length+2+6 + Rx_Snmp_Msg()->Request_Id_Length+2;
+   Snmp_Object ( out )-> Error_Status_Code   = Snmp_Object(in)->Error_Status_Code  ;
+   Snmp_Object ( out )-> Error_Status_Length = Snmp_Object(in)->Error_Status_Length;
+   Snmp_Object ( out )-> Error_Status        = 0x02                                ;
+   Snmp_Object ( out )-> Error_Index_Code    = Snmp_Object(in)->Error_Index_Code   ;
+   Snmp_Object ( out )-> Error_Index_Length  = Snmp_Object(in)->Error_Index_Length ;
+   Snmp_Object ( out )-> Error_Index         = Snmp_Object(in)->Error_Index        ;
+   Snmp_Object ( out )-> Binding_Code        = Snmp_Object(in)->Binding_Code       ;
+// Snmp_Object   ( out )-> Binding_Length    = Snmp_Object(in)->Binding_Length     ;
+   Snmp_Object ( out )-> Item_Code           = Snmp_Object ( in )-> Item_Code       ;
+// Snmp_Object   ( out )-> Item_Length       = Snmp_Object(in)->Item_Length        ;
+   Snmp_Object ( out )-> Object_Name_Code    = Snmp_Object(in)->Object_Name_Code   ;
+   Snmp_Object ( out )-> Object_Name_Length  = Snmp_Object(in)->Object_Name_Length;
+   memcpy ( Snmp_Object ( out )-> Object_Name,Snmp_Object ( in )-> Object_Name,Snmp_Object(out)->Object_Name_Length);
 
- Rx_Snmp_Header ( )->Message_Length = Rx_Snmp_Msg()->Msg_Length+2+Rx_Snmp_Header()->Community_Length+2+3   ;
+    Snmp_Value  (out )->Value_Code   = 0x05; // codigo que corresponde a NO-SUCH-NAME
+    Snmp_Value  (out )->Value_Length = 1   ;
+    Snmp_Value  (out )->Value[0]     = 0   ;
 
- Snmp_Data->len=Snmp_Data->tot_len=Rx_Snmp_Header ( )->Message_Length+2                                                                   ;
- Send_Snmp_Ans();
+   Snmp_Object ( out )->Item_Length    = Snmp_Object(out)->Object_Name_Length+2+Snmp_Value(out)->Value_Length+2;
+   Snmp_Object ( out )->Binding_Length = Snmp_Object(out)->Item_Length+2                                       ;
+
+   Snmp_Msg ( out )->Msg_Length     = Snmp_Object(out)->Binding_Length+2+6 + Snmp_Msg(out)->Request_Id_Length+2;
+   Snmp_Header(out)->Message_Length = Snmp_Msg(out)->Msg_Length+2+Snmp_Header(out)->Community_Length+2+3;
+   Send_Snmp_Ans(upcb,outPbuf,addr,port);
 }/*}}}*/
 //-----------------------------------------------------------------------------
 uint16_t Find_One_Wire_T4Sensor_Code(uint8_t* Sensor_Code)
