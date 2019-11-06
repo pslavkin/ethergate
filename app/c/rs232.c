@@ -56,7 +56,7 @@ void Rs232_Task(void* nil)
    P->Id        = 0;
    P->Index     = 7;
    P->lastIndex = 7;
-   Init_Uart ( );
+//   Init_Uart ( );
    CmdLineProcess(P);
    while(1) {
       vTaskDelay ( pdMS_TO_TICKS( 25 ));
@@ -175,6 +175,7 @@ void Callback_Send_Data2Tcp(void)
 {
    //no se debe mandar nada desde otra tarea (state_machone en este caso) que no sea tcpip, por
    //esto este doble wrapper
+   //Send_Data2Tcp(NULL);
    tcpip_callback(Send_Data2Tcp,NULL);
 }
 //-------------------------------------------------------------------------------------

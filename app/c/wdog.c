@@ -62,13 +62,14 @@ void Wdog_Task(void* nil)
 }
 void Init_Wdog(void)
 {
-   MAP_SysCtlPeripheralEnable ( SYSCTL_PERIPH_WDOG0                );
-   MAP_IntEnable              ( INT_WATCHDOG                       );
-   MAP_WatchdogIntEnable      ( WATCHDOG0_BASE                     ); // Enable the watchdog interrupt.
+   MAP_SysCtlPeripheralEnable ( SYSCTL_PERIPH_WDOG0                  );
+   MAP_IntEnable              ( INT_WATCHDOG                         );
+   MAP_WatchdogIntEnable      ( WATCHDOG0_BASE                       ); // Enable the watchdog interrupt.
    MAP_WatchdogReloadSet      ( WATCHDOG0_BASE, 2*configCPU_CLOCK_HZ ); // Set the period of the watchdog timer to 1 second.
-   MAP_WatchdogResetEnable    ( WATCHDOG0_BASE                     ); // Enable reset generation from the watchdog timer.
-   MAP_WatchdogEnable         ( WATCHDOG0_BASE                     ); // Enable the watchdog timer.
-   xTaskCreate ( Wdog_Task ,"wdog" ,configMINIMAL_STACK_SIZE ,NULL ,1 ,NULL );
+   MAP_WatchdogResetEnable    ( WATCHDOG0_BASE                       ); // Enable reset generation from the watchdog timer.
+   MAP_WatchdogEnable         ( WATCHDOG0_BASE                       ); // Enable the watchdog timer.
+   MAP_IntPrioritySet         ( INT_WATCHDOG,1<<5                    );
+   xTaskCreate ( Wdog_Task ,"wdog" ,configMINIMAL_STACK_SIZE ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
 }
 void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 {
@@ -82,7 +83,17 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 }
 // The error routine that is called if the driver library encounters an error.
 #ifdef DEBUG
-void __error__(char *pcFilename, uint32_t ui32Line) { }
+void __error__(char *pcFilename, uint32_t ui32Line) {
+   while(1) {
+      MAP_UARTCharPut(UART0_BASE, 'd');
+      MAP_UARTCharPut(UART0_BASE, 'r');
+      MAP_UARTCharPut(UART0_BASE, 'i');
+      MAP_UARTCharPut(UART0_BASE, 'v');
+      MAP_UARTCharPut(UART0_BASE, 'e');
+      MAP_UARTCharPut(UART0_BASE, 'r');
+      MAP_UARTCharPut(UART0_BASE, ' ');
+   }
+}
 #endif
 
 

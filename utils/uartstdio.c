@@ -43,24 +43,13 @@
 
 //*****************************************************************************
 //
-// This global controls whether or not we are echoing characters back to the
-// transmitter.  By default, echo is enabled but if using this module as a
-// convenient method of implementing a buffered serial interface over which
-// you will be running an application protocol, you are likely to want to
-// disable echo by calling UARTEchoSet(false).
-//
-//*****************************************************************************
-static bool g_bDisableEcho;
-
-//*****************************************************************************
-//
 // Output ring buffer.  Buffer is full if g_ui32UARTTxReadIndex is one ahead of
 // g_ui32UARTTxWriteIndex.  Buffer is empty if the two indices are the same.
 //
 //*****************************************************************************
-static unsigned char* g_pcUARTTxBuffer; //el buffer lo genero dinamicamente
+static unsigned char     g_pcUARTTxBuffer[ UART_TX_BUFFER_SIZE]         ; // el buffer lo genero dinamicamente
 static volatile uint32_t g_ui32UARTTxWriteIndex = 0;
-static volatile uint32_t g_ui32UARTTxReadIndex = 0;
+static volatile uint32_t g_ui32UARTTxReadIndex  = 0;
 
 //*****************************************************************************
 //
@@ -68,9 +57,9 @@ static volatile uint32_t g_ui32UARTTxReadIndex = 0;
 // g_ui32UARTTxWriteIndex.  Buffer is empty if the two indices are the same.
 //
 //*****************************************************************************
-static unsigned char* g_pcUARTRxBuffer;//el buffer lo genero dinamicamente
+static unsigned char     g_pcUARTRxBuffer[ UART_RX_BUFFER_SIZE]         ; // el buffer lo genero dinamicamente
 static volatile uint32_t g_ui32UARTRxWriteIndex = 0;
-static volatile uint32_t g_ui32UARTRxReadIndex = 0;
+static volatile uint32_t g_ui32UARTRxReadIndex  = 0;
 
 //*****************************************************************************
 //
@@ -326,14 +315,14 @@ UARTPrimeTransmit(uint32_t ui32Base)
 //
 //*****************************************************************************
 SemaphoreHandle_t Print_Mutex;
-char* Buff;
+char Buff[APP_OUT_BUF_SIZE];
 
 void UARTStdioConfig(uint32_t ui32PortNum, uint32_t ui32Baud, uint32_t ui32SrcClock)
 {
     Print_Mutex         = xSemaphoreCreateMutex();
-    Buff             = pvPortMalloc(APP_OUT_BUF_SIZE);//sisi, la pido aca asi queda dentro del heap de freertos
-    g_pcUARTTxBuffer = pvPortMalloc(UART_TX_BUFFER_SIZE);
-    g_pcUARTRxBuffer = pvPortMalloc(UART_RX_BUFFER_SIZE);
+//    Buff             = pvPortMalloc(APP_OUT_BUF_SIZE);//sisi, la pido aca asi queda dentro del heap de freertos
+//    g_pcUARTTxBuffer = pvPortMalloc(UART_TX_BUFFER_SIZE);
+//    g_pcUARTRxBuffer = pvPortMalloc(UART_RX_BUFFER_SIZE);
 
     ASSERT(g_ui32Base == 0);
     // Check to make sure the UART peripheral is present.
@@ -359,9 +348,10 @@ void UARTStdioConfig(uint32_t ui32PortNum, uint32_t ui32Baud, uint32_t ui32SrcCl
     // for this UART and the receive interrupts.  We don't actually enable the
     // transmit interrupt in the UART itself until some data has been placed
     // in the transmit buffer.
-    MAP_UARTIntDisable(g_ui32Base, 0xFFFFFFFF);
-    MAP_UARTIntEnable(g_ui32Base, UART_INT_RX | UART_INT_RT);
-    MAP_IntEnable(g_ui32UARTInt[ui32PortNum]);
+    MAP_UARTIntDisable ( g_ui32Base, 0xFFFFFFFF                );
+    MAP_UARTIntEnable  ( g_ui32Base, UART_INT_RX | UART_INT_RT );
+    MAP_IntPrioritySet ( INT_UART0, 6<<5                       );
+    MAP_IntEnable      ( g_ui32UARTInt[ui32PortNum]            );
     // Enable the UART operation.
     MAP_UARTEnable(g_ui32Base);
 }
@@ -397,6 +387,7 @@ int UARTwrite(const char *pcBuf, uint32_t ui32Len)
    uint16_t uIdx;
    bool Data2Send=false;
    Send_To_Virtual_Tcp((uint8_t*)pcBuf,ui32Len);
+   MAP_IntDisable(g_ui32UARTInt[g_ui32PortNum]);
    for(uIdx = 0; uIdx < ui32Len; uIdx++)
       if(!TX_BUFFER_FULL) {
          g_pcUARTTxBuffer[g_ui32UARTTxWriteIndex] = pcBuf[uIdx];
@@ -407,6 +398,7 @@ int UARTwrite(const char *pcBuf, uint32_t ui32Len)
       UARTPrimeTransmit ( g_ui32Base              );
       MAP_UARTIntEnable ( g_ui32Base, UART_INT_TX );
    }
+   MAP_IntEnable(g_ui32UARTInt[g_ui32PortNum]);
    return uIdx;
 }
 
@@ -786,34 +778,6 @@ UARTFlushTx(bool bDiscard)
         {
         }
     }
-}
-#endif
-
-//*****************************************************************************
-//
-//! Enables or disables echoing of received characters to the transmitter.
-//!
-//! \param bEnable must be set to \b true to enable echo or \b false to
-//! disable it.
-//!
-//! This function, available only when the module is built to operate in
-//! buffered mode using \b UART_BUFFERED, may be used to control whether or not
-//! received characters are automatically echoed back to the transmitter.  By
-//! default, echo is enabled and this is typically the desired behavior if
-//! the module is being used to support a serial command line.  In applications
-//! where this module is being used to provide a convenient, buffered serial
-//! interface over which application-specific binary protocols are being run,
-//! however, echo may be undesirable and this function can be used to disable
-//! it.
-//!
-//! \return None.
-//
-//*****************************************************************************
-#if defined(UART_BUFFERED) || defined(DOXYGEN)
-void
-UARTEchoSet(bool bEnable)
-{
-    g_bDisableEcho = !bEnable;
 }
 #endif
 

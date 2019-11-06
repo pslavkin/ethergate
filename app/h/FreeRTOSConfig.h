@@ -1,6 +1,13 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+
+/* Define configASSERT() to call vAssertCalled() if the assertion fails.  The assertion
+ * has failed if the value of the parameter passed into configASSERT() equals zero. */
+extern void UARTprintf(const char *pcString, ...);
+#define configASSERT( x )     if( ( x ) == 0 ) while(1) UARTprintf("error en file%s linea%i\r\n", __FILE__, __LINE__ )
+
+
 #define configUSE_PREEMPTION                1
 #define configUSE_IDLE_HOOK                 0
 #define configUSE_TICK_HOOK                 0

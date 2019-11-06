@@ -192,15 +192,15 @@ void Create_Cmd_Socket(void* nil)
 err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
    if(p!=NULL)  {
-      if(UARTTxBytesFree()>=p->len) {
+//      if(UARTTxBytesFree()>=p->len) {
          UARTwrite           ( p->payload ,p->len );
          Send_To_Sniffer_Tcp ( p->payload ,p->len );
          tcp_recved          ( tpcb       ,p->len );
          pbuf_free           ( p                  ); // libero bufer
          return ERR_OK;
-      }
-      else
-         return ERR_INPROGRESS; //parece que anda, pero no lo revise.. o sea no puedo mandar.. volve mas tarde
+//      }
+//      else
+//         return ERR_INPROGRESS; //parece que anda, pero no lo revise.. o sea no puedo mandar.. volve mas tarde
    }
    else {
       tcp_accepted ( Soc_Rs232 ); // libreo 1 lugar para el blog
@@ -209,10 +209,18 @@ err_t Rcv_Rs232_Fn (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
       return ERR_OK;
    }
 }
+void Err_Rs232_Fn (void *arg, err_t err)
+{
+   struct tcp_pcb* tpcb = (struct tcp_pcb*)arg;
+   tcp_accepted ( Soc_Rs232 ); // libreo 1 lugar para el blog
+   Free_Conn    ( tpcb      );
+   tcp_close    ( tpcb      ); // cierro
+}
 err_t Accept_Rs232_Fn (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
    tcp_recv ( newpcb ,Rcv_Rs232_Fn );
-   tcp_arg  ( newpcb ,NULL         );
+   tcp_err  ( newpcb, Err_Rs232_Fn );
+   tcp_arg  ( newpcb ,newpcb       );
    Add_Conn ( newpcb ,NORMAL       );
    return 0;
 }

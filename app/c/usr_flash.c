@@ -35,9 +35,9 @@ struct Usr_Flash_Struct Default_Usr_Flash_Params = {
       .Id             = "ehergate_12345678",
       .Pwd            = "1234",
       .Wdog           = 0,
-      .Rs232_Len      = TCP_MSS, // longitud en donde corta la trama 232 (tiene que ser menor que el largo del buffer limitar al recibir
+      .Rs232_Len      = TCP_MSS/2, // longitud en donde corta la trama 232 (tiene que ser menor que el largo del buffer limitar al recibir
       .Rs232_Tout     =  10,     // en slots de 100msegs (10=1seg)
-      .Rs232_Term     = '\r', //0xF0FF,  // '\r', // caracter que corta la trama 232 (es un entero 16 para poder invalidarlo poniendo un numero mayor a 255
+      .Rs232_Term     = '\r'<<8|'\n', //0xF0FF,  // '\r', // caracter que corta la trama 232 (es un entero 16 para poder invalidarlo poniendo un numero mayor a 255
       .Rs232_Baud     = 115200,  // baud rate para puerto 232
       .Rs232_Menu_Enable = true, // permite entrar al menu de configuracion por rs232 siempre qu eno este ninguna conexion abierta
 };

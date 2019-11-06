@@ -1,6 +1,10 @@
 // System Architecture support routines for TI Tiva devices.
 #include "lwip/opt.h"
 #include "lwip/sys.h"
+#include "../../../../utils/uartstdio.h"
+#include "../../../../driverlib/rom_map.h"
+#include "../../../../driverlib/uart.h"
+#include "../../../../inc/hw_memmap.h"
 
 /* A structure to contain the variables for a sys_thread_t. */
 typedef struct {
@@ -477,8 +481,8 @@ sys_thread_new(const char *name, lwip_thread_fn thread, void *arg,
   //entonces para que tomar 2 veces de distintos heap..ahora igual estoy viendo de usar
   //directamente la llamada a xtaskcreate de freertos y volar esto a la bosta
   if(xTaskCreate(sys_arch_thread, (portCHAR *)name,
-                 configMINIMAL_STACK_SIZE*2,
-               //  stacksize/sizeof(int),
+               //  configMINIMAL_STACK_SIZE*2,
+                 stacksize/sizeof(int),
                  (void *)i, tskIDLE_PRIORITY+prio,
                  &threads[i].taskhandle) != pdTRUE){
     threads[i].stackstart = NULL;

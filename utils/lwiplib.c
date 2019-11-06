@@ -136,7 +136,7 @@ uint8_t Link_State = false;
 //*****************************************************************************
 // The stack size for the interrupt task.
 //*****************************************************************************
-#define STACKSIZE_LWIPINTTASK   256 //128
+#define STACKSIZE_LWIPINTTASK   256//128
 //*****************************************************************************
 // The handle for the "queue" (semaphore) used to signal the interrupt task
 // from the interrupt handler.
@@ -230,7 +230,7 @@ static void lwIPPrivateInit(void *pvArg)
 //    g_pInterrupt = xQueueCreate(100, sizeof(void *)); //decia un solo elemento
     g_pInterrupt = xQueueCreate(10, sizeof(uint32_t)); //decia un solo elemento
     xTaskCreate(lwIPInterruptTask, (portCHAR *)"eth_int",
-                STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 2, //estaba en +1 lo paso a +3
+                STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 3, //estaba en +1 lo paso a +3
                 0);
     ip_addr.addr  = 0; //arranco en cero, el lwIPPrivateHostTimer se encargara de configurar cuando se linkee
     net_mask.addr = 0;
@@ -284,8 +284,9 @@ void lwIPInit(uint32_t ui32SysClkHz, const uint8_t *pui8MAC)
                                     EMAC_MODE_TX_STORE_FORWARD |
                                     EMAC_MODE_TX_THRESHOLD_64_BYTES |
                                     EMAC_MODE_RX_THRESHOLD_64_BYTES), 0);
-    MAP_EMACAddrSet ( EMAC0_BASE, 0, (uint8_t * )pui8MAC);   // Program the hardware with its MAC address (for filtering).
-    tcpip_init      ( lwIPPrivateInit, 0        )        ;   // Initialize lwIP.  The remainder of initialization is deferred to the TCP/IP thread's context if
+    MAP_IntPrioritySet ( INT_EMAC0, 6<<5           )        ;
+    MAP_EMACAddrSet    ( EMAC0_BASE, 0, (uint8_t * )pui8MAC); // Program the hardware with its MAC address (for filtering).
+    tcpip_init         ( lwIPPrivateInit, 0        )        ; // Initialize lwIP.  The remainder of initialization is deferred to the TCP/IP thread's context if
 }
 //*****************************************************************************
 //

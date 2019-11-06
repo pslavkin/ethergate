@@ -87,6 +87,7 @@ mem_malloc(mem_size_t size)
 #if MEM_USE_POOLS_TRY_BIGGER_POOL
 again:
 #endif /* MEM_USE_POOLS_TRY_BIGGER_POOL */
+
     /* is this pool big enough to hold an element of the required size
        plus a struct memp_malloc_helper that saves the pool this element came from? */
     if (required_size <= memp_sizes[poolnr]) {

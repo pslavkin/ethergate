@@ -36,6 +36,7 @@ void Init_Button1(void)
    MAP_GPIOIntTypeSet ( BUTTON1_PORT,BUTTON1_PIN, GPIO_BOTH_EDGES );
    MAP_GPIOIntClear   ( BUTTON1_PORT, BUTTON1_PIN                 );
    MAP_GPIOIntEnable  ( BUTTON1_PORT,BUTTON1_PIN                  );
+   MAP_IntPrioritySet ( INT_GPIOH, 6<<5                           );
    MAP_IntEnable      ( BUTTON1_INT                               );
 }
 

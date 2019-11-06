@@ -47,9 +47,9 @@
 //*****************************************************************************
 //#define MEM_LIBC_MALLOC                 0
 #define MEM_ALIGNMENT                   4          // default is 1
-#define MEM_SIZE                        (16  *1024)  // con 2k no anda con 16, anda 2 horas
+#define MEM_SIZE                        (32  *1024)  // con 2k no anda con 16, anda 2 horas
 #define MEMP_OVERFLOW_CHECK             0
-#define MEMP_SANITY_CHECK               0
+#define MEMP_SANITY_CHECK               1
 //#define MEM_USE_POOLS                   0
 //#define MEMP_USE_CUSTOM_POOLS           0
 
@@ -95,8 +95,8 @@
 //*****************************************************************************
 // ---------- ICMP options ----------
 //*****************************************************************************
-//#define LWIP_ICMP                       1
-//#define ICMP_TTL                       (IP_DEFAULT_TTL)
+#define LWIP_ICMP                       1
+#define ICMP_TTL                       (IP_DEFAULT_TTL)
 //*****************************************************************************
 // ---------- RAW options ----------
 //*****************************************************************************
@@ -155,7 +155,7 @@
 //*****************************************************************************
 #define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_MSS                         1460//1460 //536 //500 //1460         // default is 536
+#define TCP_MSS                         536//1460 //536 //500 //1460         // default is 536
 #define TCP_WND                         (1*TCP_MSS) // default is 2048
 #define TCP_SND_BUF                     (2*TCP_MSS)
 //#define TCP_MAXRTX                    12
@@ -199,7 +199,7 @@
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 #define TCPIP_THREAD_STACKSIZE          400 //(2*1024) //en la creacion de sys_thread divide por 4 pero como estoy usando xthread, no lo divide
-#define TCPIP_THREAD_PRIO               5
+#define TCPIP_THREAD_PRIO               4
 #define TCPIP_MBOX_SIZE                 64
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
 //#define SLIPIF_THREAD_STACKSIZE         0
@@ -242,7 +242,7 @@
 //
 //*****************************************************************************
 #define LWIP_STATS                      0
-//#define LWIP_STATS_DISPLAY              0
+//#define LWIP_STATS_DISPLAY              1
 //#define LINK_STATS                      1
 //#define ETHARP_STATS                    (LWIP_ARP)
 //#define IP_STATS                        1
@@ -294,19 +294,22 @@
 // ---------- checksum options ----------
 //
 //*****************************************************************************
-//#define CHECKSUM_GEN_IP                 1
-//#define CHECKSUM_GEN_UDP                1
-//#define CHECKSUM_GEN_TCP                1
-//#define CHECKSUM_CHECK_IP               1
-//#define CHECKSUM_CHECK_UDP              1
-//#define CHECKSUM_CHECK_TCP              1
+#define CHECKSUM_GEN_ICMP 0      //si lo pongo en 1 NO genera los checksum en el reply!! parece que es un bug de lwip... pero salto recien.. no se porque
+
+
+#define CHECKSUM_GEN_IP                 1
+#define CHECKSUM_GEN_UDP                1
+#define CHECKSUM_GEN_TCP                1
+#define CHECKSUM_CHECK_IP               1
+#define CHECKSUM_CHECK_UDP              1
+#define CHECKSUM_CHECK_TCP              1
 
 //*****************************************************************************
 //
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 0
+#if 1
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"
@@ -319,10 +322,11 @@
 extern void UARTprintf(const char *pcString, ...);
 #define LWIP_PLATFORM_DIAG(msg) do {UARTprintf msg ;} while(0)
 #define LWIP_DEBUG
+#undef LWIP_NOASSERT
 #endif
 
-#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_OFF
-//#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
+//#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_OFF
+#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
 //#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_WARNING
 //#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_SERIOUS
 //#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_SEVERE
