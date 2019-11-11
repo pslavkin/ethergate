@@ -12,6 +12,7 @@
 #include "semphr.h"
 //-----------------------------------------------------------
 extern SemaphoreHandle_t   Led_Link_Semphr                 ;
+void initLed(void);
 void                       Led_Rgb_Only_Green ( void      );
 void                       Led_Rgb_Only_Blue  ( void      );
 void                       Led_Rgb_Only_Red   ( void      );

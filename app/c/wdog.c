@@ -28,6 +28,7 @@ void Wdog_Handler ( void )
    MAP_UARTCharPut(UART0_BASE, 'o');
    MAP_UARTCharPut(UART0_BASE, 'g');
    MAP_UARTCharPut(UART0_BASE, ' ');
+   Delay_Useg(100);
 }
 
 uint32_t Read_Uptime(void)
@@ -79,21 +80,19 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
       MAP_UARTCharPut(UART0_BASE, 'a');
       MAP_UARTCharPut(UART0_BASE, 'c');
       MAP_UARTCharPut(UART0_BASE, ' ');
+      Delay_Useg(100);
    }
 }
 // The error routine that is called if the driver library encounters an error.
 #ifdef DEBUG
-void __error__(char *pcFilename, uint32_t ui32Line) {
-   while(1) {
+void __error__(char *pcFilename, uint32_t ui32Line)
+{
       MAP_UARTCharPut(UART0_BASE, 'd');
       MAP_UARTCharPut(UART0_BASE, 'r');
       MAP_UARTCharPut(UART0_BASE, 'i');
       MAP_UARTCharPut(UART0_BASE, 'v');
-      MAP_UARTCharPut(UART0_BASE, 'e');
-      MAP_UARTCharPut(UART0_BASE, 'r');
       MAP_UARTCharPut(UART0_BASE, ' ');
-   }
+      Delay_Useg(100);
 }
 #endif
-
 

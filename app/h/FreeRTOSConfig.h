@@ -4,8 +4,9 @@
 
 /* Define configASSERT() to call vAssertCalled() if the assertion fails.  The assertion
  * has failed if the value of the parameter passed into configASSERT() equals zero. */
+extern void Delay_Useg(uint32_t d);
 extern void UARTprintf(const char *pcString, ...);
-#define configASSERT( x )     if( ( x ) == 0 ) while(1) UARTprintf("error en file%s linea%i\r\n", __FILE__, __LINE__ )
+//#define configASSERT( x )     if( ( x ) == 0 ) {UARTprintf("error en file%s linea%i\r\n", __FILE__, __LINE__ );Delay_Useg(100000);}
 
 
 #define configUSE_PREEMPTION                1
@@ -14,7 +15,7 @@ extern void UARTprintf(const char *pcString, ...);
 #define configCPU_CLOCK_HZ                  ( ( unsigned long ) 120000000 )
 #define configTICK_RATE_HZ                  ( ( portTickType ) 100 )
 #define configMINIMAL_STACK_SIZE            ( ( unsigned short ) 100 )
-#define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 40000 ) )
+#define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 30000 ) )
 #define configMAX_TASK_NAME_LEN             ( 16 )
 #define configUSE_TRACE_FACILITY             0
 #define configUSE_STATS_FORMATTING_FUNCTIONS 0
@@ -28,7 +29,7 @@ extern void UARTprintf(const char *pcString, ...);
 
 #define configMAX_PRIORITIES                (16UL) // ( unsigned portBASE_TYPEE ) 16 )
 #define configMAX_CO_ROUTINE_PRIORITIES     ( 2 )
-#define configQUEUE_REGISTRY_SIZE           10
+#define configQUEUE_REGISTRY_SIZE           0
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
 #define configUSE_COUNTING_SEMAPHORES        1

@@ -30,14 +30,14 @@
 
 int main(void)
 {
-   Init_Clk    ( );
+   Init_Clk             ( );
    MAP_IntMasterDisable ( );
-   Init_Events ( );
-   Init_Uart   ( );
-   MAP_UARTCharPut(UART0_BASE, '0'); //debug TODO
-
    Init_Usr_Flash ( );
    Init_Wdog      ( );
+   Init_Schedule  ( ); // hay que crearlas aca porque dentro de las tareas se inicializarian tarde
+   Init_Uart      ( ); // hay que crearlas aca porque dentro de las tareas se inicializarian tarde
+   Init_Events    ( );
+   initLed        ( ); // hay que crearlas aca porque dentro de las tareas se inicializarian tarde
 
 #if RS232_ETH_ENABLE
    xTaskCreate ( Rs232_Task      ,"rs232"      ,configMINIMAL_STACK_SIZE   ,NULL ,tskIDLE_PRIORITY+1 ,NULL );
@@ -55,8 +55,6 @@ int main(void)
    Init_Udp    (                                               );
 
    MAP_IntMasterEnable ( );
-
-   MAP_UARTCharPut(UART0_BASE, '7'); //debug TODO
    vTaskStartScheduler ( );
    while(1)
        ;

@@ -47,7 +47,7 @@
 //*****************************************************************************
 //#define MEM_LIBC_MALLOC                 0
 #define MEM_ALIGNMENT                   4          // default is 1
-#define MEM_SIZE                        (32  *1024)  // con 2k no anda con 16, anda 2 horas
+#define MEM_SIZE                        (20  *1024)  // con 2k no anda con 16, anda 2 horas
 #define MEMP_OVERFLOW_CHECK             0
 #define MEMP_SANITY_CHECK               1
 //#define MEM_USE_POOLS                   0
@@ -155,7 +155,7 @@
 //*****************************************************************************
 #define LWIP_TCP                        1
 //#define TCP_TTL                         (IP_DEFAULT_TTL)
-#define TCP_MSS                         536//1460 //536 //500 //1460         // default is 536
+#define TCP_MSS                         1460 //536 //500 //1460         // default is 536
 #define TCP_WND                         (1*TCP_MSS) // default is 2048
 #define TCP_SND_BUF                     (2*TCP_MSS)
 //#define TCP_MAXRTX                    12
@@ -198,7 +198,7 @@
 // ---------- Thread options ----------
 //*****************************************************************************
 #define TCPIP_THREAD_NAME              "tcpip_thread"
-#define TCPIP_THREAD_STACKSIZE          400 //(2*1024) //en la creacion de sys_thread divide por 4 pero como estoy usando xthread, no lo divide
+#define TCPIP_THREAD_STACKSIZE          400 //4*1024 //(2*1024) //en la creacion de sys_thread divide por 4 pero como estoy usando xthread, no lo divide
 #define TCPIP_THREAD_PRIO               4
 #define TCPIP_MBOX_SIZE                 64
 //#define SLIPIF_THREAD_NAME             "slipif_loop"
@@ -309,7 +309,7 @@
 // ---------- Debugging options ----------
 //
 //*****************************************************************************
-#if 1
+#if 0
 #define U8_F "c"
 #define S8_F "c"
 #define X8_F "x"
@@ -325,15 +325,14 @@ extern void UARTprintf(const char *pcString, ...);
 #undef LWIP_NOASSERT
 #endif
 
-//#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_OFF
-#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
+#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_OFF
+//#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
 //#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_WARNING
 //#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_SERIOUS
 //#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_SEVERE
 
-//#define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
-#define LWIP_DBG_TYPES_ON               (LWIP_DBG_ON|LWIP_DBG_TRACE|          \
-                                         LWIP_DBG_STATE|LWIP_DBG_FRESH)
+#define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
+//#define LWIP_DBG_TYPES_ON               (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|LWIP_DBG_FRESH)
 
 #define ETHARP_DEBUG                    LWIP_DBG_OFF     // default is OFF
 #define NETIF_DEBUG                     LWIP_DBG_OFF     // default is OFF

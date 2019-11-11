@@ -349,8 +349,8 @@ void UARTStdioConfig(uint32_t ui32PortNum, uint32_t ui32Baud, uint32_t ui32SrcCl
     // transmit interrupt in the UART itself until some data has been placed
     // in the transmit buffer.
     MAP_UARTIntDisable ( g_ui32Base, 0xFFFFFFFF                );
-    MAP_UARTIntEnable  ( g_ui32Base, UART_INT_RX | UART_INT_RT );
     MAP_IntPrioritySet ( INT_UART0, 6<<5                       );
+    MAP_UARTIntEnable  ( g_ui32Base, UART_INT_RX | UART_INT_RT );
     MAP_IntEnable      ( g_ui32UARTInt[ui32PortNum]            );
     // Enable the UART operation.
     MAP_UARTEnable(g_ui32Base);
@@ -546,14 +546,14 @@ UARTgetc(void)
 //solo se usa para funciones de debug
 void UARTprintf(const char *pcString, ...)
 {
-   xSemaphoreTake(Print_Mutex,portMAX_DELAY);
+//   xSemaphoreTake(Print_Mutex,portMAX_DELAY);
    va_list vaArgP;
    int len;
    va_start(vaArgP, pcString);
    len=uvsnprintf(Buff,APP_OUT_BUF_SIZE,pcString, vaArgP);
    UARTwrite(Buff,len);
    va_end(vaArgP);
-   xSemaphoreGive(Print_Mutex);
+//   xSemaphoreGive(Print_Mutex);
 }
 
 void UART_ETHprintf(struct tcp_pcb* tpcb,const char *pcString, ...)

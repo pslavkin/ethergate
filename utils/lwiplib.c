@@ -136,7 +136,7 @@ uint8_t Link_State = false;
 //*****************************************************************************
 // The stack size for the interrupt task.
 //*****************************************************************************
-#define STACKSIZE_LWIPINTTASK   256//128
+#define STACKSIZE_LWIPINTTASK   128
 //*****************************************************************************
 // The handle for the "queue" (semaphore) used to signal the interrupt task
 // from the interrupt handler.
@@ -154,9 +154,8 @@ static void lwIPInterruptTask(void *pvArg)
 //dato que viene por copia
    uint32_t arg;
    while(1) {
-      while(xQueueReceive( g_pInterrupt, &arg, pdMS_TO_TICKS(500))==pdFALSE)
-         xSemaphoreGive ( Led_Link_Semphr );
-
+      xQueueReceive( g_pInterrupt, &arg, portMAX_DELAY)
+         ;
       xSemaphoreGive ( Led_Link_Semphr );
       tivaif_interrupt(&g_sNetIF, arg);                         // Processes any packets waiting to be sent or received.
       MAP_EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT | // Re-enable the Ethernet interrupts.
@@ -227,8 +226,7 @@ static void lwIPPrivateInit(void *pvArg)
     struct ip_addr gw_addr;
     // If using a RTOS, create a queue (to be used as a semaphore) to signal
     // the Ethernet interrupt task from the Ethernet interrupt handler.
-//    g_pInterrupt = xQueueCreate(100, sizeof(void *)); //decia un solo elemento
-    g_pInterrupt = xQueueCreate(10, sizeof(uint32_t)); //decia un solo elemento
+    g_pInterrupt = xQueueCreate(1, sizeof(uint32_t)); //decia un solo elemento, en un momento de debug probe con 10, pero ahora que nada bien, con 1 anda igual, cosa que es logico
     xTaskCreate(lwIPInterruptTask, (portCHAR *)"eth_int",
                 STACKSIZE_LWIPINTTASK, 0, tskIDLE_PRIORITY + 3, //estaba en +1 lo paso a +3
                 0);
@@ -269,8 +267,9 @@ void lwIPInit(uint32_t ui32SysClkHz, const uint8_t *pui8MAC)
     MAP_SysCtlPeripheralReset  ( SYSCTL_PERIPH_EPHY0 );
     while(!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EMAC0))   // Wait for the MAC to come out of reset.
        ;
-    EMACPHYConfigSet (EMAC0_BASE, EMAC_PHY_CONFIG);          // Configure for use with whichever PHY the user requires.
-    MAP_EMACInit     (EMAC0_BASE, ui32SysClkHz,              // Initialize the MAC and set the DMA mode.
+    EMACPHYConfigSet (EMAC0_BASE, EMAC_PHY_CONFIG);         // Configure for use with whichever PHY the user requires.
+    MAP_IntPrioritySet ( INT_EMAC0, 6<<5 );                 //esto es clave y no estaba en el port de lwip... hay que poner una irq 
+    MAP_EMACInit     (EMAC0_BASE, ui32SysClkHz,             // Initialize the MAC and set the DMA mode.
                       EMAC_BCONFIG_MIXED_BURST | EMAC_BCONFIG_PRIORITY_FIXED,
                       4, 4, 0);
     MAP_EMACConfigSet(EMAC0_BASE, (EMAC_CONFIG_FULL_DUPLEX | // Set MAC configuration options.
@@ -284,7 +283,6 @@ void lwIPInit(uint32_t ui32SysClkHz, const uint8_t *pui8MAC)
                                     EMAC_MODE_TX_STORE_FORWARD |
                                     EMAC_MODE_TX_THRESHOLD_64_BYTES |
                                     EMAC_MODE_RX_THRESHOLD_64_BYTES), 0);
-    MAP_IntPrioritySet ( INT_EMAC0, 6<<5           )        ;
     MAP_EMACAddrSet    ( EMAC0_BASE, 0, (uint8_t * )pui8MAC); // Program the hardware with its MAC address (for filtering).
     tcpip_init         ( lwIPPrivateInit, 0        )        ; // Initialize lwIP.  The remainder of initialization is deferred to the TCP/IP thread's context if
 }
